@@ -1,6 +1,6 @@
 <html>
 <script>
-
+// Created by Rea S.
 function HandleLoginResponse(response)
 {
 	var text = JSON.parse(response);

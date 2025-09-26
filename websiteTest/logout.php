@@ -1,4 +1,5 @@
 <?php
+// Created by Rea S.
 
 if (isset($_SESSION['login'])) { // CHECK IF LOGIN SESSION IS SET
    /*unset($_SESSION['login']);

@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 
-$mydb = new mysqli('127.0.0.1','testUser','12345','testdb');
+$mydb = new mysqli('127.0.0.1','testUser','12345','testdb'); // creates new instance of mysql via php
 
 if ($mydb->errno != 0)
 {
