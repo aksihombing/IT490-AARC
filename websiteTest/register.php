@@ -20,8 +20,8 @@ if (isset($_POST['emailAddress'])) {
 } else {
     $email = ''; // if NOT set, string is EMPTY.
 }
-if (isset($_POST['uname'])) {
-    $username = $_POST['uname'];
+if (isset($_POST['username'])) {
+    $username = $_POST['username'];
 } else {
     $username = '';
 }
@@ -40,12 +40,31 @@ if (empty($emailAddress) || empty($username) || empty($password)) {
 // hash the password before sending through server and datbase
 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
+ $request = [
+        'action'   => 'register',
+        'email'    => $email,
+        'username' => $username,
+        'password' => $hashedPassword,
+
+    ];
+
 // try to connect to RabbitMQ
 try {
     $client = new rabbitMQClient("testRabbitMQ.ini","testServer"); 
-// uses testRabbitMQ.ini for RABBIT SERVER CONFIGURATION
-    $channel = $client->channel();
+// uses testRabbitMQ.ini for RABBIT SERVER CONFIGURATION. 
+// REGISTRATION info will get put into Database via the information set in testRabbitMQ.ini !!!
 
+    $response = $client->send_request($request);
+
+    if ($response == false) { // if no response from RabbitMQ...
+        echo "Registration failed. No response from server";
+    }
+    else {
+        echo "Server Responded! : " . print_r($response,true);
+    }
+
+    /* 
+    SCRAPPED !!!!
     // queue
     $channel->queue_declare( // declares a queue
         'register_queue', // name of queue
@@ -55,24 +74,14 @@ try {
         false // "Auto Delete" --> when false, queue stays active even when empty or disconnected from consumers
     ); // i actually dont know if this is needed ???????
 
-    // 4. Build message payload (JSON)
-    $data = [
-        'action'   => 'register',
-        'email'    => $email,
-        'username' => $username,
-        'password' => $hashedPassword,
-        // 'time'     => date('Y-m-d H:i:s') //not sure if we need the date of registration?
-    ];
-    $msgBody = json_encode($data); // translates/encodes the data
-
-    //  AMQP message
+    */
 
 
 } catch (Exception $e) {
     echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }
 
-
+/*
 // testRabbitMQClient.php ------------------
 
 $client = new rabbitMQClient("testRabbitMQ.ini","testServer"); 
@@ -89,7 +98,7 @@ else
 
 $request = array();
 $request['type'] = "Login";
-$request['uname'] = $username;
+$request['username'] = $username;
 $request['password'] = $password;
 $request['message'] = $msg;
 $response = $client->send_request($request);
@@ -103,3 +112,4 @@ echo $argv[0]." END".PHP_EOL;
 
 
 ?>
+*/
