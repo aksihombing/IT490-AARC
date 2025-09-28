@@ -73,7 +73,6 @@ try {
         false, // "Exclusive" --> when false, queue can be accessed by any connection (standard in queues)
         false // "Auto Delete" --> when false, queue stays active even when empty or disconnected from consumers
     ); // i actually dont know if this is needed ???????
-
     */
 
 
