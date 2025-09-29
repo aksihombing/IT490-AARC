@@ -115,7 +115,7 @@ exit();
 
  
  
- // reminder Chizzy there is a seed user or like the example user (not sure what to call it) in the userdb.sql that might not be needed or work with registration
+ // self-reminder  there is a seed user or like the example user (not sure what to call it) in the userdb.sql that might not be needed or work with registration
    //because registration takes the users plaintext  and then hashes it and the stores the hash in the password in the user table 
    //so the login checks the plaintext against the hash in the db and if it matches then it logs in
    //but the seed user has a plaintext password so it will not work with login
