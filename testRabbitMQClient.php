@@ -1,30 +1,44 @@
 #!/usr/bin/php
 <?php
-require_once('path.inc'); # I think we dont need this !!!! 
-require_once('get_host_info.inc'); # or this either !!!!!
 require_once('rabbitMQLib.inc');
 
 $client = new rabbitMQClient("testRabbitMQ.ini","testServer");
-if (isset($argv[1]))
-{
-  $msg = $argv[1];
+
+
+// register: php testRabbitMQClient.php register email username password
+// login  : php testRabbitMQClient.php "message" username password
+if (isset($argv[1]) && $argv[1] === 'register') {
+	$email = $argv[2] ?? '';
+	$username = $argv[3] ?? '';
+	$password = $argv[4] ?? '';
+	if ($email === '' || $username === '' || $password === '') {
+		echo "Usage: php testRabbitMQClient.php register email username password\n";
+		exit(1);
+	}
+	$request = [
+		'type' => 'register',
+		'email' => $email,
+		'username' => $username,
+		'password' => $password,
+	];
+	$response = $client->send_request($request);
+	echo json_encode($response) . PHP_EOL;
+	exit;
 }
-else
-{
-  $msg = "test message";
-}
+
+$msg = isset($argv[1]) ? $argv[1] : "test message";
+$username = isset($argv[2]) ? $argv[2] : "steve";
+$password = isset($argv[3]) ? $argv[3] : "password";
 
 $request = array();
-$request['type'] = "Login";
-$request['username'] = "steve";
-$request['password'] = "password";
+$request['type'] = "login";            
+$request['username'] = $username;
+$request['password'] = $password;
 $request['message'] = $msg;
+
 $response = $client->send_request($request);
-//$response = $client->publish($request);
 
-echo "client received response: ".PHP_EOL;
-print_r($response);
-echo "\n\n";
+// Print the response as JSON to match other client files
+echo json_encode($response) . PHP_EOL;
 
-echo $argv[0]." END".PHP_EOL;
 
