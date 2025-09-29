@@ -1,13 +1,19 @@
+<?php
+
+session_start();
+?>
 <html>
 <script>
 // Created by Rea S.
 function HandleLoginResponse(response)
-{
-	var text = JSON.parse(response);
-//	document.getElementById("textResponse").innerHTML = response+"<p>";	
-	document.getElementById("textResponse").innerHTML = "response: "+text+"<p>";
+ {
+  const data = JSON.parse(response);
+  if (data.status === 'success') {
+    window.location = 'index.php'; // reload to show the logged-in Home view
+  } else {
+    document.getElementById("textResponse").innerHTML = "response: " + (data.message || response) + "<p>";
+  }
 }
-
 function SendLoginRequest(username,password) // gets username and password elements
 {
 	var request = new XMLHttpRequest();
@@ -88,9 +94,13 @@ if (!isset($_SESSION['login'])) {
 
   <?php
 } else { 
-   echo "<h2> Gotcha! INFO: {$_SESSION['uname']})</h2>";
-
+   
+<h2>Home</h2>
+  <p>Welcome, <?= htmlspecialchars($_SESSION['uname']) ?>!</p>
+  <p><a href="logout.php">Logout</a></p>
+<?php
 }
+
 ?>
 
 
