@@ -1,20 +1,17 @@
 <?php
-// Created by Rea S.
+session_start();
 
-if (isset($_SESSION['login'])) { // CHECK IF LOGIN SESSION IS SET
-   /*unset($_SESSION['login']);
-   unset($_SESSION['emailAddress']);
-   unset($_SESSION['firstName']);
-   unset($_SESSION['lastName']);
-   unset($_SESSION['pronouns']);*/
-   // What log-in parameters are we setting?
+// Destroy all session data and return a JSON response
+$_SESSION = [];
+if (ini_get('session.use_cookies')) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params['path'], $params['domain'], $params['secure'], $params['httponly']
+    );
 }
-// Logout button
-/*
-if (headers_sent()) {
-   echo "<h2>Click <a id='logoutIF' href=\"index.php?content=logout\"><strong>here</strong></a> to logout.</h2>";
- } else {
-   header("Location: index.php");
- }
- */
+session_destroy();
+
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode(['status'=>'success','message'=>'Logged out']);
+exit;
 ?>
