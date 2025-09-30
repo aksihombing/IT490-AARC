@@ -3,7 +3,6 @@
 
 // REGISTER PAGE
 // Should use RabbitMQPHP (AMQP connection protocol) to send information between the user and database.
-
 // partial code taken from testRabbitMQClient.php
 
 
@@ -11,11 +10,12 @@
 // not sure if this is needed????
 
 
-//require_once('rabbitMQLib.inc')
+require_once('rabbitMQLib.inc');
+//we'll include this when we're ready, this makes sure the rabbit mq client exists
 
 
-session_start();
-
+// Check if user info is collected
+// if not collected properly, variable is empty.
 if (isset($_POST['emailAddress'])) {
     $email = $_POST['emailAddress'];
 } else {
@@ -32,17 +32,14 @@ if (isset($_POST['password'])) {
     $password = '';
 }
 // validation check for empty variables :
-if (empty($emailAddress) || empty($username) || empty($password)) {
+if (empty($email) || empty($username) || empty($password)) {
     exit("ERROR: Post for registration info failed. Strings set to EMPTY");
 }
 
 
 
 // hash the password before sending through server and datbase
-
-$hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
-
-
+$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
  $request = [
         'action'   => 'register',
@@ -60,15 +57,30 @@ try {
 
     $response = $client->send_request($request);
 
-    if ($response == false) { // if no response from RabbitMQ...
-        echo "Registration failed. No response from server";
-    }
-    else {
-        echo "Server Responded! : " . print_r($response,true);
-    }
-
     
 
+  if (is_array($response) && ($response['status'] ?? '') === 'success') {
+    echo "Registration success. You can now log in.";
+
+    
+  } else {
+    $msg = is_array($response) ? ($response['message'] ?? 'Unknown error') : 'No response from server';
+    echo "Registration failed: $msg";
+
+    /* 
+    SCRAPPED !!!!
+    // queue
+    $channel->queue_declare( // declares a queue
+        'register_queue', // name of queue
+        false, // "Passive" --> when false, declares/starts the queue if it doesnt exist already.
+        true, // "Durable" --> when true, data is stored on disk and can be recovered by RabbitMQPHP
+        false, // "Exclusive" --> when false, queue can be accessed by any connection (standard in queues)
+        false // "Auto Delete" --> when false, queue stays active even when empty or disconnected from consumers
+    ); // i actually dont know if this is needed ???????
+
+    */
+
+  }
 } catch (Exception $e) {
     echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }
