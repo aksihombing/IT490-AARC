@@ -1,5 +1,6 @@
 <?php
 // Created by Rea S.
+session_start();
 
 if (isset($_SESSION['login'])) { // CHECK IF LOGIN SESSION IS SET
    /*unset($_SESSION['login']);

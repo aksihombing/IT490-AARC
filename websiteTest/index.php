@@ -1,3 +1,7 @@
+<?php 
+session_start();
+?>
+
 <html>
 <script>
 // Created by Rea S.
@@ -21,7 +25,7 @@ function SendLoginRequest(username,password) // gets username and password eleme
 			HandleLoginResponse(this.responseText);
 		}		
 	}
-	request.send("type=login&uname="+username+"&pword="+password); // takes in user and password
+	request.send("type=login&username="+username+"&password="+password); // takes in user and password
 }
 </script>
 
@@ -50,7 +54,7 @@ if (!isset($_SESSION['login'])) {
     <input type="text" name="emailAddress" size="20">
     <br>
     <label>Username:</label>
-    <input type="text" name="uname" size="20">
+    <input type="text" name="username" size="20">
     <br>
     <label>Password</label>
     <input type="password" name="password" size="20">
@@ -67,11 +71,11 @@ if (!isset($_SESSION['login'])) {
   <h2>LOG IN</h2>
   <h4>For existing users</h4>
 
-  <form name="login" onsubmit="SendLoginRequest(this.uname.value, this.password.value);"> 
+  <form name="login" onsubmit="SendLoginRequest(this.username.value, this.password.value);"> 
     <!-- .this = instance of variable
           .value = value attribute from HTML element -->
     <label>Username:</label>
-    <input type="text" name="uname" size="20">
+    <input type="text" name="username" size="20">
     <br>
     <label>Password</label>
     <input type="password" name="password" size="20">
@@ -87,8 +91,8 @@ if (!isset($_SESSION['login'])) {
 
 
   <?php
-} else { 
-   echo "<h2> Gotcha! INFO: {$_SESSION['uname']})</h2>";
+} else { // THIS IS WHEN SESSION IS ACTIVE !!!
+   echo "<h2> Gotcha! INFO: {$_SESSION['username']})</h2>";
 
 }
 ?>

@@ -14,6 +14,7 @@ $response = "Unsupported Request. Denied!"; // failed request
 $username = $_POST['username'];
 $password = $_POST['password'];
 
+// ** I JUST REALIZED RABBITMQ ISNT INITiALIZED HERE
 // SQL lookup query for user data
 $stmt = $db->prepare("SELECT username, password FROM users WHERE username = ?"); // reminder : ? is the paramter placeholder lol
 if ($stmt == false){ // DEBUGGING
