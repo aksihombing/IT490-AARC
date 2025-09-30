@@ -3,6 +3,7 @@
 
 // REGISTER PAGE
 // Should use RabbitMQPHP (AMQP connection protocol) to send information between the user and database.
+
 // partial code taken from testRabbitMQClient.php
 
 
@@ -13,8 +14,8 @@
 //require_once('rabbitMQLib.inc')
 
 
-// Check if user info is collected
-// if not collected properly, variable is empty.
+session_start();
+
 if (isset($_POST['emailAddress'])) {
     $email = $_POST['emailAddress'];
 } else {
@@ -38,7 +39,10 @@ if (empty($emailAddress) || empty($username) || empty($password)) {
 
 
 // hash the password before sending through server and datbase
-$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+
+$hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
+
+
 
  $request = [
         'action'   => 'register',
