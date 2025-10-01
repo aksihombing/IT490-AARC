@@ -1,22 +1,15 @@
 <?php
-// Created by Rea S.
-
 // REGISTER PAGE
 // Should use RabbitMQPHP (AMQP connection protocol) to send information between the user and database.
+// pulled from Chizzy's branch
 
-// partial code taken from testRabbitMQClient.php
-
-
-//require_once __DIR__ . '/vendor/autoload.php'; // php-amqplib
-// not sure if this is needed????
-
-
-//require_once('rabbitMQLib.inc')
+require_once('../rabbitMQ/RabbitMQClient.inc');
+require_once('../rabbitMQ/rabbitMQLib.inc');
 
 
 session_start();
 
-if (isset($_POST['emailAddress'])) {
+if (isset($_POST['emailAddress'])) { //like an exapnded version of the ternary thing
     $email = $_POST['emailAddress'];
 } else {
     $email = ''; // if NOT set, string is EMPTY.
@@ -60,48 +53,17 @@ try {
 
     $response = $client->send_request($request);
 
-    if ($response == false) { // if no response from RabbitMQ...
-        echo "Registration failed. No response from server";
-    }
-    else {
-        echo "Server Responded! : " . print_r($response,true);
-    }
-
     
 
+  if (is_array($response) && ($response['status'] ?? '') === 'success') {
+    echo "Registration success. You can now log in.";
+
+    
+  } else {
+    $msg = is_array($response) ? ($response['message'] ?? 'Unknown error') : 'No response from server';
+    echo "Registration failed: $msg";
+
+  }
 } catch (Exception $e) {
     echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }
-
-/*
-// testRabbitMQClient.php ------------------
-
-$client = new rabbitMQClient("testRabbitMQ.ini","testServer"); 
-// uses testRabbitMQ.ini for RABBIT SERVER CONFIGURATION
-
-if (isset($argv[1]))
-{
-  $msg = $argv[1];
-}
-else
-{
-  $msg = "test message";
-}
-
-$request = array();
-$request['type'] = "Login";
-$request['username'] = $username;
-$request['password'] = $password;
-$request['message'] = $msg;
-$response = $client->send_request($request);
-//$response = $client->publish($request);
-
-echo "client received response: ".PHP_EOL; // PHP_EOL = End of Line character
-print_r($response);
-echo "\n\n";
-
-echo $argv[0]." END".PHP_EOL;
-
-
-?>
-*/

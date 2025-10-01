@@ -1,6 +1,7 @@
-<?php
+<?php 
 session_start();
-?> //
+
+?>
 
 <html>
 <script>
@@ -25,9 +26,7 @@ function SendLoginRequest(username,password) // gets username and password eleme
 			HandleLoginResponse(this.responseText);
 		}		
 	}
-	request.send("type=login&uname="+username+"&pword="+password);
-
-     // takes in user and password
+	request.send("type=login&username="+username+"&password="+password); // takes in user and password
 }
 </script>
 
@@ -50,13 +49,13 @@ if (!isset($_SESSION['login'])) {
   <h2>Home Page</h2><br>
   <br>
 
-  <h2> REGISTER USER </h2>
+  <h2> REGISTER USER </h2> <!-- Repurposed basic HTML from IT202 bc I dont feel like retyping (Rea) -->
   <form name="register" action="register.php" method="post"> 
     <label>Email:</label>
     <input type="text" name="emailAddress" size="20">
     <br>
     <label>Username:</label>
-    <input type="text" name="uname" size="20">
+    <input type="text" name="username" size="20">
     <br>
     <label>Password</label>
     <input type="password" name="password" size="20">
@@ -73,11 +72,11 @@ if (!isset($_SESSION['login'])) {
   <h2>LOG IN</h2>
   <h4>For existing users</h4>
 
-  <form name="login" onsubmit="SendLoginRequest(this.uname.value, this.password.value);"> 
+  <form name="login" onsubmit="SendLoginRequest(this.username.value, this.password.value);"> 
     <!-- .this = instance of variable
           .value = value attribute from HTML element -->
     <label>Username:</label>
-    <input type="text" name="uname" size="20">
+    <input type="text" name="username" size="20">
     <br>
     <label>Password</label>
     <input type="password" name="password" size="20">
@@ -93,11 +92,8 @@ if (!isset($_SESSION['login'])) {
 
 
   <?php
-} else { 
-
-   echo "<h2> Gotcha! INFO: {$_SESSION['uname']})</h2>";
-   //echo "<h2> Session Key INFO: {$_SESSION['session_key']})</h2>";
-   <p><a href="logout.php">Logout</a></p>
+} else { // THIS IS WHEN SESSION IS ACTIVE !!!
+   echo "<h2> Gotcha! INFO: {$_SESSION['username']})</h2>";
 
 }
 ?>
