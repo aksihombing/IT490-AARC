@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 
-// CLIENT TESTING FILE.
+// CLIENT TESTING FILE............
 
 require_once('path.inc'); # I think we dont need this !!!! 
 require_once('get_host_info.inc'); # or this either !!!!!
