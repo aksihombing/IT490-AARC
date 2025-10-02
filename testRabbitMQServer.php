@@ -1,7 +1,7 @@
  #!/usr/bin/php
 <?php
-require_once('rabbitMQLib.inc');
-require_once('testDB.php'); // must expose function testdb(): mysqli
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . 'testDB.php'; 
 
 function generate_session_key($lengthBytes = 32) {
   return bin2hex(random_bytes($lengthBytes));
