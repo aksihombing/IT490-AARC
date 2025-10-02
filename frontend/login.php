@@ -2,7 +2,7 @@
 session_start(); // starting user session
 // Pulled from Chizzy's Branch
 
-require_once('../rabbitMQ/RabbitMQClient.inc');
+require_once('../rabbitMQ/RabbitMQServer.php');
 require_once('../rabbitMQ/rabbitMQLib.inc');
 
 if (!isset($_POST['username']) || !isset($_POST['password'])) {

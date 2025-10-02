@@ -83,7 +83,7 @@ function requestProcessor($request)
 
 // ACTUAL SERVER PROCESSING
 
-$server = new rabbitMQServer("testRabbitMQ.ini","testServer");
+$server = new rabbitMQServer("host.ini","testServer");
 
 echo "testRabbitMQServer BEGIN".PHP_EOL;
 $server->process_requests('requestProcessor');

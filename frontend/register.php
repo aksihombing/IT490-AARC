@@ -3,7 +3,7 @@
 // Should use RabbitMQPHP (AMQP connection protocol) to send information between the user and database.
 // pulled from Chizzy's branch
 
-require_once('../rabbitMQ/RabbitMQClient.inc');
+require_once('../rabbitMQ/RabbitMQServer.php');
 require_once('../rabbitMQ/rabbitMQLib.inc');
 
 
