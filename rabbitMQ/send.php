@@ -32,7 +32,7 @@ AUTO_DELETE (bool) -- true = queue is deleted when last consumer unsubscribes fr
 
 // message payload or whatever
 $data = [
-    'type' =>  'register',
+    'action' =>  'register',
     'username' => $_POST['username'] ?? '', // ternary thingy i took from login.php
     'password' => $_POST['password'] ?? '',
     'email' => $_POST['email'] ?? ''

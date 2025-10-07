@@ -3,6 +3,8 @@
 // CONSUMER - Receives messages from queue
 // https://www.rabbitmq.com/tutorials/tutorial-one-php -- Reference
 
+// TO SEE RABBITMQ QUEUES:
+// sudo rabbitmqctl list_queues;
 
 require_once('rabbitMQLib.inc'); // also references get_host_info.inc
 require_once __DIR__ . '/vendor/autoload.php';
@@ -31,7 +33,7 @@ $callback = function (AMQPMessage $msg) {
   }
 
   // REGISTER
-  if ($data['type'] === 'register'){
+  if ($data['action'] === 'register'){
     // initializes info that was SENT
     $username = $data['username'];
     $password = password_hash($data['password'], PASSWORD_BCRYPT);
@@ -41,7 +43,7 @@ $callback = function (AMQPMessage $msg) {
     $stmt->bind_param("sss", $username, $password, $email);
     $stmt->execute();
     }
-  elseif  ($data['type'] === 'login'){
+  elseif  ($data['action'] === 'login'){
     $username = $data['username'];
     $password = $data['password'];
 

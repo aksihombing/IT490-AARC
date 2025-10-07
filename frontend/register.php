@@ -3,8 +3,10 @@
 // Should use RabbitMQPHP (AMQP connection protocol) to send information between the user and database.
 // pulled from Chizzy's branch
 
-require_once('../rabbitMQ/RabbitMQServer.php');
+//require_once('../rabbitMQ/RabbitMQServer.php');
 require_once('../rabbitMQ/rabbitMQLib.inc');
+require_once('../rabbitMQ/send.php');
+
 
 
 session_start();
@@ -47,11 +49,13 @@ $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an alg
 
 // try to connect to RabbitMQ
 try {
-    $client = new rabbitMQClient("testRabbitMQ.ini","testServer"); 
+
+    /*
+    $connection = new rabbitMQClient("testRabbitMQ.ini","testServer"); 
 // uses testRabbitMQ.ini for RABBIT SERVER CONFIGURATION. 
 // REGISTRATION info will get put into Database via the information set in testRabbitMQ.ini !!!
-
-    $response = $client->send_request($request);
+    */
+    $response = $connection->send_request($request);
 
     
 
@@ -60,7 +64,7 @@ try {
 
     
   } else {
-    $msg = is_array($response) ? ($response['message'] ?? 'Unknown error') : 'No response from server';
+    $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
     echo "Registration failed: $msg";
 
   }

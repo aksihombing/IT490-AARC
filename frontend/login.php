@@ -2,8 +2,10 @@
 session_start(); // starting user session
 // Pulled from Chizzy's Branch
 
-require_once('../rabbitMQ/RabbitMQServer.php');
+//require_once('../rabbitMQ/RabbitMQServer.php');
 require_once('../rabbitMQ/rabbitMQLib.inc');
+require_once('../rabbitMQ/send.php');
+
 
 if (!isset($_POST['username']) || !isset($_POST['password'])) {
             echo json_encode(["error" => "Missing username or password"]);
@@ -31,14 +33,13 @@ switch ($request['type'] ?? '') { // ternary thingy; checks if string is set. If
         try {
             // Sending the login request to RabbitMQ on the database listener
             // Im not sure but do we have  to create a request queue and a response queue, this being sent to the request queue, or leave it for simplicity?
-            $client   = new rabbitMQClient("testRabbitMQ.ini","testServer");//sending the request to the testServer
             $request   = [
                 'action' => 'login', 
                 'username' => $username, 
                 'password' => $password
             ];
                 //the request array being built
-            $response  = $client->send_request ($request);  // response 
+            $response  = $connection->send_request ($request);  // response 
             // sendRequest is a function in RabbitMQClient.php
             //  Building message to send to the RabbitMQ server
 
