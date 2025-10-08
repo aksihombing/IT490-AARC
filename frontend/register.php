@@ -3,15 +3,15 @@
 // Should use RabbitMQPHP (AMQP connection protocol) to send information between the user and database.
 // pulled from Chizzy's branch
 
-//require_once('../rabbitMQ/RabbitMQServer.php');
+
 require_once('../rabbitMQ/rabbitMQLib.inc');
-require_once('../rabbitMQ/send.php');
+
 
 
 
 session_start();
 
-if (isset($_POST['emailAddress'])) { //like an exapnded version of the ternary thing
+if (isset($_POST['emailAddress'])) { //like an exapnded version of the ternary thing. doesnt have to be super good, just needs to work lol
     $email = $_POST['emailAddress'];
 } else {
     $email = ''; // if NOT set, string is EMPTY.
@@ -28,10 +28,8 @@ if (isset($_POST['password'])) {
 }
 // validation check for empty variables :
 if (empty($emailAddress) || empty($username) || empty($password)) {
-    exit("ERROR: Post for registration info failed. Strings set to EMPTY");
+    exit("ERROR: All fields are required. Field was left empty.");
 }
-
-
 
 // hash the password before sending through server and datbase
 
@@ -40,7 +38,7 @@ $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an alg
 
 
  $request = [
-        'action'   => 'register',
+        'type'   => 'register',
         'email'    => $email,
         'username' => $username,
         'password' => $hashedPassword,
@@ -50,21 +48,12 @@ $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an alg
 // try to connect to RabbitMQ
 try {
 
-    /*
-    $connection = new rabbitMQClient("testRabbitMQ.ini","testServer"); 
-// uses testRabbitMQ.ini for RABBIT SERVER CONFIGURATION. 
-// REGISTRATION info will get put into Database via the information set in testRabbitMQ.ini !!!
-    */
-
     // AMQP Connection
-    $connection = new AMQPStreamConnection('172.28.219.213', 5672, 'saas_user', 'p@ssw0rd');
+    $client  = new rabbitMQClient("host.ini","RabbitServer");
     $response = $connection->send_request($request);
-
-    
 
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
     echo "Registration success. You can now log in.";
-
     
   } else {
     $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';

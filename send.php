@@ -1,5 +1,12 @@
 #!/usr/bin/php
 <?php
+
+
+
+//scrapped by rea
+
+
+
 // PRODUCER/PUBLISHER/CLIENT - Sends messages into a queue
 // Typically used by webserver
 // https://www.rabbitmq.com/tutorials/tutorial-one-php -- Reference

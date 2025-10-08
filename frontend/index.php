@@ -27,23 +27,11 @@ function SendLoginRequest(username,password) // gets username and password eleme
 			HandleLoginResponse(this.responseText);
 		}		
 	}
-	request.send("type=login&uname="+username+"&pword="+password); // takes in user and password
+	request.send("type=login&username="+username+"&password="+password); // takes in user and password
 }
 </script>
 
-<!-- HTML START-->
 
-<!-- KEHOE's CODE
- <h1>login page</h1>
-<body>
-<div id="textResponse">
-awaiting response
-</div>
-<script>
-SendLoginRequest("kehoed","12345");
-</script>
-</body>
--->
 <?php
 if (!isset($_SESSION['login'])) {
 ?>
@@ -56,7 +44,7 @@ if (!isset($_SESSION['login'])) {
     <input type="text" name="emailAddress" size="20">
     <br>
     <label>Username:</label>
-    <input type="text" name="uname" size="20">
+    <input type="text" name="username" size="20">
     <br>
     <label>Password</label>
     <input type="password" name="password" size="20">
@@ -73,11 +61,11 @@ if (!isset($_SESSION['login'])) {
   <h2>LOG IN</h2>
   <h4>For existing users</h4>
 
-  <form name="login" onsubmit="SendLoginRequest(this.uname.value, this.password.value);"> 
+  <form name="login" onsubmit="SendLoginRequest(this.username.value, this.password.value);"> 
     <!-- .this = instance of variable
           .value = value attribute from HTML element -->
     <label>Username:</label>
-    <input type="text" name="uname" size="20">
+    <input type="text" name="username" size="20">
     <br>
     <label>Password</label>
     <input type="password" name="password" size="20">
@@ -94,9 +82,9 @@ if (!isset($_SESSION['login'])) {
 
   <?php
 } else { 
-   
-<h2>Home</h2>
-  <p>Welcome, <?= htmlspecialchars($_SESSION['uname']) ?>!</p>
+   ?>
+  <h2>Home</h2>
+  <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?>!</p>
   <p><a href="logout.php">Logout</a></p>
 <?php
 }

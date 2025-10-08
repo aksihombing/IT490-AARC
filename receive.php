@@ -1,5 +1,9 @@
 #!/usr/bin/php
 <?php
+
+//scrapped by rea
+
+
 // CONSUMER - Receives messages from queue
 // "Backend Processor"
 // Connects to Broker (RabbitMQ Service VM)
