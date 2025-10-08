@@ -33,6 +33,8 @@ switch ($request['type'] ?? '') { // ternary thingy; checks if string is set. If
         try {
             // Sending the login request to RabbitMQ on the database listener
             // Im not sure but do we have  to create a request queue and a response queue, this being sent to the request queue, or leave it for simplicity?
+            //$connection = new AMQPStreamConnection('172.28.219.213', 5672, 'saas_user', 'p@ssw0rd');
+
             $request   = [
                 'action' => 'login', 
                 'username' => $username, 

@@ -55,6 +55,9 @@ try {
 // uses testRabbitMQ.ini for RABBIT SERVER CONFIGURATION. 
 // REGISTRATION info will get put into Database via the information set in testRabbitMQ.ini !!!
     */
+
+    // AMQP Connection
+    $connection = new AMQPStreamConnection('172.28.219.213', 5672, 'saas_user', 'p@ssw0rd');
     $response = $connection->send_request($request);
 
     

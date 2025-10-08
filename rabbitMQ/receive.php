@@ -1,10 +1,14 @@
 #!/usr/bin/php
 <?php
 // CONSUMER - Receives messages from queue
+// "Backend Processor"
+// Connects to Broker (RabbitMQ Service VM)
 // https://www.rabbitmq.com/tutorials/tutorial-one-php -- Reference
 
 // TO SEE RABBITMQ QUEUES:
 // sudo rabbitmqctl list_queues;
+// DATABASE VM:
+// php receive.php
 
 require_once('rabbitMQLib.inc'); // also references get_host_info.inc
 require_once __DIR__ . '/vendor/autoload.php';
@@ -12,7 +16,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
 
-$connection = new AMQPStreamConnection($BROKER_HOST, 5672, $USER, $PASSWORD);
+$connection = new AMQPStreamConnection('172.28.219.213', 5672, 'saas_user', 'p@ssw0rd');
 $channel = $connection->channel();
 
 $channel->queue_declare($queue, false, false, false, false);
@@ -58,15 +62,25 @@ $callback = function (AMQPMessage $msg) {
     }
     else {echo "INVALID LOGIN for $username\n";}
   }
+  $msg->ack(); // ACKNOWLEDGEMENT !! 
   $db->close();
 };
 
-$channel->basic_consume($queue, '', false, true, false, false, $callback);
+$channel->basic_consume('task_queue', '', false, true, false, false, $callback); // NOTE : idk what the queue would be called?
+
+/*while ($channel->is_consuming()){
+  $channel->wait();
+}*/
+
 
 try {
     $channel->consume();
 } catch (\Throwable $exception) {
     echo $exception->getMessage();
 }
+
+// connection should stay open on the database for requests i think
+//$channel->close();
+//$connection->close();
 
 ?>
