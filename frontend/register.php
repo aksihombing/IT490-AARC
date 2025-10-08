@@ -49,7 +49,7 @@ $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an alg
 try {
 
     // AMQP Connection
-    $client  = new rabbitMQClient("host.ini","RabbitServer");
+    $client  = new rabbitMQClient("host.ini","testServer");
     $response = $connection->send_request($request);
 
   if (is_array($response) && ($response['status'] ?? '') === 'success') {

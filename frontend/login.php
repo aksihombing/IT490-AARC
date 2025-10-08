@@ -21,7 +21,7 @@ if ($username === '' || $password === '') {
 }
 
 try {
-  $client  = new rabbitMQClient("host.ini","RabbitServer");
+  $client  = new rabbitMQClient("host.ini","testServer");
   $request  = [
     'type' => 'login', 
     'username' => $username, 

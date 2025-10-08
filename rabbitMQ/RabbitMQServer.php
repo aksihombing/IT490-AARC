@@ -100,7 +100,7 @@ function doLogin($username, $password){
 
 // MAIN SERVER LOOP --------------------
 
-$server = new rabbitMQServer("host.ini","RabbitServer");
+$server = new rabbitMQServer("host.ini","testServer");
 echo "RabbitMQ Server BEGIN".PHP_EOL;
 $server->process_requests('requestProcessor'); // PROCESSES REQUESTS UNTIL THERE ARE NONE !!
 echo "testRabbitMQServer END".PHP_EOL;
