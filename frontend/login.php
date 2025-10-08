@@ -1,7 +1,7 @@
 <?php
 // CHIZZY'S BASE CODE with edits from Rea for rabbitMQClient functions
 session_start();
-require_once('rabbitMQLib.inc');
+require_once(__DIR__.'../rabbitMQ/rabbitMQLib.inc');
 
 
 

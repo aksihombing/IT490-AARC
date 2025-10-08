@@ -4,7 +4,7 @@
 // pulled from Chizzy's branch
 
 
-require_once('../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__.'../rabbitMQ/rabbitMQLib.inc');
 
 
 
