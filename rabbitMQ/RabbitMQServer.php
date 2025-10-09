@@ -1,18 +1,85 @@
 #!/usr/bin/php
 <?php
-// USE THIS INSTEAD OF testRabbitMQServer
 
-// require_once('login.php.inc'); // we dont have this yet
+// rabbitMQServer should run continuously on the DATABASE VM to grab requests from queue
+// it listens for messages, takes from the queue, processes it to the DB, and sends response if needed.
+
 require_once('rabbitMQLib.inc'); // also references get_host_info.inc
 
-$db = new mysqli('172.28.172.114','testUser','12345','testdb');
+// ------------- PROCESS REQUESTS ------------
+function requestProcessor($request)
+{
+  echo "Received request".PHP_EOL;
+  var_dump($request);
+  if(!isset($request['type']))
+  {
+    return "ERROR: unsupported message type";
+  }
+  switch ($request['type'])
+  {
+    case "register":
+      return doRegister($request['email'],$request['username'],$request['password']);
+    case "login":
+      return doLogin($request['username'],$request['password']);
+   // case "validate_session":
+      //return doValidate($request['sessionId']);
+    default:
+        return ['status' => 'error', 'message' => 'Invalid request'];
+      
+  }
+  return array("returnCode" => '0', 'message'=>"Server received request and processed"); // good for debugging, but can be removed if unnecessary
+}
+
+
+// REGISTER FUNCTION
+function doRegister($username, $password, $email){
+  require_once('../sql_db/db_functions.php');
+  $conn = getDBConnection();
+  if (!$conn){
+    return ['status' => 'error', 'message' => 'Failed DB connection.'];
+  }
+  // NOTE : password is already hashed in register.php
+
+
+  // checks if username exists before registering
+  $stmt = $conn->prepare("SELECT * FROM users (username = ?");
+  $stmt->bind_param("s",$username);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result->num_rows >0){
+    return ['status'=>'fail', 'message' => 'Username already exists'];
+  }
+
+  
+  // insert NEW user if there was no existing name yet
+  $stmt = $conn->prepare("INSERT INTO users (username, email, password VALUES ?");
+  $stmt->bind_param("sss", $username, $password, $email);
+  if ($stmt->execute()){
+    return [
+      'status' => 'success',
+      'message' => 'User registered successfully',
+      //'status' => $stmt->insert_id // auto-ID from mysql
+    ];
+  }
+  else {
+    error_log("DB couldn't insert data from doRegister:".$conn->error); // debugging error
+    return ['status'=>'fail', 'message' => 'Database insert fail'];
+  }
+}
+
 
 
 // LOGIN FUNCTION
 function doLogin($username, $password){
-  global $db;
+  require_once('../sql_db/db_functions.php');
+  $conn = getDBConnection();
 
-  $stmt = $db->prepare("SELECT id, username, password FROM users WHERE username = ?");
+  if (!$conn){
+    return ['status' => 'error', 'message' => 'Failed DB connection.'];
+  }
+
+  $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE username = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->store_result();
@@ -30,64 +97,12 @@ function doLogin($username, $password){
 
 }
 
-// LOGIN FUNCTION
-function doRegister($username, $password, $email){
-  global $db;
 
-  // NOTE : password is already hashed in register.php
-
-  $stmt = $db->prepare("INSERT INTO users (username, email, password VALUES ?");
-  if ($stmt == false){
-    error_log("DB couldn't perform doRegister:".$db->error); // debugging error
-    return ['status'=>'fail', 'message' => 'Database error'];
-  }
-  // if success:
-  $stmt->bind_param("sss", $username, $password, $email);
-  if ($stmt->execute()){
-    return [
-      'status' => 'success',
-      'message' => 'User registered successfully',
-      'status' => $stmt->insert_id // auto-ID from mysql
-    ];
-  }
-  else {
-    error_log("DB couldn't insert data from doRegister:".$db->error); // debugging error
-    return ['status'=>'fail', 'message' => 'Database insert fail'];
-  }
-}
-
-
-// ------------- PROCESS DATA ------------
-function requestProcessor($request)
-{
-  echo "received request".PHP_EOL;
-  var_dump($request);
-  if(!isset($request['type']))
-  {
-    return "ERROR: unsupported message type";
-  }
-  switch ($request['type'])
-  {
-    case "register":
-      return doRegister($request['email'],$request['username'],$request['password']);
-    case "login":
-      return doLogin($request['username'],$request['password']);
-   // case "validate_session":
-      //return doValidate($request['sessionId']);
-      
-  }
-  return array("returnCode" => '0', 'message'=>"Server received request and processed");
-}
-
-
-
-// ACTUAL SERVER PROCESSING
+// MAIN SERVER LOOP --------------------
 
 $server = new rabbitMQServer("host.ini","testServer");
-
-echo "testRabbitMQServer BEGIN".PHP_EOL;
-$server->process_requests('requestProcessor');
+echo "RabbitMQ Server BEGIN".PHP_EOL;
+$server->process_requests('requestProcessor'); // PROCESSES REQUESTS UNTIL THERE ARE NONE !!
 echo "testRabbitMQServer END".PHP_EOL;
 exit();
 ?>
-

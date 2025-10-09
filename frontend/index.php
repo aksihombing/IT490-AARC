@@ -1,18 +1,19 @@
-<?php 
+<?php
+
 session_start();
-
 ?>
-
 <html>
 <script>
 // Created by Rea S.
 function HandleLoginResponse(response)
-{
-	var text = JSON.parse(response);
-//	document.getElementById("textResponse").innerHTML = response+"<p>";	
-	document.getElementById("textResponse").innerHTML = "response: "+text+"<p>";
+ {
+  const data = JSON.parse(response);
+  if (data.status === 'success') {
+    window.location = 'index.php'; // reload to show the logged-in Home view
+  } else {
+    document.getElementById("textResponse").innerHTML = "response: " + (data.message || response) + "<p>";
+  }
 }
-
 function SendLoginRequest(username,password) // gets username and password elements
 {
 	var request = new XMLHttpRequest();
@@ -30,26 +31,14 @@ function SendLoginRequest(username,password) // gets username and password eleme
 }
 </script>
 
-<!-- HTML START-->
 
-<!-- KEHOE's CODE
- <h1>login page</h1>
-<body>
-<div id="textResponse">
-awaiting response
-</div>
-<script>
-SendLoginRequest("kehoed","12345");
-</script>
-</body>
--->
 <?php
 if (!isset($_SESSION['login'])) {
 ?>
   <h2>Home Page</h2><br>
   <br>
 
-  <h2> REGISTER USER </h2> <!-- Repurposed basic HTML from IT202 bc I dont feel like retyping (Rea) -->
+  <h2> REGISTER USER </h2>
   <form name="register" action="register.php" method="post"> 
     <label>Email:</label>
     <input type="text" name="emailAddress" size="20">
@@ -92,10 +81,14 @@ if (!isset($_SESSION['login'])) {
 
 
   <?php
-} else { // THIS IS WHEN SESSION IS ACTIVE !!!
-   echo "<h2> Gotcha! INFO: {$_SESSION['username']})</h2>";
-
+} else { 
+   ?>
+  <h2>Home</h2>
+  <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?>!</p>
+  <p><a href="logout.php">Logout</a></p>
+<?php
 }
+
 ?>
 
 

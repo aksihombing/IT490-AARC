@@ -134,6 +134,7 @@ class rabbitMQServer
 	}
 }
 
+// 
 class rabbitMQClient
 {
 	private $machine = "";
