@@ -1,151 +1,175 @@
 #!/usr/bin/php
 <?php
+// rmq script to stay running and listen for messages. listener
+// when it receives a message, should talk to sql and send back a result
 
-// rabbitMQServer should run continuously on the Database VM's machine
-// DB runs file > connects to RabbitMQ > Listens for requests and processes
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . '/get_host_info.inc';
 
+// connects to the local sql database
+function db() {
+  $host = '172.28.172.114'; // need local ip
+  $user = 'testUser'; // needdatabase user
+  $pass = '12345'; // need database password
+  $name = 'testdb'; // needdatabase name
 
-require_once(__DIR__.'/rabbitMQLib.inc'); // also references get_host_info.inc
-require_once(__DIR__.'/get_host_info.inc');
-//require_once(__DIR__ . '/../sql_db/db_functions.php'); //already within doLogin and doRegister
-
-// ------------- PROCESS REQUESTS ------------
-function requestProcessor($request)
-{
-  echo "Received request".PHP_EOL;
-  var_dump($request);
-  if(!isset($request['type']))
-  {
-    return "ERROR: unsupported message type";
+  $mysqli = new mysqli($host, $user, $pass, $name);
+  if ($mysqli->connect_errno) {
+    throw new RuntimeException("DB connect failed: ".$mysqli->connect_error);
   }
-  switch ($request['type'])
-  {
-    case "register":
-      return doRegister($request['email'],$request['username'],$request['password']);
-    case "login":
-      return doLogin($request['username'],$request['password']);
-   // case "validate_session":
-      //return doValidate($request['sessionId']);
-    default:
-        return ['status' => 'error', 'message' => 'Invalid request'];
-      
-  }
-  return array("returnCode" => '0', 'message'=>"Server received request and processed"); // good for debugging, but can be removed if unnecessary
+  return $mysqli;
 }
 
 
-// REGISTER FUNCTION
-function doRegister($email, $username, $password){
-  require_once('../sql_db/db_functions.php');
-  $conn = getDBConnection();
-  if (!$conn){
-    return ['status' => 'error', 'message' => 'Failed DB connection.'];
-  }
-  // NOTE : password is already hashed in register.php
+// request handlers
+function doRegister(array $req) {
+  $email = $req['email'] ?? '';
+  $username = $req['username'] ?? '';
+  $hash = $req['password'] ?? '';
 
-
-  // checks if username exists before registering
-  $stmt = $conn->prepare("SELECT * FROM usersTableTable WHERE (username = ?)");
-  $stmt->bind_param("s",$username);
-  $stmt->execute();
-  $result = $stmt->get_result();
-
-  if ($result->num_rows >0){
-    return ['status'=>'error', 'message' => 'Username already exists'];
+  // validate entered fields
+  if ($email==='' || $username==='' || $hash==='') {
+    return ['status'=>'fail','message'=>'missing fields'];
   }
 
-  
-  // insert NEW user if there was no existing name yet
-  $stmt = $conn->prepare("INSERT INTO users (email, username, password) VALUES (?, ?, ?)");
-  $stmt->bind_param("sss", $email, $username, $password);
-  if ($stmt->execute()){
-    return [
-      'status' => 'success',
-      'message' => 'User registered successfully',
-      //'status' => $stmt->insert_id // auto-ID from mysql
-    ];
-  }
-  else {
-    error_log("DB couldn't insert data from doRegister:".$conn->error); // debugging error
-    return ['status'=>'error', 'message' => 'Database insert fail'];
-  }
-}
+  $conn = db();
 
-
-
-// LOGIN FUNCTION
-function doLogin($username, $password){
-  require_once('../sql_db/db_functions.php');
-  $conn = getDBConnection();
-
-  if (!$conn){
-    return ['status' => 'error', 'message' => 'Failed DB connection.'];
-  }
-
-  $stmt = $conn->prepare("SELECT id, username, password FROM usersTable WHERE username = ?");
-  $stmt->bind_param("s", $username);
+  // see if user already exists in db
+  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR email=?");
+  $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
   $stmt->store_result();
 
-  if ($stmt->num_rows === 1) { // triple equal is stricter than ==
-    // checks if theres a row in the db with from the query result
-    $stmt->bind_result($id,$dbUser,$dbHash);
-    $stmt->fetch();
-
-    if (password_verify($password,$dbHash)){
-      // if able to login, generate session key:
-      $session_key = createSession($id,$conn);
-      if ($session_key){
-        return [
-          'status'=>'success',
-        'uid'=>$id,
-        'username'=>$dbUser,
-      'session_key'=> $session_key];
-      }
-      else { 
-        return [
-          'status'=>'error',
-        'message'=> "Failed to create session key."
-        ];
-      }
-    }
-    else { return ['status'=>'error', 'message' => 'Invalid password']; }
+  if ($stmt->num_rows > 0) {
+    return ['status'=>'fail','message'=>'user or email exists'];
   }
-  else { return ['status'=>'error', 'message' => 'User not found']; }
+  $stmt->close();
 
+  // inserts new user into database
+  $stmt = $conn->prepare("INSERT INTO users (username,email,password_hash) VALUES (?,?,?)");
+  $stmt->bind_param("sss", $username, $email, $hash);
+  if (!$stmt->execute()) {
+    return ['status'=>'fail','message'=>'db insert failed'];
+  }
+
+  return ['status'=>'success'];
 }
 
+function doLogin(array $req) {
+  $username = $req['username'] ?? '';
+  $password = $req['password'] ?? '';
 
-// SESSIONS
-function doValidateSession($session_key){
-  require_once('../sql_db/db_functions.php');
-  $conn = getDBConnection();
-  if (!$conn){
-    return ['status' => 'error', 'message' => 'Failed DB connection in validating session.'];
+  if ($username==='' || $password==='') {
+    return ['status'=>'fail','message'=>'missing fields'];
   }
 
-  $user_id = validateSession($session_key, $conn);
-  if ($user_id){
-    return ['status' => 'success', 'user_id' => $user_id];
+  $conn = db();
+  $stmt = $conn->prepare("SELECT id,password_hash,email FROM users WHERE username=? LIMIT 1");
+  $stmt->bind_param("s", $username);
+  $stmt->execute();
+  $stmt->bind_result($uid,$hash,$email);
+
+  // check the login credentials
+  if (!$stmt->fetch() || !password_verify($password,$hash)) {
+    return ['status'=>'fail','message'=>'invalid credentials'];
   }
-  else{
-    return ['status' => 'error', 'message' => 'Invalid session'];
-  }
-  
+
+  // create a session key, should be secure ?
+  $session = bin2hex(random_bytes(32));
+  $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
+
+  // stores the session in the db
+  $stmt = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?,?,?)");
+  $stmt->bind_param("iss", $uid, $session, $exp);
+  $stmt->execute();
+
+  return ['status'=>'success','session_key'=>$session];
 }
 
+function doValidate(array $req) {
+  $sid = $req['session_key'] ?? '';
+  if ($sid==='') return ['status'=>'fail','message'=>'missing session'];
 
-// MAIN SERVER LOOP --------------------
-echo "[*] RabbitMQ Server starting...".PHP_EOL;
+  $conn = db();
+  $stmt = $conn->prepare("
+      SELECT u.id,u.username,u.email,s.expires_at
+      FROM sessions s
+      JOIN users u ON u.id=s.user_id
+      WHERE s.session_key=? LIMIT 1
+  ");
+  $stmt->bind_param("s", $sid);
+  $stmt->execute();
+  $stmt->bind_result($uid,$uname,$email,$exp);
 
-$server = new rabbitMQServer("host.ini","testServer");
+  if (!$stmt->fetch()) return ['status'=>'fail','message'=>'not found'];
+  if ($exp && strtotime($exp) < time()) {
+    // session is expired so deletes
+    $del = $conn->prepare("DELETE FROM sessions WHERE session_key=?");
+    $del->bind_param("s",$sid);
+    $del->execute();
+    return ['status'=>'fail','message'=>'expired'];
+  }
 
-if (!$server){
-  echo "[!] ERROR: RabbitMQServer could not connect";
-  exit; // ends server if not able to connect
+  return ['status'=>'success','user'=>['id'=>$uid,'username'=>$uname,'email'=>$email]];
 }
 
-$server->process_requests('requestProcessor'); // PROCESSES REQUESTS UNTIL THERE ARE NONE !!
-echo "[x] RabbitMQ Server shutting down".PHP_EOL;
-exit();
-?>
+function doLogout(array $req) {
+  $sid = $req['session_key'] ?? '';
+  if ($sid==='') return ['status'=>'fail','message'=>'missing session'];
+
+  $conn = db();
+  $stmt = $conn->prepare("DELETE FROM sessions WHERE session_key=?");
+  $stmt->bind_param("s",$sid);
+  $stmt->execute();
+  return ['status'=>'success'];
+}
+
+// decides which function to run
+function requestProcessor($req) {
+  if (!isset($req['type'])) {
+    return ['status'=>'fail','message'=>'no type'];
+  }
+
+  switch ($req['type']) {
+    case 'register': return doRegister($req);
+    case 'login':    return doLogin($req);
+    case 'validate': return doValidate($req);
+    case 'logout':   return doLogout($req);
+    default:         return ['status'=>'fail','message'=>'unknown type'];
+  }
+}
+
+// server logic
+
+echo "Auth server starting…\n";
+
+// creates a server per each queue section in the host.ini
+$servers = [
+  new rabbitMQServer(__DIR__."/host.ini", "AuthRegister"),
+  new rabbitMQServer(__DIR__."/host.ini", "AuthLogin"),
+  new rabbitMQServer(__DIR__."/host.ini", "AuthValidate"),
+  new rabbitMQServer(__DIR__."/host.ini", "AuthLogout"),
+];
+
+// child process for each queue so they can listen at the same time
+pcntl_async_signals(true);
+$children = [];
+
+foreach ($servers as $srv) {
+  $pid = pcntl_fork();
+
+  // child process runs the server
+  if ($pid === 0) {
+    $srv->process_requests('requestProcessor');
+    exit(0);
+  }
+
+  $children[] = $pid;
+}
+
+echo "Auth server running (" . count($children) . " workers)…\n";
+
+// parent process just waits forever so children stay alive
+while (true) {
+  sleep(5);
+}
