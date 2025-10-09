@@ -1,28 +1,43 @@
 <?php
-/**
-    @brief gets the currrent machine information and optionally any other task
-    specific INI folder installed in the system path.
-    Uses the default path of /var/system_ini/ unless $INIPATH is set
+// reads rmq connection and queue info from ini files
+// goibg to be used by both webserver and db scripts
 
-    @return parsed ini machine information
-*/
 function getHostInfo(array $extra = NULL)
 {
-    $machine;
-    $machine = parse_ini_file("host.ini",$process_sections=true);
-    if ($extra != NULL)
-    {
-        foreach ($extra as $ini)
-        {
-            $parsed = parse_ini_file($ini,true);
-            if ($parsed)
-            {
-                $machine = array_merge($machine,$parsed);
+    // try to use an environment variable, optional
+    $iniPath = getenv('INIPATH');
+
+    // if variable not set, default to the current folder
+    if (!$iniPath || !is_dir($iniPath)) {
+        $iniPath = __DIR__; // __DIR__ is where this file lives (rabbitMQ/)
+    }
+
+    // path to the main host.ini file that contains connection info
+    $hostFile = rtrim($iniPath, '/') . '/host.ini';
+
+    // parse host.ini
+    $machine = parse_ini_file($hostFile, true);
+    if ($machine === false) {
+        throw new RuntimeException("getHostInfo: cannot read $hostFile");
+    }
+
+    // merges in any extra .ini files 
+    // idk if we need this because i put everything back in host.ini???
+    if ($extra) {
+        foreach ($extra as $ini) {
+            $p = (strpos($ini, '/') === false)
+                ? rtrim($iniPath, '/') . '/' . $ini
+                : $ini;
+
+            $parsed = parse_ini_file($p, true);
+            if ($parsed === false) {
+                throw new RuntimeException("getHostInfo: cannot read $p");
             }
+            
+            $machine = array_replace($machine, $parsed);
         }
     }
+
+    // SHOULD return proper combined config array
     return $machine;
 }
-
-?>
-
