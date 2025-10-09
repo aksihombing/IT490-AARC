@@ -21,7 +21,7 @@ if ($username === '' || $password === '') {
 }
 
 try {
-  $client  = new rabbitMQClient("host.ini","testServer");
+  $client  = new rabbitMQClient(__DIR__.'/../host.ini',"testServer");
   $request  = [
     'type' => 'login', 
     'username' => $username, 
@@ -34,13 +34,19 @@ try {
     $_SESSION['username']       = $username;
     $_SESSION['session_key'] = $response['session_key'] ?? null; // server/DB generates it
     
+    header("Location: index.php");
     echo json_encode("Login Success.");
+    exit;
   } 
   else {
     $msg = is_array($response) ? ($response['message'] ?? 'Invalid credentials') : 'No response';
-    echo json_encode("Login Failed: " . $msg);
+    echo json_encode("Login 
+    Failed: " . $msg);
+    header("Location: index.php?error".urlencode($msg));
+    exit;
   }
 } catch (Exception $e) {
   echo json_encode("Login Failed: " . $e->getMessage());
+  header("Location: index.php?error".urlencode($e->getMessage()));
 }
 ?>
