@@ -45,13 +45,13 @@ function doRegister($email, $username, $password){
 
 
   // checks if username exists before registering
-  $stmt = $conn->prepare("SELECT * FROM users WHERE (username = ?)");
+  $stmt = $conn->prepare("SELECT * FROM usersTableTable WHERE (username = ?)");
   $stmt->bind_param("s",$username);
   $stmt->execute();
   $result = $stmt->get_result();
 
   if ($result->num_rows >0){
-    return ['status'=>'fail', 'message' => 'Username already exists'];
+    return ['status'=>'error', 'message' => 'Username already exists'];
   }
 
   
@@ -67,7 +67,7 @@ function doRegister($email, $username, $password){
   }
   else {
     error_log("DB couldn't insert data from doRegister:".$conn->error); // debugging error
-    return ['status'=>'fail', 'message' => 'Database insert fail'];
+    return ['status'=>'error', 'message' => 'Database insert fail'];
   }
 }
 
@@ -82,7 +82,7 @@ function doLogin($username, $password){
     return ['status' => 'error', 'message' => 'Failed DB connection.'];
   }
 
-  $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE username = ?");
+  $stmt = $conn->prepare("SELECT id, username, password FROM usersTable WHERE username = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->store_result();
@@ -91,13 +91,47 @@ function doLogin($username, $password){
     // checks if theres a row in the db with from the query result
     $stmt->bind_result($id,$dbUser,$dbHash);
     $stmt->fetch();
-    if (password_verify($password,$dbHash)){
-      return ['status'=>'success','uid'=>$id,'username'=>$dbUser];
-    }
-    else { return ['status'=>'fail', 'message' => 'Invalid password']; }
-  }
-  else { return ['status'=>'fail', 'message' => 'User not found']; }
 
+    if (password_verify($password,$dbHash)){
+      // if able to login, generate session key:
+      $session_key = createSession($id,$conn);
+      if ($session_key){
+        return [
+          'status'=>'success',
+        'uid'=>$id,
+        'username'=>$dbUser,
+      'session_key'=> $session_key];
+      }
+      else { 
+        return [
+          'status'=>'error',
+        'message'=> "Failed to create session key."
+        ];
+      }
+    }
+    else { return ['status'=>'error', 'message' => 'Invalid password']; }
+  }
+  else { return ['status'=>'error', 'message' => 'User not found']; }
+
+}
+
+
+// SESSIONS
+function doValidateSession($session_key){
+  require_once('../sql_db/db_functions.php');
+  $conn = getDBConnection();
+  if (!$conn){
+    return ['status' => 'error', 'message' => 'Failed DB connection in validating session.'];
+  }
+
+  $user_id = validateSession($session_key, $conn);
+  if ($user_id){
+    return ['status' => 'success', 'user_id' => $user_id];
+  }
+  else{
+    return ['status' => 'error', 'message' => 'Invalid session'];
+  }
+  
 }
 
 

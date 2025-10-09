@@ -32,7 +32,7 @@ try {
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
     $_SESSION['login']       = true;
     $_SESSION['username']       = $username;
-    $_SESSION['session_key'] = $response['session_key'] ?? null; // server/DB generates it
+    $_SESSION['session_key'] = $response['session_key'] ?? null; // server/DB generates it via db_functions.php createSession() function
     
     header("Location: index.php");
     echo json_encode("Login Success.");
