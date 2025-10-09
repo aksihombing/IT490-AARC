@@ -3,7 +3,7 @@
 // contains database server's info for connection.
 
 function getDBConnection(){
-    $dbServerIP = "172.28.172.114";
+    $dbServerIP = "172.28.109.126"; // Rea's Zero-Tier IP
     $dbUsername = "testUser";
     $dbPassword = "12345";
     $dbName = "testdb";
