@@ -4,7 +4,7 @@ session_start();
 ?>
 <html>
 <script>
-// Created by Rea S.
+// taken from Prof's code
 function HandleLoginResponse(response)
  {
   const data = JSON.parse(response);
