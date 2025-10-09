@@ -13,8 +13,8 @@ session_start();
 
 
 // CHIZZY's EXCERPT:
-// uses emailAddress + username; accept both username/username
-$email    = $_POST['emailAddress'] ?? '';
+// uses email + username; accept both username/username
+$email    = $_POST['email'] ?? '';
 $username = $_POST['username']     ?? ($_POST['username'] ?? '');
 $password = $_POST['password']     ?? '';
 

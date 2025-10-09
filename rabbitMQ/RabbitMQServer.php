@@ -1,10 +1,13 @@
 #!/usr/bin/php
 <?php
 
-// rabbitMQServer should run continuously on the Broker/RabbitMQ Server's VM.
-// it listens for messages, takes from the queue, processes it to the DB, and sends response if needed.
+// rabbitMQServer should run continuously on the Database VM's machine
+// DB runs file > connects to RabbitMQ > Listens for requests and processes
 
-require_once('rabbitMQLib.inc'); // also references get_host_info.inc
+
+require_once(__DIR__.'/rabbitMQLib.inc'); // also references get_host_info.inc
+require_once(__DIR__.'/get_host_info.inc');
+//require_once(__DIR__ . '/../sql_db/db_functions.php'); //already within doLogin and doRegister
 
 // ------------- PROCESS REQUESTS ------------
 function requestProcessor($request)
@@ -32,7 +35,7 @@ function requestProcessor($request)
 
 
 // REGISTER FUNCTION
-function doRegister($username, $password, $email){
+function doRegister($email, $username, $password){
   require_once('../sql_db/db_functions.php');
   $conn = getDBConnection();
   if (!$conn){
@@ -42,7 +45,7 @@ function doRegister($username, $password, $email){
 
 
   // checks if username exists before registering
-  $stmt = $conn->prepare("SELECT * FROM users (username = ?");
+  $stmt = $conn->prepare("SELECT * FROM users WHERE (username = ?)");
   $stmt->bind_param("s",$username);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -53,8 +56,8 @@ function doRegister($username, $password, $email){
 
   
   // insert NEW user if there was no existing name yet
-  $stmt = $conn->prepare("INSERT INTO users (username, email, password VALUES ?");
-  $stmt->bind_param("sss", $username, $password, $email);
+  $stmt = $conn->prepare("INSERT INTO users (email, username, password) VALUES (?, ?, ?)");
+  $stmt->bind_param("sss", $email, $username, $password);
   if ($stmt->execute()){
     return [
       'status' => 'success',
@@ -99,10 +102,16 @@ function doLogin($username, $password){
 
 
 // MAIN SERVER LOOP --------------------
+echo "[*] RabbitMQ Server starting...".PHP_EOL;
 
 $server = new rabbitMQServer("host.ini","testServer");
-echo "RabbitMQ Server BEGIN".PHP_EOL;
+
+if (!$server){
+  echo "[!] ERROR: RabbitMQServer could not connect";
+  exit; // ends server if not able to connect
+}
+
 $server->process_requests('requestProcessor'); // PROCESSES REQUESTS UNTIL THERE ARE NONE !!
-echo "testRabbitMQServer END".PHP_EOL;
+echo "[x] RabbitMQ Server shutting down".PHP_EOL;
 exit();
 ?>
