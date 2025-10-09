@@ -8,7 +8,7 @@ require_once __DIR__ . '/get_host_info.inc';
 
 // connects to the local sql database
 function db() {
-  $host = '172.28.172.114'; // need local ip
+  $host = '172.28.109.126'; // need local ip
   $user = 'testUser'; // needdatabase user
   $pass = '12345'; // need database password
   $name = 'testdb'; // needdatabase name
