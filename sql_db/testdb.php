@@ -76,8 +76,8 @@ $result = doRegister($testData);
 echo "Registration test result:\n";
 print_r($result);
 
-/*
-CREATE USER 'testUser'@'172.28.109.%' IDENTIFIED BY '12345';
+/* ---- to enter into mysql; grants ANY vm within vpn access, hopefully.
+CREATE USER 'testUser'@'172.28.%.%' IDENTIFIED BY '12345';
 GRANT ALL PRIVILEGES ON testdb.* TO 'testUser'@'172.28.109.%';
 FLUSH PRIVILEGES;
 */
