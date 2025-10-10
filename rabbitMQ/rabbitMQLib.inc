@@ -222,7 +222,8 @@ class rabbitMQClient
 
       $callback_queue = new AMQPQueue($channel);
       $callback_queue->setName($this->queue."_response");
-      $callback_queue->declare();
+	  $callback_queue->setFlags(AMQP_AUTODELETE);  //removing queue when done, hopefully solves queue issue 
+      $callback_queue->declareQueue();  //actually declaring queue now? wasnt declaring earlier
 			$callback_queue->bind($exchange->getName(),$this->routing_key.".response");
 
 			$this->conn_queue = new AMQPQueue($channel);
