@@ -3,33 +3,32 @@
 // Should use RabbitMQPHP (AMQP connection protocol) to send information between the user and database.
 // pulled from Chizzy's branch
 
-
-require_once(__DIR__.'../rabbitMQ/rabbitMQLib.inc');
-
-
-
-
 session_start();
+require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';  
+require_once __DIR__ . '/../rabbitMQ/get_host_info.inc'; 
+// changed above to expand to absolute path
 
-if (isset($_POST['emailAddress'])) { //like an exapnded version of the ternary thing. doesnt have to be super good, just needs to work lol
-    $email = $_POST['emailAddress'];
-} else {
-    $email = ''; // if NOT set, string is EMPTY.
+
+
+// only allowing post submissions from the form
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  http_response_code(405);
+  echo "Use POST";
+  exit;
 }
-if (isset($_POST['username'])) {
-    $username = $_POST['username'];
-} else {
-    $username = '';
+
+$email    = $_POST['emailAddress'] ?? '';
+$username = $_POST['username']     ?? '';
+$password = $_POST['password']     ?? '';
+
+// checking all of the fields are filled
+if ($email === '' || $username === '' || $password === '') {
+  http_response_code(400);
+  echo "All fields are required.";
+  exit;
 }
-if (isset($_POST['password'])) {
-    $password = $_POST['password'];
-} else {
-    $password = '';
-}
-// validation check for empty variables :
-if (empty($emailAddress) || empty($username) || empty($password)) {
-    exit("ERROR: All fields are required. Field was left empty.");
-}
+// reworked above bcs variables were mismatched
+
 
 // hash the password before sending through server and datbase
 
@@ -37,29 +36,29 @@ $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an alg
 
 
 
- $request = [
-        'type'   => 'register',
-        'email'    => $email,
-        'username' => $username,
-        'password' => $hashedPassword,
+$request = [
+  'type'     => 'register',
+  'email'    => $email,
+  'username' => $username,
+  'password' => $hashedPassword,
+];
 
-    ];
 
-// try to connect to RabbitMQ
 try {
+  // connect to rmq
+  $client = new rabbitMQClient("host.ini", "AuthRegister"); // changed to reflect the new section name
 
-    // AMQP Connection
-    $client  = new rabbitMQClient("host.ini","testServer");
-    $response = $connection->send_request($request);
+  // sending the registration request
+  $response = $client->send_request($request); // changed to correct variable name
 
+  // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
-    echo "Registration success. You can now log in.";
-    
+      echo "Registration success. You can now log in.";
   } else {
-    $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
-    echo "Registration failed: $msg";
-
+      $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
+      echo "Registration failed: $msg";
   }
-} catch (Exception $e) {
-    echo "Error connecting to RabbitMQ: " . $e->getMessage();
+}
+catch (Exception $e) {
+  echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }

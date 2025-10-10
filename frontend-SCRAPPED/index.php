@@ -3,11 +3,8 @@
 session_start();
 ?>
 <html>
-  
 <script>
-/*
-// THIS IS JAVASCRIPT HANDLING EQUIVALENT RABBITMQLIB FUNCTIONS. NOT NEEDED ??
-// taken from Prof's code
+// Created by Rea S.
 function HandleLoginResponse(response)
  {
   const data = JSON.parse(response);
@@ -32,7 +29,6 @@ function SendLoginRequest(username,password) // gets username and password eleme
 	}
 	request.send("type=login&username="+username+"&password="+password); // takes in user and password
 }
-*/
 </script>
 
 
@@ -58,19 +54,16 @@ if (!isset($_SESSION['login'])) {
      <input type="hidden" name="content" value="validate"> 
     -->
   </form>
-  <?php
-  if (isset($_GET['error'])){
-    echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-  }
 
-  ?>
   <br>
   <br>
 
   <h2>LOG IN</h2>
   <h4>For existing users</h4>
 
-  <form name="login"  action="login.php" method="post"> 
+  <form name="login" onsubmit="SendLoginRequest(this.username.value, this.password.value);"> 
+    <!-- .this = instance of variable
+          .value = value attribute from HTML element -->
     <label>Username:</label>
     <input type="text" name="username" size="20">
     <br>
