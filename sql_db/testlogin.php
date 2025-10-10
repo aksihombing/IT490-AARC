@@ -17,6 +17,7 @@ function db() {
 function doLogin(array $req) {
   $username = $req['username'] ?? '';
   $password = $req['password'] ?? '';
+  $conn = db();
 
   if ($username==='' || $password==='') {
     return ['status'=>'fail','message'=>'missing fields'];

@@ -59,20 +59,27 @@ function doLogin(array $req) {
   $username = $req['username'] ?? '';
   $password = $req['password'] ?? '';
 
-  if ($username==='' || $password==='') {
+ if ($username==='' || $password==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
-
   $conn = db();
-  $stmt = $conn->prepare("SELECT id,password_hash, emailAddress FROM users WHERE username=? LIMIT 1");
+
+
+  $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
-  $stmt->bind_result($uid,$hash,$email);
+  $stmt->store_result();
 
-  // check the login credentials
-  if (!$stmt->fetch() || !password_verify($password,$hash)) {
-    return ['status'=>'fail','message'=>'invalid credentials'];
+  if ($stmt->num_rows === 1) { // triple equal is stricter than ==
+    // checks if theres a row in the db with from the query result
+    $stmt->bind_result($id,$dbUser,$dbHash);
+    $stmt->fetch();
+    if (password_verify($password,$dbHash)){
+      return ['status'=>'success','uid'=>$id,'username'=>$dbUser];
+    }
+    else { return ['status'=>'fail', 'message' => 'Invalid password']; }
   }
+  else { return ['status'=>'fail', 'message' => 'User not found']; }
 
   // create a session key, should be secure ?
   $session = bin2hex(random_bytes(32));
