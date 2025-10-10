@@ -8,7 +8,7 @@ require_once __DIR__ . '/get_host_info.inc';
 
 // connects to the local sql database
 function db() {
-  $host = '172.28.109.126'; // need local ip
+  $host = '172.28.109.213'; // need local ip, NEED TO CHANGE
   $user = 'testUser'; // needdatabase user
   $pass = '12345'; // need database password
   $name = 'testdb'; // needdatabase name
@@ -35,7 +35,7 @@ function doRegister(array $req) {
   $conn = db();
 
   // see if user already exists in db
-  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR email=?");
+  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
   $stmt->store_result();
@@ -46,7 +46,7 @@ function doRegister(array $req) {
   $stmt->close();
 
   // inserts new user into database
-  $stmt = $conn->prepare("INSERT INTO users (username,email,password_hash) VALUES (?,?,?)");
+  $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
     return ['status'=>'fail','message'=>'db insert failed'];
@@ -64,7 +64,7 @@ function doLogin(array $req) {
   }
 
   $conn = db();
-  $stmt = $conn->prepare("SELECT id,password_hash,email FROM users WHERE username=? LIMIT 1");
+  $stmt = $conn->prepare("SELECT id,password_hash, emailAddress FROM users WHERE username=? LIMIT 1");
   $stmt->bind_param("s", $username);
   $stmt->execute();
   $stmt->bind_result($uid,$hash,$email);

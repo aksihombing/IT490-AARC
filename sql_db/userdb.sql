@@ -32,7 +32,7 @@ CREATE TABLE `sessions` (
   PRIMARY KEY (`session_id`),
   UNIQUE KEY `session_key` (`session_key`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `usersTable` (`id`)
+  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -46,30 +46,32 @@ LOCK TABLES `sessions` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `usersTable`
+-- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `usersTable`;
+DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE `usersTable` (
+CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `emailAddress` varchar(250) NOT NULL,
-  `uname` varchar(100) NOT NULL,
+  `username` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `usersTable`
+-- Dumping data for table `users`
 --
 
-LOCK TABLES `usersTable` WRITE;
-/*!40000 ALTER TABLE `usersTable` DISABLE KEYS */;
-INSERT INTO `usersTable` VALUES (1,'testUser@gmail.com','testName','testPass');
-/*!40000 ALTER TABLE `usersTable` ENABLE KEYS */;
-UNLOCK TABLES;
+/*LOCK TABLES `users` WRITE;*/
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+/*
+INSERT INTO `users` VALUES (1,'testUser@gmail.com','testName','testPass');
+*/
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+/*UNLOCK TABLES;*/
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

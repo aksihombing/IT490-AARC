@@ -6,6 +6,10 @@
 // altered from mysqlconnect.php
 // contains database server's info for connection.
 
+/// REA'S CODE
+// scrapped
+// Aida's Server.php file integrates it already
+
 function getDBConnection(){
     $dbServerIP = "172.28.109.126"; // Rea's Zero-Tier IP
     $dbUsername = "testUser";
