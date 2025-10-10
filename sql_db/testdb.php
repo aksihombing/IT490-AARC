@@ -76,5 +76,11 @@ $result = doRegister($testData);
 echo "Registration test result:\n";
 print_r($result);
 
+/*
+CREATE USER 'testUser'@'172.28.109.%' IDENTIFIED BY '12345';
+GRANT ALL PRIVILEGES ON testdb.* TO 'testUser'@'172.28.109.%';
+FLUSH PRIVILEGES;
+*/
+
 
 ?>
