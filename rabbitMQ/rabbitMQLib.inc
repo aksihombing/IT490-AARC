@@ -36,7 +36,73 @@ class rabbitMQServer
 		$this->queue = $this->machine[$server]["QUEUE"];
 	}
 
+
 	function process_message($msg)
+	{
+		// send the ack to clear the item from the queue
+		if ($msg->getRoutingKey() !== "*")
+    {
+      return;
+    }
+    
+	try
+	{
+		if ($msg->getReplyTo())
+		{
+				// message wants a response
+				// process request
+				$body = $msg->getBody();
+				$payload = json_decode($body, true);
+				$response;
+				if (isset($this->callback))
+				{
+					$response = call_user_func($this->callback,$payload);
+				}
+
+      $params = array();
+      $params['host'] = $this->BROKER_HOST;
+      $params['port'] = $this->BROKER_PORT;
+      $params['login'] = $this->USER;
+      $params['password'] = $this->PASSWORD;
+      $params['vhost'] = $this->VHOST;
+			$conn = new AMQPConnection($params);
+			$conn->connect();
+			$channel = new AMQPChannel($conn);
+			$exchange = new AMQPExchange($channel);
+      $exchange->setName($this->exchange);
+      $exchange->setType($this->exchange_type);
+
+			$conn_queue = new AMQPQueue($channel);
+			$conn_queue->setName($msg->getReplyTo());
+			$replykey = $this->routing_key.".response";
+			$conn_queue->bind($exchange->getName(),$replykey);
+			$exchange->publish(json_encode($response),$replykey,AMQP_NOPARAM,array('correlation_id'=>$msg->getCorrelationId()));
+
+
+			$this->conn_queue->ack($msg->getDeliveryTag()); // moved down to only ACKNOWLEDGE AFTER SUCCESSFUL PROCESS !
+			echo "Processed and acknowledged message";
+
+				return; // makes sure the second half of the function doesnt happen
+				// AKA the "no-reply" will not be used.
+			} // getReplyTo 
+		}
+		catch(Exception $e)
+		{
+			// ampq throws exception if get fails...
+            echo "error: rabbitMQServer: process_message: exception caught: ".$e;
+		}
+		// message does not require a response, send ack immediately
+		$body = $msg->getBody();
+		$payload = json_decode($body, true);
+		if (isset($this->callback))
+		{
+			call_user_func($this->callback,$payload);
+		}
+		echo "processed one-way message\n";
+	}
+
+
+	/*function process_message($msg) // PROFESSOR'S
 	{
 		// send the ack to clear the item from the queue
 		if ($msg->getRoutingKey() !== "*")
@@ -93,7 +159,7 @@ class rabbitMQServer
 			call_user_func($this->callback,$payload);
 		}
 		echo "processed one-way message\n";
-	}
+	}*/
 
 	function process_requests($callback)
 	{
