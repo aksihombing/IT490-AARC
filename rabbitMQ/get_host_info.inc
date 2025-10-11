@@ -8,15 +8,20 @@
 */
 function getHostInfo(array $extra = NULL)
 {
-    $machine = parse_ini_file("/var/www/rabbitMQ/host.ini", true);
+    $machine = parse_ini_file(__DIR__ . "/host.ini", true);
     if ($extra != NULL)
     {
         foreach ($extra as $ini)
         {
-            $parsed = parse_ini_file($ini, true);
-            if ($parsed)
-            {
-                $machine = array_merge($machine, $parsed);
+            if (is_string($ini) && isset($machine[$ini])) {
+                continue;
+            }
+
+            if (file_exists($ini)) {
+                $parsed = parse_ini_file($ini, true);
+                if ($parsed) {
+                    $machine = array_merge($machine, $parsed);
+                }
             }
         }
     }
