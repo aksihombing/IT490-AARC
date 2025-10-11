@@ -1,70 +1,73 @@
-
-<html>
-
 <?php
 session_start();
-//require_once(__DIR__.'/../rabbitMQ/RabbitMQServer.php');
-//require_once(__DIR__.'/../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../rabbitMQ/RabbitMQServer.php');
 
-$sessionKey = $_SESSION['session_key'] ?? null; // check for session key
 
-// use RabbitMQ client
 $client = new rabbitMQClient("host.ini", "AuthValidate");
+
+// check for existing session key
+$sessionKey = $_SESSION['session_key'] ?? null;
 $userData = null;
 
-if ($sessionKey){
-  $response = $client->send_request([
-    'type' => 'validate',
-    'session_key' => $sessionKey
-  ]);
-  if($response['status']==='success'){
-    $userData = $response['user'];
-  }
-  else {
-    // invalid session or expired.
-    unset($_SESSION['session_key']);
-  }
+if ($sessionKey) {
+    $response = $client->send_request([
+        'type' => 'validate',
+        'session_key' => $sessionKey
+    ]);
 
+    if ($response['status'] === 'success') {
+        $userData = $response['user'];
+    } else {
+        // invalid or expired session
+        unset($_SESSION['session_key']);
+    }
 }
-
-
-
-// NO VALID SESSION : 
-if (!isset($_SESSION['session_key']) || !$userData) {
 ?>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>AARC Page</title>
-  <!-- <link rel="stylesheet" type="text/css" href="ih_styles.css"> -->
+  <meta charset="UTF-8">
+  <title>AARC Portal</title>
+  
 </head>
-
 <body>
-<!-- <header style="height:15%;">
-    <?php //include("header.inc.php");?>
-</header> -->
-  <section>
-  <!-- insert NAV here -->
-   <main>
-    <?php
-    // PAGE CONTENT REDIRECTION
-        if (isset($_REQUEST['content'])) {
-            include($_REQUEST['content'] . ".inc.php");
-        } else {
-            include("main.inc.php");
-        }
+<header>
+  <nav>
+    <ul>
+      <?php if ($userData): ?>
+        <!--<li><a href="index.php?content=dashboard">Dashboard</a></li>-->
+        <li>You are logged in!</li>
+        <li><a href="logout.php">Logout</a></li>
+      <?php else: ?>
+        <li><a href="index.php?content=login">Login</a></li>
+        <li><a href="index.php?content=register">Register</a></li>
+      <?php endif; ?>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <?php
+  // PAGE CONTENT HANDLER
+  if (isset($_REQUEST['content'])) {
+      $allowedPages = ['dashboard', 'main']; // prevent arbitrary includes
+      $content = $_REQUEST['content'];
+
+      if (in_array($content, $allowedPages)) {
+          include("$content.inc.php");
+      } else {
+          echo "<p>Page not found.</p>";
       }
-        ?>
-  else { // Session IS valid!
-
-
+  } else {
+      include("main.inc.php");
   }
-   </main>
+  ?>
+</main>
 
-  </section>
-
+<footer>
+  <?php include("footer.inc.php"); ?>
+</footer>
 
 </body>
-
-<footer> <?php include("footer.inc.php"); ?> </footer>
-
-
 </html>

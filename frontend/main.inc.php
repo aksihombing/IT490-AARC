@@ -1,47 +1,64 @@
 <?php
-if (!isset($_SESSION['session_id'])) {
+// MAIN LANDING PAGE (Displays login + registration forms)
+
+// check session state
+if (!isset($_SESSION['session_key'])):
 ?>
-<h2> REGISTER USER </h2>
-  <form name="register" action="register.php" method="post"> 
-    <label>Email:</label>
-    <input type="text" name="emailAddress" size="20">
-    <br>
-    <label>Username:</label>
-    <input type="text" name="username" size="20">
-    <br>
-    <label>Password</label>
-    <input type="password" name="password" size="20">
-    <br>
-    <input type="submit" value="Register">
-  </form>
-  <?php
-  if (isset($_GET['error'])){
-    echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-  }
+  <section id="auth-section">
+    <h2>Register New User</h2>
+    <form name="register" action="register.php" method="post"> 
+      <label for="emailAddress">Email:</label>
+      <input type="email" id="emailAddress" name="emailAddress" size="25" required>
+      <br>
 
-  ?>
-  <br>
-  <br>
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" size="25" required>
+      <br>
 
-  <h2>LOG IN</h2>
-  <h4>For existing users</h4>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" size="25" required>
+      <br>
 
-  <form name="login"  action="login.php" method="post"> 
-    <label>Username:</label>
-    <input type="text" name="username" size="20">
-    <br>
-    <label>Password</label>
-    <input type="password" name="password" size="20">
-    <br>
-    
-    <input type="submit" value="Login">
-  </form>
-  <br>
+      <input type="submit" value="Register">
+    </form>
 
+    <?php
+    if (isset($_GET['register_error'])) {
+        echo "<p style='color:red;'>Registration Failed: " . htmlspecialchars($_GET['register_error']) . "</p>";
+    }
+    if (isset($_GET['register_success'])) {
+        echo "<p style='color:green;'>Registration successful! You may now log in.</p>";
+    }
+    ?>
 
+    <hr>
 
-<?php
-} else { 
-   echo "<h2 style='font-size:20px;'>Welcome. Thanks for logging in.</h2>"; 
-}
-?>
+    <h2>Log In</h2>
+    <h4>For existing users</h4>
+
+    <form name="login" action="login.php" method="post"> 
+      <label for="loginUsername">Username:</label>
+      <input type="text" id="loginUsername" name="username" size="25" required>
+      <br>
+
+      <label for="loginPassword">Password:</label>
+      <input type="password" id="loginPassword" name="password" size="25" required>
+      <br>
+
+      <input type="submit" value="Login">
+    </form>
+
+    <?php
+    if (isset($_GET['error'])) {
+        echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
+    }
+    ?>
+  </section>
+
+<?php else: ?>
+  <section id="welcome-section">
+    <h2>Welcome!</h2>
+    <p>You are logged in successfully.</p>
+    <p><a href="index.php?content=dashboard">Go to Dashboard</a> or <a href="logout.php">Logout</a></p>
+  </section>
+<?php endif; ?>
