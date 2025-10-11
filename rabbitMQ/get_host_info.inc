@@ -8,21 +8,18 @@
 */
 function getHostInfo(array $extra = NULL)
 {
-    $machine;
-    $machine = parse_ini_file(__DIR__ . "/testRabbitMQ.ini", true);
+    $machine = parse_ini_file("/var/www/rabbitMQ/host.ini", true);
     if ($extra != NULL)
     {
         foreach ($extra as $ini)
         {
-            $parsed = parse_ini_file($ini,true);
+            $parsed = parse_ini_file($ini, true);
             if ($parsed)
             {
-                $machine = array_merge($machine,$parsed);
+                $machine = array_merge($machine, $parsed);
             }
         }
     }
     return $machine;
 }
-
 ?>
-

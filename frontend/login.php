@@ -26,7 +26,7 @@ if ($username === '' || $password === '') {
 
 
 try {
-  $client  = new rabbitMQClient(__DIR__.'/../host.ini',"AuthLogin");
+ $client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini', 'AuthLogin');// changed to look in th rabbitmq folder; absolute path
   $request  = [
     'type' => 'login',
     'username' => $username,

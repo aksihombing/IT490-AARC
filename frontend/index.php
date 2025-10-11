@@ -7,6 +7,20 @@ session_start();
 if (!isset($_SESSION['login'])) {
 ?>
   <h2>Home Page</h2><br>
+
+ <?php
+  // Show success message (if redirected from register.php)
+  if (isset($_GET['message'])) {
+    echo "<p style='color:green;'>" . htmlspecialchars($_GET['message']) . "</p>";
+  }
+
+  // Show login error message (already exists)
+  if (isset($_GET['error'])) {
+    echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
+  }
+  ?>
+
+
   <br>
 
 

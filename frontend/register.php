@@ -46,7 +46,7 @@ $request = [
 
 try {
   // connect to rmq
-  $client = new rabbitMQClient("host.ini", "AuthRegister"); // changed to reflect the new section name
+  $client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini', 'AuthRegister');// changed to go to rabbitmq folder; absolute path
 
   // sending the registration request
   $response = $client->send_request($request); // changed to correct variable name
@@ -54,6 +54,8 @@ try {
   // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
       echo "Registration success. You can now log in.";
+      header("Location: index.php?message=" . urlencode("Registration successful! You can now log in."));
+exit;
   } else {
       $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
       echo "Registration failed: $msg";
