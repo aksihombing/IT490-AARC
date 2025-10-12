@@ -8,7 +8,7 @@ require_once __DIR__ . '/get_host_info.inc';
 
 // connects to the local sql database
 function db() {
-  $host = '172.28.172.114'; // need local ip
+  $host = '172.28.109.126'; // need local ip, current set to REA'S VM
   $user = 'testUser'; // needdatabase user
   $pass = '12345'; // need database password
   $name = 'testdb'; // needdatabase name
@@ -35,7 +35,7 @@ function doRegister(array $req) {
   $conn = db();
 
   // see if user already exists in db
-  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR email=?");
+  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
   $stmt->store_result();
@@ -46,7 +46,7 @@ function doRegister(array $req) {
   $stmt->close();
 
   // inserts new user into database
-  $stmt = $conn->prepare("INSERT INTO users (username,email,password_hash) VALUES (?,?,?)");
+  $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
     return ['status'=>'fail','message'=>'db insert failed'];
@@ -59,20 +59,27 @@ function doLogin(array $req) {
   $username = $req['username'] ?? '';
   $password = $req['password'] ?? '';
 
-  if ($username==='' || $password==='') {
+ if ($username==='' || $password==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
-
   $conn = db();
-  $stmt = $conn->prepare("SELECT id,password_hash,email FROM users WHERE username=? LIMIT 1");
+
+
+  $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
   $stmt->bind_param("s", $username);
   $stmt->execute();
-  $stmt->bind_result($uid,$hash,$email);
+  $stmt->store_result();
 
-  // check the login credentials
-  if (!$stmt->fetch() || !password_verify($password,$hash)) {
-    return ['status'=>'fail','message'=>'invalid credentials'];
+  if ($stmt->num_rows === 1) { // triple equal is stricter than ==
+    // checks if theres a row in the db with from the query result
+    $stmt->bind_result($id,$dbUser,$dbHash);
+    $stmt->fetch();
+    if (password_verify($password,$dbHash)){
+      return ['status'=>'success','uid'=>$id,'username'=>$dbUser];
+    }
+    else { return ['status'=>'fail', 'message' => 'Invalid password']; }
   }
+  else { return ['status'=>'fail', 'message' => 'User not found']; }
 
   // create a session key, should be secure ?
   $session = bin2hex(random_bytes(32));
