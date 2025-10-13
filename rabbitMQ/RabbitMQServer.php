@@ -1,6 +1,11 @@
 #!/usr/bin/php
 <?php
-// rmq script to stay running and listen for messages. listener
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL & ~E_DEPRECATED);
+
+// rmq script to stay running and listen for messages. db listener
 // when it receives a message, should talk to sql and send back a result
 
 require_once __DIR__ . '/rabbitMQLib.inc';
@@ -8,10 +13,10 @@ require_once __DIR__ . '/get_host_info.inc';
 
 // connects to the local sql database
 function db() {
-  $host = '172.28.109.126'; // need local ip, current set to REA'S VM
-  $user = 'testUser'; // needdatabase user
-  $pass = '12345'; // need database password
-  $name = 'testdb'; // needdatabase name
+  $host = 'localhost'; 
+  $user = 'testUser'; 
+  $pass = '12345';
+  $name = 'testdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
@@ -27,14 +32,14 @@ function doRegister(array $req) {
   $username = $req['username'] ?? '';
   $hash = $req['password'] ?? '';
 
-  // validate entered fields
+   validate entered fields
   if ($email==='' || $username==='' || $hash==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
 
   $conn = db();
 
-  // see if user already exists in db
+   see if user already exists in db
   $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
@@ -45,7 +50,7 @@ function doRegister(array $req) {
   }
   $stmt->close();
 
-  // inserts new user into database
+   inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
@@ -70,7 +75,7 @@ function doLogin(array $req) {
   $stmt->execute();
   $stmt->store_result();
 
-  if ($stmt->num_rows === 1) { // triple equal is stricter than ==
+  if ($stmt->num_rows === 1) { 
     // checks if theres a row in the db with from the query result
     $stmt->bind_result($id,$dbUser,$dbHash);
     $stmt->fetch();
@@ -133,6 +138,10 @@ function doLogout(array $req) {
 
 // decides which function to run
 function requestProcessor($req) {
+  echo "Received request:\n";
+    var_dump($req);
+    flush();
+  
   if (!isset($req['type'])) {
     return ['status'=>'fail','message'=>'no type'];
   }
@@ -146,37 +155,14 @@ function requestProcessor($req) {
   }
 }
 
-// server logic
+echo "Auth server ready, waiting for requests\n";
+flush();
 
-echo "Auth server starting…\n";
-
-// creates a server per each queue section in the host.ini
-$servers = [
-  new rabbitMQServer(__DIR__."/host.ini", "AuthRegister"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthLogin"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthValidate"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthLogout"),
-];
-
-// child process for each queue so they can listen at the same time
-pcntl_async_signals(true);
-$children = [];
-
-foreach ($servers as $srv) {
-  $pid = pcntl_fork();
-
-  // child process runs the server
-  if ($pid === 0) {
-    $srv->process_requests('requestProcessor');
-    exit(0);
-  }
-
-  $children[] = $pid;
-}
-
-echo "Auth server running (" . count($children) . " workers)…\n";
-
-// parent process just waits forever so children stay alive
-while (true) {
-  sleep(5);
-}
+// single queue version test
+$which = $argv[1] ?? 'AuthRegister';
+echo "Auth server starting for queue section: {$which}\n";
+$server = new rabbitMQServer(__DIR__ . "/host.ini", $which);
+echo "Connecting to queue: {$which}\n";
+flush();
+$server->process_requests('requestProcessor');
+echo "Auth server stopped for {$which}\n";
