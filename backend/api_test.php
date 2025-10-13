@@ -1,6 +1,25 @@
 <?php
 // simple test to call OpenLibrary Search API and print results
 
+// what data are we collecting for the cache ??
+
+
+/*
+Taken from OPEN LIBRARY's doc
+q = keyword or title
+title = title
+author = author
+
+The URL format for API is simple. Take the search URL and add .json to the end. Eg:
+
+https://openlibrary.org/search.json?q=the+lord+of+the+rings
+https://openlibrary.org/search.json?title=the+lord+of+the+rings
+https://openlibrary.org/search.json?author=tolkien&sort=new
+https://openlibrary.org/search.json?q=the+lord+of+the+rings&page=2
+https://openlibrary.org/search/authors.json?q=twain
+*/
+
+
 // example search term — you can change this or pass via GET
 $query = $_GET['q'] ?? 'harry potter';
 
@@ -32,4 +51,3 @@ foreach ($data['docs'] as $book) {
 
     echo "- {$title} by {$author} ({$year})\n";
 }
-?>

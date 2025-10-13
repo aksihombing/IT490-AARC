@@ -2,27 +2,81 @@
 <?php
 // rmq script to stay running and listen for messages. listener
 // when it receives a message, should talk to sql and send back a result
+// uses cURL for GET, POST, etc.. requests to/from API.
+// IT302 uses Postman but with UI
+//
 
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
 // connects to the local sql database
-function db() {
-  $host = '172.28.109.213'; // need local ip, NEED TO CHANGE
+function db()
+{
+  $host = '172.28.109.213'; // need to change to book api db or book cache db
   $user = 'testUser'; // needdatabase user
   $pass = '12345'; // need database password
   $name = 'testdb'; // needdatabase name
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
-    throw new RuntimeException("DB connect failed: ".$mysqli->connect_error);
+    throw new RuntimeException("DB connect failed: " . $mysqli->connect_error);
   }
   return $mysqli;
 }
 
-function doBookSearch($query) {
-    require_once(__DIR__.'/api/book_api.inc.php'); 
-    return callOpenLibrary($query);
+
+
+function doBookSearch(array $req)
+{
+  $type = $req['searchType'] ?? 'title'; // to search by title
+  $query = urlencode($req['query'] ?? '');
+  if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
+
+  $base = "https://openlibrary.org/search.json";
+  if ($type === 'author') {
+    $url = "{$base}?author={$query}&limit=5";
+  } else {
+    $url = "{$base}?q={$query}&limit=5";
+  }
+
+
+
+  //https://www.php.net/manual/en/function.curl-setopt-array.php
+  // $ch = "cURL handle", standard convention
+  $ch = curl_init(); // cURL -> client URL
+  // cURL init --> creates cURL session
+  // we use cURL 
+
+  curl_setopt_array($ch, [
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => true, // returns webpage
+    CURLOPT_SSL_VERIFYPEER => true // verifies SSL
+  ]);
+  $response = curl_exec($ch); // executes uRL
+  if (curl_errno($ch)) { // if cURL error :
+    return ['status' => 'fail', 'message' => 'API error: ' . curl_error($ch)];
+  }
+  curl_close($ch);
+
+  $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
+  
+  // api returns data as json (uses mongodb or non-relational db format)
+  // reminder : mongodb "collection" is equivalent to a table. || "document" is one RECORD in a collection, stored as JSON objects
+  // each attribute can have several data
+
+
+  if (empty($data['docs'])) return ['status' => 'fail', 'message' => 'no results'];
+
+  $results = [];
+  foreach ($data['docs'] as $book) {
+    $results[] = [
+      'title' => $book['title'] ?? 'Unknown title',
+      'author' => $book['author_name'][0] ?? 'Unknown author',
+      'year' => $book['first_publish_year'] ?? 'N/A'
+    ];
+  }
+
+  return ['status' => 'success', 'data' => $results];
 }
 
 
@@ -34,14 +88,15 @@ function doBookSearch($query) {
 
 
 
-function requestProcessor($req) {
+function requestProcessor($req)
+{
   if (!isset($req['type'])) {
-    return ['status'=>'fail','message'=>'no type'];
+    return ['status' => 'fail', 'message' => 'no type'];
   }
 
   switch ($req['type']) {
-    case 'book_search': return doBookSearch($req['query']);
-
+    case 'book_search':
+      return doBookSearch($req['query']);
   }
 }
 
@@ -50,14 +105,11 @@ function requestProcessor($req) {
 
 // server logic ----------------
 
-echo "Auth server starting…\n";
+echo "API/DB server starting…\n";
 
 // creates a server per each queue section in the host.ini
 $servers = [
-  new rabbitMQServer(__DIR__."/host.ini", "AuthRegister"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthLogin"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthValidate"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthLogout"),
+  new rabbitMQServer(__DIR__ . "/host.ini", "SearchAPI"),
 ];
 
 // child process for each queue so they can listen at the same time
@@ -76,7 +128,7 @@ foreach ($servers as $srv) {
   $children[] = $pid;
 }
 
-echo "Auth server running (" . count($children) . " workers)…\n";
+echo "SearchAPI server running (" . count($children) . " workers)…\n";
 
 // parent process just waits forever so children stay alive
 while (true) {

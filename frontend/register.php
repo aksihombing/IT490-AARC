@@ -4,8 +4,8 @@
 // pulled from Chizzy's branch
 
 session_start();
-require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';  
-require_once __DIR__ . '/../rabbitMQ/get_host_info.inc'; 
+require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
+require_once __DIR__ . '/../rabbitMQ/get_host_info.inc';
 // changed above to expand to absolute path
 
 
@@ -53,12 +53,11 @@ try {
 
   // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
-      echo "Registration success. You can now log in.";
+    echo "Registration success. You can now log in.";
   } else {
-      $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
-      echo "Registration failed: $msg";
+    $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
+    echo "Registration failed: $msg";
   }
-}
-catch (Exception $e) {
+} catch (Exception $e) {
   echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }
