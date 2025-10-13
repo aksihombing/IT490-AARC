@@ -13,7 +13,7 @@ class rabbitMQServer
 	private $exchange;
 	private $queue;
 	private $routing_key = '*';
-	private $exchange_type = "topic";
+	private $exchange_type = "direct";
 	private $auto_delete = false;
 
 	function __construct($machine, $server = "rabbitMQ")
@@ -24,6 +24,9 @@ class rabbitMQServer
 		$this->USER     = $this->machine[$server]["USER"];
 		$this->PASSWORD = $this->machine[$server]["PASSWORD"];
 		$this->VHOST = $this->machine[$server]["VHOST"];
+		$this->exchange = $this->machine[$server]["EXCHANGE"];
+		$this->queue = $this->machine[$server]["QUEUE"];
+
 		if (isset( $this->machine[$server]["EXCHANGE_TYPE"]))
 		{
 			$this->exchange_type = $this->machine[$server]["EXCHANGE_TYPE"];
@@ -32,73 +35,60 @@ class rabbitMQServer
 		{
 			$this->auto_delete = $this->machine[$server]["AUTO_DELETE"];
 		}
-		$this->exchange = $this->machine[$server]["EXCHANGE"];
-		$this->queue = $this->machine[$server]["QUEUE"];
-
 		if (isset($this->machine[$server]["ROUTING_KEY"])) {
     		$this->routing_key = $this->machine[$server]["ROUTING_KEY"];
 		}
 
 	}
 
-	function process_message($msg)
-	{
-		// send the ack to clear the item from the queue
-		if ($msg->getRoutingKey() !== "*")
-    {
-      return;
-    }
-    $this->conn_queue->ack($msg->getDeliveryTag());
-		try
-		{
-			if ($msg->getReplyTo())
-			{
-				// message wants a response
-				// process request
-				$body = $msg->getBody();
-				$payload = json_decode($body, true);
-				$response;
-				if (isset($this->callback))
-				{
-					$response = call_user_func($this->callback,$payload);
-				}
+	function process_message($msg){
+		try {
+			$body = $msg->getBody();
+			$payload = json_decode($body, true);
 
-      $params = array();
-      $params['host'] = $this->BROKER_HOST;
-      $params['port'] = $this->BROKER_PORT;
-      $params['login'] = $this->USER;
-      $params['password'] = $this->PASSWORD;
-      $params['vhost'] = $this->VHOST;
+			$response = null;
+			if (isset($this->callback)) {
+			$response = call_user_func($this->callback, $payload);
+			}
+
+			if ($msg->getReplyTo()) {
+			$params = [
+			'host'     => $this->BROKER_HOST,
+			'port'     => $this->BROKER_PORT,
+			'login'    => $this->USER,
+			'password' => $this->PASSWORD,
+			'vhost'    => $this->VHOST,
+			];
+
 			$conn = new AMQPConnection($params);
 			$conn->connect();
-			$channel = new AMQPChannel($conn);
+			$channel  = new AMQPChannel($conn);
 			$exchange = new AMQPExchange($channel);
-      $exchange->setName($this->exchange);
-      $exchange->setType($this->exchange_type);
+			$exchange->setName($this->exchange);
+			$exchange->setType($this->exchange_type);
+			$replykey = $this->routing_key . ".response";
 
-			$conn_queue = new AMQPQueue($channel);
-			$conn_queue->setName($msg->getReplyTo());
-			$replykey = $this->routing_key.".response";
-			$conn_queue->bind($exchange->getName(),$replykey);
-			$exchange->publish(json_encode($response),$replykey,AMQP_NOPARAM,array('correlation_id'=>$msg->getCorrelationId()));
 
-				return;
+				$exchange->publish(
+					json_encode($response),
+					$replykey,
+					AMQP_NOPARAM,
+					['correlation_id' => $msg->getCorrelationId()]
+				);
+			}
+	
+			$this->conn_queue->ack($msg->getDeliveryTag());
+			echo "Processed message for queue: {$this->queue}\n";
+			flush();
+		} catch (Exception $e) {
+			echo "Error in process_message: " . $e->getMessage() . "\n";
+
+			if (isset($this->conn_queue)) {
+			$this->conn_queue->nack($msg->getDeliveryTag());
 			}
 		}
-		catch(Exception $e)
-		{
-			// ampq throws exception if get fails...
-            echo "error: rabbitMQServer: process_message: exception caught: ".$e;
-		}
-		// message does not require a response, send ack immediately
-		$body = $msg->getBody();
-		$payload = json_decode($body, true);
-		if (isset($this->callback))
-		{
-			call_user_func($this->callback,$payload);
-		}
-		echo "processed one-way message\n";
 	}
+
 
 	function process_requests($callback)
 	{
@@ -126,7 +116,7 @@ class rabbitMQServer
 
 			$this->conn_queue->consume(array($this,'process_message'));
 
-			// Loop as long as the channel has callbacks registered
+			// loops as long as the channel has callbacks registered
 			while (count($channel->callbacks))
 			{
 				$channel->wait();
@@ -139,7 +129,7 @@ class rabbitMQServer
 	}
 }
 
-// 
+
 class rabbitMQClient
 {
 	private $machine = "";
