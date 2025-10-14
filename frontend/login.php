@@ -30,7 +30,7 @@ $request = [
 ];
 
 try {
-  $client  = new rabbitMQClient(__DIR__.'/../host.ini',"testServer");
+  $client  = new rabbitMQClient(__DIR__.'/../host.ini',"AuthLogin");
   
   $response = $client->send_request($request); // sends request and waits for response
 
