@@ -39,7 +39,7 @@ function doRegister(array $req) {
 
   $conn = db();
 
-   see if user already exists in db
+// see if user already exists in db
   $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
