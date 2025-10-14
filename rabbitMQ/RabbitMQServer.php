@@ -32,7 +32,7 @@ function doRegister(array $req) {
   $username = $req['username'] ?? '';
   $hash = $req['password'] ?? '';
 
-   validate entered fields
+// validate entered fields
   if ($email==='' || $username==='' || $hash==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
