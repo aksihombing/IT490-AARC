@@ -90,7 +90,7 @@ function doLogin(array $req) {
     // checks if theres a row in the db with from the query result
     $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
-  }
+  } 
     if (password_verify($password,$dbHash)){
      // create a session key, should be secure ?
       $session = bin2hex(random_bytes(32));
@@ -114,6 +114,8 @@ function doLogin(array $req) {
         } else {
             error_log("doLogin invalid password for user {$username}");
             return ['status'=>'fail', 'message'=>'invalid password'];
+        }
+      }      
     }
 }
 
