@@ -114,9 +114,6 @@ function doLogin(array $req) {
         } else {
             error_log("doLogin invalid password for user {$username}");
             return ['status'=>'fail', 'message'=>'invalid password'];
-        } else {
-        error_log("doLogin user not found: {$username}");
-        return ['status'=>'fail', 'message'=>'user not found'];
     }
 }
 
