@@ -111,12 +111,12 @@ function doLogin(array $req) {
                 'username' => $dbUser,
                 'session_key' => $session
             ];
-        } else {
-            error_log("doLogin invalid password for user {$username}");
-            return ['status'=>'fail', 'message'=>'invalid password'];
-        }
-      }      
+    } else {
+        error_log("doLogin invalid password for user {$username}");
+        return ['status'=>'fail', 'message'=>'invalid password'];
     }
+  }      
+}
 }
 
 function doValidate(array $req) {
