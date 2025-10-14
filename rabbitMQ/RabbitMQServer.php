@@ -93,22 +93,38 @@ function doLogin(array $req) {
     error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
     
     if (password_verify($password,$dbHash)){
-      return ['status'=>'success','uid'=>$uid,'username'=>$dbUser];
+     // create a session key, should be secure ?
+      $session = bin2hex(random_bytes(32));
+      $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
+      error_log("doLogin password ok, generating session: key={$session}, expires={$exp}");
+
+      // stores the session in the db. change variable name in case it caused problems
+      $stmt2 = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?, ?, ?)");
+            if (!$stmt2) {
+                error_log("doLogin preparing insert into sessions failed: " . $conn->error);
+            } else {
+                $stmt2->bind_param("iss", $uid, $session, $exp);
+                if (!$stmt2->execute()) {
+                    error_log("doLogin execute insert into session failed: " . $stmt2->error);
+                } else {
+                    error_log("doLogin Session inserted for uid={$uid}, session_key={$session}");
+                }
+            }
+
+            return [
+                'status' => 'success',
+                'uid' => $uid,
+                'username' => $dbUser,
+                'session_key' => $session
+            ];
+        } else {
+            error_log("doLogin invalid password for user {$username}");
+            return ['status'=>'fail', 'message'=>'invalid password'];
+        }
+    } else {
+        error_log("doLogin user not found: {$username}");
+        return ['status'=>'fail', 'message'=>'user not found'];
     }
-    else { return ['status'=>'fail', 'message' => 'Invalid password']; }
-  }
-  else { return ['status'=>'fail', 'message' => 'User not found']; }
-
-  // create a session key, should be secure ?
-  $session = bin2hex(random_bytes(32));
-  $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
-
-  // stores the session in the db
-  $stmt = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?,?,?)");
-  $stmt->bind_param("iss", $uid, $session, $exp);
-  $stmt->execute();
-
-  return ['status'=>'success', 'uid' => $uid,'session_key'=>$session];
 }
 
 function doValidate(array $req) {
