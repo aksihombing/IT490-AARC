@@ -71,14 +71,27 @@ function doLogin(array $req) {
 
 
   $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
+
+  if (!$stmt) {
+        error_log("doLogin preparing SELECT failed: " . $conn->error);
+        return ['status'=>'fail','message'=>'server error'];
+    }
+  
   $stmt->bind_param("s", $username);
-  $stmt->execute();
+
+  if (!$stmt->execute()) {
+        error_log("[doLogin] execute SELECT failed: " . $stmt->error);
+        return ['status'=>'fail','message'=>'server error'];
+    }
+  
   $stmt->store_result();
 
   if ($stmt->num_rows === 1) { 
     // checks if theres a row in the db with from the query result
     $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
+    error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
+    
     if (password_verify($password,$dbHash)){
       return ['status'=>'success','uid'=>$uid,'username'=>$dbUser];
     }
