@@ -50,7 +50,7 @@ function doRegister(array $req) {
   }
   $stmt->close();
 
-   inserts new user into database
+// inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
