@@ -80,7 +80,7 @@ function doLogin(array $req) {
   $stmt->bind_param("s", $username);
 
   if (!$stmt->execute()) {
-        error_log("[doLogin] execute SELECT failed: " . $stmt->error);
+        error_log("doLogin executing SELECT failed: " . $stmt->error);
         return ['status'=>'fail','message'=>'server error'];
     }
   
@@ -90,13 +90,11 @@ function doLogin(array $req) {
     // checks if theres a row in the db with from the query result
     $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
-    error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
     
     if (password_verify($password,$dbHash)){
      // create a session key, should be secure ?
       $session = bin2hex(random_bytes(32));
       $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
-      error_log("doLogin password ok, generating session: key={$session}, expires={$exp}");
 
       // stores the session in the db. change variable name in case it caused problems
       $stmt2 = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?, ?, ?)");
@@ -105,12 +103,8 @@ function doLogin(array $req) {
             } else {
                 $stmt2->bind_param("iss", $uid, $session, $exp);
                 if (!$stmt2->execute()) {
-                    error_log("doLogin execute insert into session failed: " . $stmt2->error);
-                } else {
-                    error_log("doLogin Session inserted for uid={$uid}, session_key={$session}");
-                }
-            }
-
+                    error_log("doLogin executing insert into session failed: " . $stmt2->error);
+                
             return [
                 'status' => 'success',
                 'uid' => $uid,
@@ -156,11 +150,24 @@ function doValidate(array $req) {
 
 function doLogout(array $req) {
   $sid = $req['session_key'] ?? '';
-  if ($sid==='') return ['status'=>'fail','message'=>'missing session'];
-
+  if ($sid==='') {
+    error_log("doLogout missing session_key");
+    return ['status'=>'fail','message'=>'missing session'];
+  }
+    
   $conn = db();
   $stmt = $conn->prepare("DELETE FROM sessions WHERE session_key=?");
+  if (!$stmt) {
+        error_log("doLogout preparing delete failed: " . $conn->error);
+        return ['status' => 'fail', 'message' => 'server error'];
+  }
+  
   $stmt->bind_param("s",$sid);
+  if (!$stmt->execute()) {
+        error_log("doLogout executing delete failed: " . $stmt->error);
+        return ['status' => 'fail', 'message' => 'db error'];
+  }
+  
   $stmt->execute();
   return ['status'=>'success'];
 }
