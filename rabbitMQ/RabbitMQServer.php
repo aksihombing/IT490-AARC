@@ -77,10 +77,10 @@ function doLogin(array $req) {
 
   if ($stmt->num_rows === 1) { 
     // checks if theres a row in the db with from the query result
-    $stmt->bind_result($id,$dbUser,$dbHash);
+    $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
     if (password_verify($password,$dbHash)){
-      return ['status'=>'success','uid'=>$id,'username'=>$dbUser];
+      return ['status'=>'success','uid'=>$uid,'username'=>$dbUser];
     }
     else { return ['status'=>'fail', 'message' => 'Invalid password']; }
   }
@@ -95,7 +95,7 @@ function doLogin(array $req) {
   $stmt->bind_param("iss", $uid, $session, $exp);
   $stmt->execute();
 
-  return ['status'=>'success','session_key'=>$session];
+  return ['status'=>'success', 'uid' => $uid,'session_key'=>$session];
 }
 
 function doValidate(array $req) {
