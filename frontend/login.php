@@ -2,7 +2,7 @@
 // CHIZZY'S BASE CODE with edits from Rea for rabbitMQClient functions
 session_start();
 require_once(__DIR__.'/../rabbitMQ/rabbitMQLib.inc');
-require_once __DIR__ . '/rabbitMQ/get_host_info.inc';
+require_once(__DIR__.'/../rabbitMQ/get_host_info.inc');
 // another option is to use .htaccess to configure a "block" or prevent access to specific files directly.
 
 
