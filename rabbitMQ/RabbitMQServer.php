@@ -1,6 +1,11 @@
 #!/usr/bin/php
 <?php
-// rmq script to stay running and listen for messages. listener
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL & ~E_DEPRECATED);
+
+// rmq script to stay running and listen for messages. db listener
 // when it receives a message, should talk to sql and send back a result
 
 require_once __DIR__ . '/rabbitMQLib.inc';
@@ -8,10 +13,10 @@ require_once __DIR__ . '/get_host_info.inc';
 
 // connects to the local sql database
 function db() {
-  $host = '172.28.109.126'; // need local ip, current set to REA'S VM
-  $user = 'testUser'; // needdatabase user
-  $pass = '12345'; // need database password
-  $name = 'testdb'; // needdatabase name
+  $host = 'localhost'; 
+  $user = 'testUser'; 
+  $pass = '12345';
+  $name = 'testdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
@@ -27,14 +32,14 @@ function doRegister(array $req) {
   $username = $req['username'] ?? '';
   $hash = $req['password'] ?? '';
 
-  // validate entered fields
+// validate entered fields
   if ($email==='' || $username==='' || $hash==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
 
   $conn = db();
 
-  // see if user already exists in db
+// see if user already exists in db
   $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
@@ -45,7 +50,7 @@ function doRegister(array $req) {
   }
   $stmt->close();
 
-  // inserts new user into database
+// inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
@@ -66,31 +71,60 @@ function doLogin(array $req) {
 
 
   $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
+
+  if (!$stmt) {
+        error_log("doLogin preparing SELECT failed: " . $conn->error);
+        return ['status'=>'fail','message'=>'server error'];
+    }
+  
   $stmt->bind_param("s", $username);
-  $stmt->execute();
+
+  if (!$stmt->execute()) {
+        error_log("[doLogin] execute SELECT failed: " . $stmt->error);
+        return ['status'=>'fail','message'=>'server error'];
+    }
+  
   $stmt->store_result();
 
-  if ($stmt->num_rows === 1) { // triple equal is stricter than ==
+  if ($stmt->num_rows === 1) { 
     // checks if theres a row in the db with from the query result
-    $stmt->bind_result($id,$dbUser,$dbHash);
+    $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
+    error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
+    
     if (password_verify($password,$dbHash)){
-      return ['status'=>'success','uid'=>$id,'username'=>$dbUser];
+     // create a session key, should be secure ?
+      $session = bin2hex(random_bytes(32));
+      $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
+      error_log("doLogin password ok, generating session: key={$session}, expires={$exp}");
+
+      // stores the session in the db. change variable name in case it caused problems
+      $stmt2 = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?, ?, ?)");
+            if (!$stmt2) {
+                error_log("doLogin preparing insert into sessions failed: " . $conn->error);
+            } else {
+                $stmt2->bind_param("iss", $uid, $session, $exp);
+                if (!$stmt2->execute()) {
+                    error_log("doLogin execute insert into session failed: " . $stmt2->error);
+                } else {
+                    error_log("doLogin Session inserted for uid={$uid}, session_key={$session}");
+                }
+            }
+
+            return [
+                'status' => 'success',
+                'uid' => $uid,
+                'username' => $dbUser,
+                'session_key' => $session
+            ];
+        } else {
+            error_log("doLogin invalid password for user {$username}");
+            return ['status'=>'fail', 'message'=>'invalid password'];
+        }
+    } else {
+        error_log("doLogin user not found: {$username}");
+        return ['status'=>'fail', 'message'=>'user not found'];
     }
-    else { return ['status'=>'fail', 'message' => 'Invalid password']; }
-  }
-  else { return ['status'=>'fail', 'message' => 'User not found']; }
-
-  // create a session key, should be secure ?
-  $session = bin2hex(random_bytes(32));
-  $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
-
-  // stores the session in the db
-  $stmt = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?,?,?)");
-  $stmt->bind_param("iss", $uid, $session, $exp);
-  $stmt->execute();
-
-  return ['status'=>'success','session_key'=>$session];
 }
 
 function doValidate(array $req) {
@@ -133,6 +167,10 @@ function doLogout(array $req) {
 
 // decides which function to run
 function requestProcessor($req) {
+  echo "Received request:\n";
+    var_dump($req);
+    flush();
+  
   if (!isset($req['type'])) {
     return ['status'=>'fail','message'=>'no type'];
   }
@@ -146,37 +184,14 @@ function requestProcessor($req) {
   }
 }
 
-// server logic
+echo "Auth server ready, waiting for requests\n";
+flush();
 
-echo "Auth server starting…\n";
-
-// creates a server per each queue section in the host.ini
-$servers = [
-  new rabbitMQServer(__DIR__."/host.ini", "AuthRegister"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthLogin"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthValidate"),
-  new rabbitMQServer(__DIR__."/host.ini", "AuthLogout"),
-];
-
-// child process for each queue so they can listen at the same time
-pcntl_async_signals(true);
-$children = [];
-
-foreach ($servers as $srv) {
-  $pid = pcntl_fork();
-
-  // child process runs the server
-  if ($pid === 0) {
-    $srv->process_requests('requestProcessor');
-    exit(0);
-  }
-
-  $children[] = $pid;
-}
-
-echo "Auth server running (" . count($children) . " workers)…\n";
-
-// parent process just waits forever so children stay alive
-while (true) {
-  sleep(5);
-}
+// single queue version test
+$which = $argv[1] ?? 'AuthRegister';
+echo "Auth server starting for queue section: {$which}\n";
+$server = new rabbitMQServer(__DIR__ . "/host.ini", $which);
+echo "Connecting to queue: {$which}\n";
+flush();
+$server->process_requests('requestProcessor');
+echo "Auth server stopped for {$which}\n";

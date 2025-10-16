@@ -1,4 +1,5 @@
 <?php
+
 /**
     @brief gets the currrent machine information and optionally any other task
     specific INI folder installed in the system path.
@@ -6,9 +7,17 @@
 
     @return parsed ini machine information
 */
+
 function getHostInfo(array $extra = NULL)
 {
+
+    $path = __DIR__ . "/host.ini";
+    if (!file_exists($path)) {
+        die("host ini not found at $path\n");
+    }
+
     $machine = parse_ini_file(__DIR__ . "/host.ini", true);
+
     if ($extra != NULL)
     {
         foreach ($extra as $ini)
