@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     by <?php echo htmlspecialchars($book['author']); ?>
                     (<?php echo htmlspecialchars($book['year']); ?>)
                 </li>
-            <?php endforeach; ?>
+            <?php endforeach; // an upgrade from it202, i love it! ?>
         </ul>
     <?php endif; ?>
 </body>

@@ -75,10 +75,10 @@ function doLogin(array $req)
 
   if ($stmt->num_rows === 1) { // triple equal is stricter than ==
     // checks if theres a row in the db with from the query result
-    $stmt->bind_result($id, $dbUser, $dbHash);
+    $stmt->bind_result($uid, $dbUser, $dbHash);
     $stmt->fetch();
     if (password_verify($password, $dbHash)) {
-      return ['status' => 'success', 'uid' => $id, 'username' => $dbUser];
+      return ['status' => 'success', 'uid' => $uid, 'username' => $dbUser];
     } else {
       return ['status' => 'fail', 'message' => 'Invalid password'];
     }

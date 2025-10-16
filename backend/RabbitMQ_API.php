@@ -4,7 +4,7 @@
 // when it receives a message, should talk to sql and send back a result
 // uses cURL for GET, POST, etc.. requests to/from API.
 // IT302 uses Postman but with UI
-//
+// HUGE WORK IN PROGRESS !!!
 
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
@@ -28,6 +28,43 @@ function db()
 
 function doBookSearch(array $req)
 {
+  /*
+ The response with be of the following format. (taken from OpenLibrary)
+
+{
+    "start": 0,
+    "num_found": 629,
+    "docs": [
+        {...},
+        {...},
+        ...
+        {...}]
+}
+Each document specified listed in "docs" will be of the following format:
+
+{
+    "cover_i": 258027,
+    "has_fulltext": true,
+    "edition_count": 120,
+    "title": "The Lord of the Rings",
+    "author_name": [
+        "J. R. R. Tolkien"
+    ],
+    "first_publish_year": 1954,
+    "key": "OL27448W",
+    "ia": [
+        "returnofking00tolk_1",
+        "lordofrings00tolk_1",
+        "lordofrings00tolk_0",
+    ],
+    "author_key": [
+        "OL26320A"
+    ],
+    "public_scan_b": true
+  }
+  */
+
+
   $type = $req['searchType'] ?? 'title'; // to search by title
   $query = urlencode($req['query'] ?? '');
   if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
@@ -45,7 +82,7 @@ function doBookSearch(array $req)
   // $ch = "cURL handle", standard convention
   $ch = curl_init(); // cURL -> client URL
   // cURL init --> creates cURL session
-  // we use cURL 
+
 
   curl_setopt_array($ch, [
     CURLOPT_URL => $url,
@@ -59,7 +96,7 @@ function doBookSearch(array $req)
   curl_close($ch);
 
   $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
-  
+
   // api returns data as json (uses mongodb or non-relational db format)
   // reminder : mongodb "collection" is equivalent to a table. || "document" is one RECORD in a collection, stored as JSON objects
   // each attribute can have several data
@@ -83,7 +120,39 @@ function doBookSearch(array $req)
 
 
 
+// ------------ Cache ------
+function generateCacheKey($category, $identifier) {
+    return strtolower(trim($category)) . ':' . strtolower(trim($identifier));
+}
 
+function getCache($category, $identifier, $ttl = 86400) {
+    $conn = db();
+    $cacheKey = generateCacheKey($category, $identifier);
+    $stmt = $conn->prepare("SELECT data, UNIX_TIMESTAMP(last_updated) AS ts FROM api_cache WHERE cache_key=?");
+    $stmt->bind_param("s", $cacheKey);
+    $stmt->execute();
+    $stmt->bind_result($data, $ts);
+
+    if ($stmt->fetch()) {
+        if ((time() - $ts) < $ttl) {
+            return json_decode($data, true);
+        }
+    }
+    return null; // expired or missing
+}
+
+function saveCache($category, $identifier, $data) {
+    $conn = db();
+    $cacheKey = generateCacheKey($category, $identifier);
+    $json = json_encode($data);
+    $stmt = $conn->prepare("
+        INSERT INTO api_cache (cache_key, data)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE data=?, last_updated=NOW()
+    ");
+    $stmt->bind_param("sss", $cacheKey, $json, $json);
+    $stmt->execute();
+}
 
 
 
