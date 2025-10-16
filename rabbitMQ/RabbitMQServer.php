@@ -88,7 +88,9 @@ function doLogin(array $req)
 
   // create a session key, should be secure ?
   $session = bin2hex(random_bytes(32));
+  echo $session;
   $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
+  echo $exp;
 
   // stores the session in the db
   $stmt = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?,?,?)");
