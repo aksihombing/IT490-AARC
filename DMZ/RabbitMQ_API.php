@@ -150,7 +150,9 @@ function requestProcessor($req)
 
   switch ($req['type']) {
     case 'book_search':
-      return doBookSearch($req['query']);
+      return doBookSearch($req);
+    default:
+      return ['status' => 'fail', 'message' => 'Unknown request type'];
   }
 }
 

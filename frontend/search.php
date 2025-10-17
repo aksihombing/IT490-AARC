@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 </head>
 
 <body>
-    <h1>Search OpenLibrary</h1>
+    <h1>Search The Library</h1>
 
     <form method="GET">
         <!--  name "query" is used for searching by keyword   -->

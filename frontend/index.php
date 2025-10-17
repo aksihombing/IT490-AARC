@@ -3,7 +3,7 @@ session_start();
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 
 
-$client = new rabbitMQClient(__DIR__."/../host.ini", "AuthValidate");
+$client = new rabbitMQClient(__DIR__ . "/../host.ini", "AuthValidate");
 
 // check for existing session key
 $sessionKey = $_SESSION['session_key'] ?? null;
@@ -34,19 +34,9 @@ if ($sessionKey) {
 
 <body>
   <header>
-    <nav>
-      <ul>
-        <?php if ($userData): ?>
-          <!--<li><a href="index.php?content=dashboard">Dashboard</a></li>-->
-          <li>You are logged in!</li>
-          <li><a href="search.php">Search Books</a></li>
-          <li><a href="logout.php">Logout</a></li>
-        <?php else: ?>
-          <h3>Please Register or Log In</h3>
-        <!-- no nav needed is user not logged in-->
-        <?php endif; ?>
-      </ul>
-    </nav>
+    <?php if ($userData): ?>
+      <?php include("nav.inc.php"); ?>
+    <?php endif; ?>
   </header>
 
   <main>
