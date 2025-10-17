@@ -1,21 +1,28 @@
 <?php
 session_start();
-$sessionKey = $_SESSION[$session_key];
+require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
+require_once __DIR__ . '/../rabbitMQ/get_host_info.inc';
 
-if ($session_key) {
-  $client  = new rabbitMQClient(__DIR__ . '/../host.ini', "AuthLogin");
-  $request  = [
-    'type' => 'logout',
-    'session_key' => $session_key
-  ];
-  $response = $client->send_request($request); // sends request and waits for response
-
-    // invalid or expired session
-    unset($_SESSION['session_key']);
-  
+if (!isset($_SESSION['session_key'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit;
 }
 
+$request = [
+    'type' => 'logout',
+    'session_key' => $_SESSION['session_key']
+];
+
+$response = null;
+try {
+    $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "AuthLogout");
+    $response = $client->send_request($request);
+} catch (Exception $e) {
+    // will still log out even if rmq fails i think
+    error_log("logout.php exception sending logout request: " . $e->getMessage());
+}
 
 session_destroy();
-header('Location: index.php');
+header("Location: index.php");
 exit;

@@ -4,7 +4,7 @@ require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 require_once(__DIR__ . '/../rabbitMQ/RabbitMQServer.php');
 
 
-$client = new rabbitMQClient("host.ini", "AuthValidate");
+$client = new rabbitMQClient("/../host.ini", "AuthValidate");
 
 // check for existing session key
 $sessionKey = $_SESSION['session_key'] ?? null;
