@@ -80,7 +80,7 @@ function doLogin(array $req) {
   $stmt->bind_param("s", $username);
 
   if (!$stmt->execute()) {
-        error_log("[doLogin] execute SELECT failed: " . $stmt->error);
+        error_log("doLogin execute SELECT failed: " . $stmt->error);
         return ['status'=>'fail','message'=>'server error'];
     }
   
@@ -121,11 +121,9 @@ function doLogin(array $req) {
             error_log("doLogin invalid password for user {$username}");
             return ['status'=>'fail', 'message'=>'invalid password'];
         }
-    } else {
-        error_log("doLogin user not found: {$username}");
-        return ['status'=>'fail', 'message'=>'user not found'];
+      }      
     }
-}
+
 
 function doValidate(array $req) {
   $sid = $req['session_key'] ?? '';
