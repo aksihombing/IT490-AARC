@@ -1,114 +1,66 @@
 <?php
-
 session_start();
-?>
-<html>
-<<<<<<< HEAD:WebServer/index.php
-<script>
-// Created by Rea S.
-=======
-  
-<script>
-/*
-// THIS IS JAVASCRIPT HANDLING EQUIVALENT RABBITMQLIB FUNCTIONS. NOT NEEDED ??
-// taken from Prof's code
->>>>>>> 093954a81ade052e5b1548870d10f6094743732e:frontend/index.php
-function HandleLoginResponse(response)
- {
-  const data = JSON.parse(response);
-  if (data.status === 'success') {
-    window.location = 'index.php'; // reload to show the logged-in Home view
+require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+
+
+$client = new rabbitMQClient(__DIR__ . "/../host.ini", "AuthValidate");
+
+// check for existing session key
+$sessionKey = $_SESSION['session_key'] ?? null;
+$userData = null;
+
+if ($sessionKey) {
+  $response = $client->send_request([
+    'type' => 'validate',
+    'session_key' => $sessionKey
+  ]);
+
+  if ($response['status'] === 'success') {
+    $userData = $response['user'];
   } else {
-    document.getElementById("textResponse").innerHTML = "response: " + (data.message || response) + "<p>";
+    // invalid or expired session
+    unset($_SESSION['session_key']);
   }
 }
-function SendLoginRequest(username,password) // gets username and password elements
-{
-	var request = new XMLHttpRequest();
-	request.open("POST","login.php",true);
-	request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
-	request.onreadystatechange= function ()
-	{
-		
-		if ((this.readyState == 4)&&(this.status == 200)) // Status = Good!
-		{
-			HandleLoginResponse(this.responseText);
-		}		
-	}
-	request.send("type=login&username="+username+"&password="+password); // takes in user and password
-}
-*/
-</script>
-
-
-<?php
-if (!isset($_SESSION['login'])) {
 ?>
-  <h2>Home Page</h2><br>
-  <br>
+<!DOCTYPE html>
+<html lang="en">
 
-  <h2> REGISTER USER </h2>
-  <form name="register" action="register.php" method="post"> 
-    <label>Email:</label>
-    <input type="text" name="emailAddress" size="20">
-    <br>
-    <label>Username:</label>
-    <input type="text" name="username" size="20">
-    <br>
-    <label>Password</label>
-    <input type="password" name="password" size="20">
-    <br>
-    <input type="submit" value="Register">
-    <!-- I dont think this is needed 
-     <input type="hidden" name="content" value="validate"> 
-    -->
-  </form>
-  <?php
-  if (isset($_GET['error'])){
-    echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-  }
+<head>
+  <meta charset="UTF-8">
+  <title>AARC Portal</title>
+  <link rel="stylesheet" href="baseStyle.css"> 
+</head>
 
-  ?>
-  <br>
-  <br>
+<body>
+  <header>
+    <?php if ($userData): ?>
+      <?php include("nav.inc.php"); ?>
+    <?php endif; ?>
+  </header>
 
-  <h2>LOG IN</h2>
-  <h4>For existing users</h4>
+  <main>
+    <?php
+    // PAGE CONTENT HANDLER
+    if (isset($_REQUEST['content'])) {
+      $allowedPages = ['dashboard', 'main']; // prevent arbitrary includes; more dynamic
+      $content = $_REQUEST['content'];
 
-  <form name="login"  action="login.php" method="post"> 
-    <label>Username:</label>
-    <input type="text" name="username" size="20">
-    <br>
-    <label>Password</label>
-    <input type="password" name="password" size="20">
-    <br>
-    
-    <input type="submit" value="Login">
-    <!-- I dont think this is needed 
-     <input type="hidden" name="content" value="validate"> 
-    -->
+      if (in_array($content, $allowedPages)) {
+        include("$content.inc.php");
+      } else {
+        echo "<p>Page not found.</p>";
+      }
+    } else {
+      include("main.inc.php");
+    }
+    ?>
+  </main>
 
-  </form>
-  <br>
+  <footer>
+    <?php include("footer.inc.php"); ?>
+  </footer>
 
-
-  <?php
-} else { 
-<<<<<<< HEAD:WebServer/index.php
-   
-<h2>Home</h2>
-  <p>Welcome, <?= htmlspecialchars($_SESSION['uname']) ?>!</p>
-=======
-   ?>
-  <h2>Home</h2>
-  <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?>!</p>
->>>>>>> 093954a81ade052e5b1548870d10f6094743732e:frontend/index.php
-  <p><a href="logout.php">Logout</a></p>
-<?php
-}
-
-?>
-
-
+</body>
 
 </html>
