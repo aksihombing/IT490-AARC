@@ -29,7 +29,7 @@ if ($sessionKey) {
 <head>
   <meta charset="UTF-8">
   <title>AARC Portal</title>
-
+  <link rel="stylesheet" href="baseStyle.css"> 
 </head>
 
 <body>
@@ -43,7 +43,7 @@ if ($sessionKey) {
     <?php
     // PAGE CONTENT HANDLER
     if (isset($_REQUEST['content'])) {
-      $allowedPages = ['dashboard', 'main']; // prevent arbitrary includes
+      $allowedPages = ['dashboard', 'main']; // prevent arbitrary includes; more dynamic
       $content = $_REQUEST['content'];
 
       if (in_array($content, $allowedPages)) {

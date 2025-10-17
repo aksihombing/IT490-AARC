@@ -64,21 +64,21 @@ Each document specified listed in "docs" will be of the following format:
 
 
   //https://www.php.net/manual/en/function.curl-setopt-array.php
-  // $ch = "cURL handle", standard convention
-  $ch = curl_init(); // cURL -> client URL
+
+  $curl_handle = curl_init(); // cURL -> client URL
   // cURL init --> creates cURL session
 
 
-  curl_setopt_array($ch, [
+  curl_setopt_array($curl_handle, [
     CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true, // returns webpage
     CURLOPT_SSL_VERIFYPEER => true // verifies SSL
   ]);
-  $response = curl_exec($ch); // executes uRL
-  if (curl_errno($ch)) { // if cURL error :
-    return ['status' => 'fail', 'message' => 'API error: ' . curl_error($ch)];
+  $response = curl_exec($curl_handle); // executes uRL
+  if (curl_errno($curl_handle)) { // if cURL error :
+    return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_handle)];
   }
-  curl_close($ch);
+  curl_close($curl_handle);
 
   $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
 
@@ -165,7 +165,7 @@ echo "API/DB server starting…\n";
 
 // creates a server per each queue section in the rmqAccess.ini
 $servers = [
-  new rabbitMQServer(__DIR__ . "/rmqAccess.ini", "GetAPI"),
+  new rabbitMQServer(__DIR__ . "/rmqAccess.ini", "LibrarySearch"),
 ];
 
 // child process for each queue so they can listen at the same time
