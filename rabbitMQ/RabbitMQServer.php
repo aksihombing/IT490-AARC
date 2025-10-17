@@ -187,11 +187,36 @@ function requestProcessor($req) {
 echo "Auth server ready, waiting for requests\n";
 flush();
 
-// single queue version test
-$which = $argv[1] ?? 'AuthRegister';
-echo "Auth server starting for queue section: {$which}\n";
-$server = new rabbitMQServer(__DIR__ . "/host.ini", $which);
-echo "Connecting to queue: {$which}\n";
-flush();
-$server->process_requests('requestProcessor');
-echo "Auth server stopped for {$which}\n";
+// multi-queue capable version of the queue
+
+// uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
+$which = $argv[1] ?? 'all';
+$iniPath = __DIR__ . "/host.ini";
+
+if ($which === 'all') { // to run all queues for DB and RMQ connection
+    echo "Auth server starting for ALL queues...\n";
+    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 'AuthLogout'];
+
+    foreach ($sections as $section) {
+        $pid = pcntl_fork(); // process control fork; creats child process 
+        if ($pid == -1) {
+            die("Failed to fork for {$section}\n");
+        } elseif ($pid === 0) {
+            // child process
+            echo "Listening on {$section}\n";
+            $server = new rabbitMQServer($iniPath, $section);
+            $server->process_requests('requestProcessor');
+            exit(0);
+        }
+    }
+
+    // parent waits for all children
+    while (pcntl_wait($status) > 0) {}
+} else {
+    echo "Auth server starting for queue section: {$which}\n";
+    $server = new rabbitMQServer($iniPath, $which);
+    echo "Connecting to queue: {$which}\n";
+    flush();
+    $server->process_requests('requestProcessor');
+    echo "Auth server stopped for {$which}\n";
+}
