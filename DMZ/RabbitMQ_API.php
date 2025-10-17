@@ -9,21 +9,6 @@
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
-// connects to the local sql database
-function db()
-{
-  $host = '172.28.109.213'; // need to change to book api db or book cache db
-  $user = 'testUser'; // needdatabase user
-  $pass = '12345'; // need database password
-  $name = 'testdb'; // needdatabase name
-
-  $mysqli = new mysqli($host, $user, $pass, $name);
-  if ($mysqli->connect_errno) {
-    throw new RuntimeException("DB connect failed: " . $mysqli->connect_error);
-  }
-  return $mysqli;
-}
-
 
 
 function doBookSearch(array $req)
@@ -176,9 +161,9 @@ function requestProcessor($req)
 
 echo "API/DB server starting…\n";
 
-// creates a server per each queue section in the host.ini
+// creates a server per each queue section in the rmqAccess.ini
 $servers = [
-  new rabbitMQServer(__DIR__ . "/host.ini", "GetAPI"),
+  new rabbitMQServer(__DIR__ . "/rmqAccess.ini", "GetAPI"),
 ];
 
 // child process for each queue so they can listen at the same time
