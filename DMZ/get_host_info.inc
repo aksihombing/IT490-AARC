@@ -11,12 +11,12 @@
 function getHostInfo(array $extra = NULL)
 {
 
-    $path = __DIR__ . "/host.ini";
+    $path = __DIR__ . "/rmqAccess.ini";
     if (!file_exists($path)) {
-        die("host ini not found at $path\n");
+        die("rmqAccess ini not found at $path\n");
     }
 
-    $machine = parse_ini_file(__DIR__ . "/host.ini", true);
+    $machine = parse_ini_file(__DIR__ . "/rmqAccess.ini", true);
 
     if ($extra != NULL)
     {

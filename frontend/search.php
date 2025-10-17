@@ -5,9 +5,9 @@ session_start();
 $results = [];
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $searchType = $_POST['type'] ?? 'title';
-    $query = trim($_POST['query'] ?? '');
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $searchType = $_GET['type'] ?? 'title';
+    $query = trim($_GET['query'] ?? '');
 
     if ($query === '') {
         $error = "Please enter a search term.";
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <h1>Search OpenLibrary</h1>
 
-    <form method="POST">
+    <form method="GET">
         <!--  name "query" is used for searching by keyword   -->
         <label for="query">Search Term:</label>
         <input type="text" name="query" id="query" placeholder="Enter book title or author">

@@ -178,7 +178,7 @@ echo "API/DB server starting…\n";
 
 // creates a server per each queue section in the host.ini
 $servers = [
-  new rabbitMQServer(__DIR__ . "/host.ini", "SearchAPI"),
+  new rabbitMQServer(__DIR__ . "/host.ini", "GetAPI"),
 ];
 
 // child process for each queue so they can listen at the same time
@@ -197,7 +197,7 @@ foreach ($servers as $srv) {
   $children[] = $pid;
 }
 
-echo "SearchAPI server running (" . count($children) . " workers)…\n";
+echo "GetAPI server running (" . count($children) . " workers)…\n";
 
 // parent process just waits forever so children stay alive
 while (true) {
