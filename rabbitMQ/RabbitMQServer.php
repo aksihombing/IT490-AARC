@@ -133,7 +133,7 @@ function doValidate(array $req) {
 
   $conn = db();
   $stmt = $conn->prepare("
-      SELECT u.id,u.username,u.email,s.expires_at
+      SELECT u.id,u.username,u.emailAddress,s.expires_at
       FROM sessions s
       JOIN users u ON u.id=s.user_id
       WHERE s.session_key=? LIMIT 1
