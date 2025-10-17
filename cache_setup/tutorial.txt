@@ -1,0 +1,42 @@
+
+//Install Cache
+//Make sure to add global ServerName in /etc/apache2/apache2.conf → ServerName yourdomain.com
+
+
+sudo a2enmod cache
+sudo a2enmod cache_disk
+sudo a2enmod headers
+//(installs necessary folders for mod_cache)
+
+sudo systemctl restart apache2
+sudo systemctl start apache-htcacheclean
+
+sudo nano /etc/apache2/sites-available/000-default.conf
+
+//(Inside the <VirtualHost *:80> block, add:)
+
+<IfModule mod_cache.c>
+  CacheQuickHandler off
+  CacheLock on
+  CacheLockPath /tmp/mod_cache-lock
+  CacheIgnoreHeaders Set-Cookie
+
+  <IfModule mod_cache_disk.c>
+    CacheRoot /var/cache/apache2/mod_cache_disk
+    # Cache API responses only (adjust path if API lives under /api/)
+    #             ex.) CacheEnable disk /api/
+    CacheEnable disk /search.php
+    CacheDefaultExpire 3600   # 1 hour
+    CacheMaxExpire 86400      # 1 day
+  </IfModule>
+</IfModule>
+
+
+<IfModule mod_headers.c>
+  <Location /api/>
+    Header set Cache-Control "max-age=3600, public"
+  </Location>
+</IfModule>
+
+
+sudo systemctl restart apache2
