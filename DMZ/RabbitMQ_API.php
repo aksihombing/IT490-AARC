@@ -184,7 +184,7 @@ foreach ($servers as $srv) {
   $children[] = $pid;
 }
 
-echo "GetAPI server running (" . count($children) . " workers)…\n";
+echo "LibrarySearch server running (" . count($children) . " workers)…\n";
 
 // parent process just waits forever so children stay alive
 while (true) {
