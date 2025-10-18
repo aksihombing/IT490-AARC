@@ -45,19 +45,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 <body>
     <h1>Search The Library</h1>
 
-    <form method="GET">
-        <!--  name "query" is used for searching by keyword   -->
-        <label for="query">Search Term:</label>
-        <input type="text" name="query" id="query" placeholder="Enter book title or author">
+    <form method="GET" action="index.php">
+    <input type="hidden" name="content" value="search">
 
-        <!-- name "type" is used to search by author and/or title specifically     -->
-        <label for="type">Search By:</label>
-        <select name="type" id="type">
-            <option value="title">Title</option>
-            <option value="author">Author</option>
-        </select>
+    <label for="query">Search Term:</label>
+    <input type="text" name="query" id="query" 
+           placeholder="Enter book title or author"
+           value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
 
-        <button type="submit">Search</button>
+    <label for="type">Search By:</label>
+    <select name="type" id="type">
+        <option value="title" <?php echo ($_GET['type'] ?? '') === 'title' ? 'selected' : ''; ?>>Title</option>
+        <option value="author" <?php echo ($_GET['type'] ?? '') === 'author' ? 'selected' : ''; ?>>Author</option>
+    </select>
+
+    <button type="submit">Search</button>
     </form>
 
     <?php if ($error): ?>
