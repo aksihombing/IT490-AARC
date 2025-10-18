@@ -7,7 +7,7 @@ $username = $userData['username'] ?? 'User';
 <html>
 
 <style>
-    ul {
+    nav ul {
         list-style-type: none;
         margin: 0;
         padding: 0;
@@ -16,11 +16,11 @@ $username = $userData['username'] ?? 'User';
         border-radius: 10px;
     }
 
-    ul li {
+    nav ul li {
         float: left;
     }
 
-    ul li a {
+    nav ul li a {
         display: block;
         color: white;
         text-align: center;
@@ -28,7 +28,7 @@ $username = $userData['username'] ?? 'User';
         text-decoration: none;
     }
 
-    ul li a:hover {
+    nav ul li a:hover {
         background-color: #5A4536;
     }
 </style>
