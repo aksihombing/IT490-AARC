@@ -148,12 +148,12 @@ function requestProcessor($req) {
   }
 
   switch ($req['type'] ?? '') {
-    case 'club.create':        return doCreateClub($req);
-    case 'club.invite':        return doInviteMember($req);
+    case 'club.create': return doCreateClub($req);
+    case 'club.invite': return doInviteMember($req);
     case 'club.events.create': return doCreateEvent($req);
-    case 'club.events.list':   return doListEvents($req);
+    case 'club.events.list': return doListEvents($req);
     case 'club.events.cancel': return doCancelEvent($req);
-    default:                   return ['status' => 'fail', 'message' => 'unknown type'];
+    default: return ['status' => 'fail', 'message' => 'unknown type'];
   }
 }
 
