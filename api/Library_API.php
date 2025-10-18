@@ -9,6 +9,8 @@
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
+
+/*
 // connects to the local sql database
 function db() {
   $host = 'localhost'; 
@@ -23,7 +25,7 @@ function db() {
   return $mysqli;
 }
 
-
+*/
 
 // api listener processing functions
 
@@ -33,6 +35,9 @@ function doBookSearch(array $req)
   $query = urlencode($req['query'] ?? '');
   if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
 
+
+
+  /*
   // library_cache check !!!!
   $mysqli = db();
   $check_cache = $mysqli->prepare("SELECT response_json, last_updated FROM api_cache WHERE search_type=? AND query=? LIMIT 1");
@@ -57,7 +62,7 @@ function doBookSearch(array $req)
     }
   }
 
-
+  */
   // CACHE MISS !!!!!
   $base = "https://openlibrary.org/search.json";
   if ($type === 'author') {
@@ -100,6 +105,9 @@ function doBookSearch(array $req)
     ];
   }
 
+
+
+  /*
   // upsert?/insert? results into the cache !!!!!!
   $response_json = json_encode($results, JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE --> prevents errors, ensures data integrity with special chars
   $insert = $mysqli->prepare("
@@ -111,7 +119,7 @@ function doBookSearch(array $req)
   $insert->execute();
 
   echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
-
+  */
   return ['status' => 'success', 'data' => $results];
 }
 
