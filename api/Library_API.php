@@ -35,9 +35,68 @@ function doBookSearch(array $req)
   $query = urlencode($req['query'] ?? '');
   if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
 
+  $base = "https://openlibrary.org/search.json";
+  if ($type === 'author') {
+    $url = "{$base}?author={$query}&limit=5";
+  } else {
+    $url = "{$base}?q={$query}&limit=5";
+  }
 
 
-  /*
+
+  //https://www.php.net/manual/en/function.curl-setopt-array.php
+
+  $curl_handle = curl_init(); // cURL -> client URL
+  // cURL init --> creates cURL session
+
+
+  curl_setopt_array($curl_handle, [
+    CURLOPT_URL => $url,
+    CURLOPT_RETURNTRANSFER => true, // returns webpage
+    CURLOPT_SSL_VERIFYPEER => true // verifies SSL
+  ]);
+  $response = curl_exec($curl_handle); // executes uRL
+  if (curl_errno($curl_handle)) { // if cURL error :
+    return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_handle)];
+  }
+  curl_close($curl_handle);
+
+  $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
+
+  // api returns data as json (uses mongodb or non-relational db format)
+  // reminder : mongodb "collection" is equivalent to a table. || "document" is one RECORD in a collection, stored as JSON objects
+  // each attribute can have several data
+
+
+  if (empty($data['docs'])) return ['status' => 'fail', 'message' => 'no results'];
+
+  $results = [];
+  foreach ($data['docs'] as $book) {
+    $results[] = [
+      'title' => $book['title'] ?? 'Unknown title',
+      'author' => $book['author_name'][0] ?? 'Unknown author',
+      'year' => $book['first_publish_year'] ?? 'N/A'
+    ];
+  }
+
+  return ['status' => 'success', 'data' => $results];
+}
+
+
+
+
+/*
+
+// DATABASE CACHE VER --- !!
+function doBookSearch(array $req)
+{
+  $type = $req['searchType'] ?? 'title'; // to search by title
+  $query = urlencode($req['query'] ?? '');
+  if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
+
+
+
+
   // library_cache check !!!!
   $mysqli = db();
   $check_cache = $mysqli->prepare("SELECT response_json, last_updated FROM api_cache WHERE search_type=? AND query=? LIMIT 1");
@@ -62,7 +121,7 @@ function doBookSearch(array $req)
     }
   }
 
-  */
+
   // CACHE MISS !!!!!
   $base = "https://openlibrary.org/search.json";
   if ($type === 'author') {
@@ -107,7 +166,7 @@ function doBookSearch(array $req)
 
 
 
-  /*
+ 
   // upsert?/insert? results into the cache !!!!!!
   $response_json = json_encode($results, JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE --> prevents errors, ensures data integrity with special chars
   $insert = $mysqli->prepare("
@@ -119,12 +178,12 @@ function doBookSearch(array $req)
   $insert->execute();
 
   echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
-  */
+
   return ['status' => 'success', 'data' => $results];
 }
 
 
-
+*/
 
 
 
