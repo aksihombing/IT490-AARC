@@ -125,26 +125,7 @@ function doBookSearch(array $req)
 
 
 
-// ------------ Cache ------
-
-function requestProcessor($req)
-{
-  if (!isset($req['type'])) {
-    return ['status' => 'fail', 'message' => 'no type'];
-  }
-
-  switch ($req['type']) {
-    case 'book_search':
-      return doBookSearch($req);
-    default:
-      return ['status' => 'fail', 'message' => 'Unknown request type'];
-  }
-}
-
-
-
-
-// server logic ----------------
+// ---------------- SERVER ----------------
 
 // decides which function to run
 function requestProcessor($req) {
