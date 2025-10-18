@@ -138,9 +138,9 @@ function requestProcessor($req) {
   }
 
   switch ($req['type']) {
-    case 'search': return doBookSearch($req);
-    case 'details':    return doBookDetails($req);
-    case 'collect': return doBookCollect($req);
+    case 'book_search': return doBookSearch($req);
+    case 'book_details':    return doBookDetails($req);
+    case 'book_collect': return doBookCollect($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
