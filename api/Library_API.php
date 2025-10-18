@@ -160,7 +160,7 @@ flush();
 
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
 $which = $argv[1] ?? 'all';
-$iniPath = __DIR__ . "/host.ini";
+$iniPath = __DIR__ . "/rmqAccess.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
