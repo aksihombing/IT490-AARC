@@ -16,7 +16,7 @@ function db() {
   $host = 'localhost'; 
   $user = 'testUser'; 
   $pass = '12345';
-  $name = 'testdb'; 
+  $name = 'userdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {

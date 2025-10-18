@@ -106,38 +106,7 @@ Each document specified listed in "docs" will be of the following format:
 
 
 // ------------ Cache ------
-function generateCacheKey($category, $identifier) {
-    return strtolower(trim($category)) . ':' . strtolower(trim($identifier));
-}
 
-function getCache($category, $identifier, $ttl = 86400) {
-    $conn = db();
-    $cacheKey = generateCacheKey($category, $identifier);
-    $stmt = $conn->prepare("SELECT data, UNIX_TIMESTAMP(last_updated) AS ts FROM api_cache WHERE cache_key=?");
-    $stmt->bind_param("s", $cacheKey);
-    $stmt->execute();
-    $stmt->bind_result($data, $ts);
-
-    if ($stmt->fetch()) {
-        if ((time() - $ts) < $ttl) {
-            return json_decode($data, true);
-        }
-    }
-    return null; // expired or missing
-}
-
-function saveCache($category, $identifier, $data) {
-    $conn = db();
-    $cacheKey = generateCacheKey($category, $identifier);
-    $json = json_encode($data);
-    $stmt = $conn->prepare("
-        INSERT INTO api_cache (cache_key, data)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE data=?, last_updated=NOW()
-    ");
-    $stmt->bind_param("sss", $cacheKey, $json, $json);
-    $stmt->execute();
-}
 
 
 
