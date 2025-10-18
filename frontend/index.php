@@ -43,7 +43,7 @@ if ($sessionKey) {
     <?php
     // PAGE CONTENT HANDLER
     if (isset($_REQUEST['content'])) {
-      $allowedPages = ['dashboard', 'main']; // prevent arbitrary includes; more dynamic
+      $allowedPages = ['browse', 'main','search','clubs','events','mylibrary']; // prevent arbitrary includes; more dynamics
       $content = $_REQUEST['content'];
 
       if (in_array($content, $allowedPages)) {
