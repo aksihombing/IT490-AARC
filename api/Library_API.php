@@ -55,10 +55,14 @@ function doBookSearch(array $req)
     CURLOPT_RETURNTRANSFER => true, // returns webpage
     CURLOPT_SSL_VERIFYPEER => true // verifies SSL
   ]);
+
+  echo "Fetching: $url\n"; //debugging hanging request
   $response = curl_exec($curl_handle); // executes uRL
   if (curl_errno($curl_handle)) { // if cURL error :
     return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_handle)];
   }
+
+  echo "Response length: " . strlen($response) . "\n";
   curl_close($curl_handle);
 
   $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
