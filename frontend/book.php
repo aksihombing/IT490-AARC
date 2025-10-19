@@ -64,7 +64,7 @@ function esc(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>
 
 // load reviews
 async function loadReviews(){
-  const res = await fetch(`/api/reviews_list.php?works_id=${encodeURIComponent(WORKS_ID)}`);
+  const res = await fetch(`/http/reviews_list.php?works_id=${encodeURIComponent(WORKS_ID)}`);
   if (!res.ok){ document.getElementById('reviews').innerHTML = '<div>Failed to load reviews.</div>'; return; }
   const data = await res.json();
   const items = Array.isArray(data.items) ? data.items : [];
@@ -77,6 +77,24 @@ async function loadReviews(){
   document.getElementById('reviews').innerHTML = html;
 }
 
+//although we may have some data from query params, this load full details from backend 
+async function loadDetails(){
+  const r = await fetch(`/http/book_details.php?works_id=${encodeURIComponent(WORKS_ID)}`, {credentials:'include'});
+  if (!r.ok) return; 
+  const d = await r.json();
+  if (d.status !== 'success') return;
+
+  const b = d.item || {};
+  document.getElementById('book-title').textContent  = b.title || 'Unknown';
+  document.getElementById('book-author').textContent = (b.author_names && b.author_names.length)
+    ? 'by ' + b.author_names.join(', ')
+    : '';
+  if (b.cover_id) {
+    document.getElementById('cover').src = `https://covers.openlibrary.org/b/id/${b.cover_id}-L.jpg?default=false`;
+  }
+  document.getElementById('book-data').textContent = b.description || '';
+}
+
 // submit review
 document.getElementById('reviewForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -84,7 +102,7 @@ document.getElementById('reviewForm').addEventListener('submit', async (e) => {
   const comment = document.getElementById('comment').value.trim();
   if (!rating || rating < 1 || rating > 5) { alert('Pick a rating 1–5'); return; }
 
-  const res = await fetch('/api/reviews_create.php', {
+  const res = await fetch('/http/reviews_create.php', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     credentials: 'include',
@@ -96,7 +114,7 @@ document.getElementById('reviewForm').addEventListener('submit', async (e) => {
 
 // add to library
 document.getElementById('addToLib').addEventListener('click', async () => {
-  const res = await fetch('/api/library_collect.php', {
+  const res = await fetch('/http/library_collect.php', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     credentials: 'include',

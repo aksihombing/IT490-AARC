@@ -4,7 +4,7 @@ require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 header('Content-Type: application/json');
 
 // Check login
-if (!isset($_SESSION['login'])) {
+if (empty($_SESSION['session_key']) || empty($_SESSION['uid'])) {
   http_response_code(401);
   echo json_encode(['status' => 'error', 'message' => 'Not logged in']);
   exit;
@@ -12,7 +12,7 @@ if (!isset($_SESSION['login'])) {
 
 // Decode JSON body
 $in = json_decode(file_get_contents('php://input'), true) ?? [];
-$works_id = $in['works_id'] ?? ($in['work_olid'] ?? null);
+$works_id = $_GET['works_id'] ?? ($in['works_id'] ?? ($in['works_id'] ?? null));
 $rating   = isset($in['rating']) ? (int)$in['rating'] : null;
 $body     = trim($in['body'] ?? '');
 
@@ -24,14 +24,14 @@ if (!$works_id || !$rating) {
 
 // Build request
 $user_id = $_SESSION['uid'] ?? 1; // fallback for testing
-$client  = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', "Reviews");// may need changes
+$client  = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', "ListReviews");// may need changes
 
 $request = [
-  'type'     => 'reviews.create',
+  'type'     => 'library.review',// 
   'user_id'  => $user_id,
   'works_id' => $works_id,
-  'rating'   => $rating,
-  'body'     => $body
+  'rating'   => $rating,//will be ignored
+  'body'     => $body// will be ignored
 ];
 
 // Send to DB listener

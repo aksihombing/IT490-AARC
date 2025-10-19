@@ -47,32 +47,49 @@ if (!isset($_SESSION['session_key'])) {
     // im assuming the work id for open lib is called work_olid, will change later
     return `
       <div class="card">
-        <a href="book.php?works_id=${encodeURIComponent(it.works_id)}">
-          <img class="cover" src="${cover}" alt="Cover">
-        </a>
-        <div class="title">${(it.title||'').replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]))}</div>
-        <div class="author">${(authors||'').replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]))}</div>
-        <div class="actions">
-          <!-- “Open” button leads to that book’s details page -->
-          <a class="btn" href="book.php?works_id=${encodeURIComponent(it.works_id)}">Open</a>
-          <!-- Possible feature idk man? for the Remove button -->
-          <!--
-          <button class="btn btn-danger" data-work="${it.works_id}">Remove</button>
-          -->
-        </div>
-      </div>`;
+    <a href="book.php?works_id=${encodeURIComponent(it.works_id)}">
+      <img class="cover" src="${cover}" alt="Cover">
+    </a>
+    <div class="title">${(it.title||'').replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]))}</div>
+    <div class="author">${(authors||'').replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]))}</div>
+    <div class="actions">
+      <a class="btn" href="book.php?works_id=${encodeURIComponent(it.works_id)}">Open</a>
+      <button class="btn btn-danger" data-work="${it.works_id}">Remove</button>
+    </div>
+  </div>`;
   }
 
   //   loads your personal library from backend
   async function loadLibrary(){
     // Fetch data from your internal API (library_list.php)
-    const res = await fetch('/api/library_list.php', { credentials: 'include' });
+    const res = await fetch('/http/library_list.php', { credentials: 'include' });
 
     // If something goes wrong (like user not logged in), show empty message
     if (!res.ok) { 
       document.getElementById('empty').style.display = 'block'; 
       return; 
     }
+
+    // uses book details to fill in missing info like title/author/cover
+const detailed = await Promise.all(items.map(async it => {
+  try {
+    const r = await fetch(`/http/book_details.php?works_id=${encodeURIComponent(it.works_id)}`, { credentials:'include' });
+    if (!r.ok) return it;
+    const d = await r.json();
+    if (d.status === 'success' && d.item) {
+      return {
+        works_id: it.works_id,
+        title: d.item.title || null,
+        author_names: d.item.author_names || [],
+        cover_id: d.item.cover_id || null,
+      };
+    }
+  } catch (_) {}
+  return it; // fallback
+}));
+
+grid.innerHTML = detailed.map(cardHTML).join('');
+
 
     // Convert JSON response to JS object
     const data = await res.json();
@@ -93,22 +110,27 @@ if (!isset($_SESSION['session_key'])) {
     document.getElementById('empty').style.display = 'none';
     grid.innerHTML = items.map(cardHTML).join('');
 
-     //  (Commented out for now) remove feature event listener for removing
-    /*
-    grid.onclick = async (e) => {
-      const btn = e.target.closest('.btn-danger');
-      if (!btn) return;
-      const work = btn.getAttribute('data-work');
-      const res = await fetch('/api/library_collect.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ action: 'remove', works_id: work })
-      });
-      if (res.ok) loadLibrary();
-      else alert('Failed to remove.');
-    };
-    */
+    // remove with a simple db delete request
+grid.onclick = async (e) => {
+  const btn = e.target.closest('.btn-danger');
+  if (!btn) return;
+  const worksId = btn.getAttribute('data-work');
+  if (!confirm('Remove this book from your library?')) return;
+
+  const res = await fetch('/http/library_remove.php', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ works_id: worksId })
+  });
+
+  if (res.ok) {
+    loadLibrary(); // refresh list
+  } else {
+    const msg = await res.text().catch(()=> 'Failed to remove.');
+    alert(msg);
+  }
+};
   }
 
   //  Run the function as soon as the page loads

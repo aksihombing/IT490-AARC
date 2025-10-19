@@ -14,9 +14,9 @@ require_once __DIR__ . '/get_host_info.inc';
 // connects to the local sql database
 function db() {
   $host = 'localhost'; 
-  $user = 'testUser'; 
-  $pass = '12345';
-  $name = 'testdb'; 
+  $user = 'userAdmin'; 
+  $pass = 'aarc490';
+  $name = 'userdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
@@ -133,7 +133,7 @@ function doValidate(array $req) {
 
   $conn = db();
   $stmt = $conn->prepare("
-      SELECT u.id,u.username,u.email,s.expires_at
+      SELECT u.id,u.username,u.emailAddress,s.expires_at
       FROM sessions s
       JOIN users u ON u.id=s.user_id
       WHERE s.session_key=? LIMIT 1
@@ -165,6 +165,110 @@ function doLogout(array $req) {
   return ['status'=>'success'];
 }
 
+//removes a book from user's library
+function doLibraryRemove(array $req) {
+  $uid  = (int)($req['user_id'] ?? 0);
+  $work = $req['works_id'] ?? '';
+  if (!$uid || $work === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
+
+  $conn = db();
+  $stmt = $conn->prepare("DELETE FROM user_library WHERE user_id=? AND works_id=? LIMIT 1");
+  if (!$stmt) return ['status'=>'fail','message'=>'prep failed'];
+  $stmt->bind_param("is", $uid, $work);
+  if (!$stmt->execute()) return ['status'=>'fail','message'=>'execute failed'];
+
+  return ($stmt->affected_rows > 0)
+    ? ['status'=>'success']
+    : ['status'=>'fail','message'=>'not found'];
+}
+
+//gets all the reviews for a specific book
+function doReviewsList(array $req) {
+  $works_id = trim($req['works_id'] ?? '');
+  if ($works_id === '') return ['status'=>'fail','message'=>'missing works_id'];
+
+  $conn = db();
+
+  $stmt = $conn->prepare("
+    SELECT r.id, r.user_id, u.username, r.rating, r.body, r.created_at
+    FROM reviews r
+    JOIN users u ON u.id = r.user_id
+    WHERE r.works_id = ?
+    ORDER BY r.created_at DESC
+    LIMIT 200
+  ");
+  $stmt->bind_param("s", $works_id);
+  $stmt->execute();
+  $res = $stmt->get_result();
+
+  $items = [];
+  while ($row = $res->fetch_assoc()) $items[] = $row;
+
+  return [
+    'status' => 'success',
+    'items'  => $items
+  ];
+}
+
+function doReviewsCreate(array $req) {
+  $user_id  = (int)($req['user_id'] ?? 0);
+  $works_id = trim($req['works_id'] ?? '');
+  $rating   = (int)($req['rating'] ?? 0);
+  $body     = trim($req['body'] ?? ($req['comment'] ?? ''));
+
+  if ($user_id <= 0 || $works_id === '' || $rating < 1 || $rating > 5) {
+    return ['status'=>'fail','message'=>'missing or invalid fields'];
+  }
+
+  $conn = db();
+
+  $stmt = $conn->prepare("
+    INSERT INTO reviews (user_id, works_id, rating, body)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE rating=VALUES(rating), body=VALUES(body), created_at=NOW()
+  ");
+  $stmt->bind_param("isis", $user_id, $works_id, $rating, $body);
+  $ok = $stmt->execute();
+
+  return $ok
+    ? ['status'=>'success','message'=>'review saved']
+    : ['status'=>'fail','message'=>'database error'];
+}
+
+function doLibraryList(array $req) {
+  $user_id = (int)($req['user_id'] ?? 0);
+  if ($user_id <= 0) {
+    return ['status' => 'fail', 'message' => 'missing user_id'];
+  }
+
+  $conn = db();
+
+  // Get books saved by this user
+  $stmt = $conn->prepare("
+    SELECT works_id
+    FROM user_library
+    WHERE user_id = ?
+    ORDER BY added_at DESC
+    LIMIT 200
+  ");
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $res = $stmt->get_result();
+
+  $items = [];
+  while ($row = $res->fetch_assoc()) {
+    $items[] = [
+      'works_id' => $row['works_id']
+    ];
+  }
+
+  return [
+    'status' => 'success',
+    'items'  => $items
+  ];
+}
+
+
 // decides which function to run
 function requestProcessor($req) {
   echo "Received request:\n";
@@ -180,6 +284,10 @@ function requestProcessor($req) {
     case 'login':    return doLogin($req);
     case 'validate': return doValidate($req);
     case 'logout':   return doLogout($req);
+    case 'library.remove': return doLibraryRemove($req);
+    case 'library.review':   return doReviewsList($req);
+    case 'library.create_review': return doReviewsCreate($req);
+    case 'library.personal': return doLibraryList($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
@@ -187,11 +295,40 @@ function requestProcessor($req) {
 echo "Auth server ready, waiting for requests\n";
 flush();
 
-// single queue version test
-$which = $argv[1] ?? 'AuthRegister';
-echo "Auth server starting for queue section: {$which}\n";
-$server = new rabbitMQServer(__DIR__ . "/host.ini", $which);
-echo "Connecting to queue: {$which}\n";
-flush();
-$server->process_requests('requestProcessor');
-echo "Auth server stopped for {$which}\n";
+// multi-queue capable version of the queue
+
+// uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
+$which = $argv[1] ?? 'all';
+$iniPath = __DIR__ . "/host.ini";
+
+if ($which === 'all') { // to run all queues for DB and RMQ connection
+    echo "Auth server starting for ALL queues...\n";
+    $sections = [
+  'AuthRegister','AuthLogin','AuthValidate','AuthLogout',
+  'LibraryPersonal','LibraryRemove','ListReviews','CreateReviews'
+];
+
+
+    foreach ($sections as $section) {
+        $pid = pcntl_fork(); // process control fork; creats child process 
+        if ($pid == -1) {
+            die("Failed to fork for {$section}\n");
+        } elseif ($pid === 0) {
+            // child process
+            echo "Listening on {$section}\n";
+            $server = new rabbitMQServer($iniPath, $section);
+            $server->process_requests('requestProcessor');
+            exit(0);
+        }
+    }
+
+    // parent waits for all children
+    while (pcntl_wait($status) > 0) {}
+} else {
+    echo "Auth server starting for queue section: {$which}\n";
+    $server = new rabbitMQServer($iniPath, $which);
+    echo "Connecting to queue: {$which}\n";
+    flush();
+    $server->process_requests('requestProcessor');
+    echo "Auth server stopped for {$which}\n";
+}
