@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $error = "Please enter a search term.";
     } else {
         try {
-            $client = new rabbitMQClient(__DIR__ . "../rabbitMQ/host.ini", "LibrarySearch");
+            $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibrarySearch");
 
             $request = [
                 'type' => 'book_search',
