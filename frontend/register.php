@@ -53,12 +53,14 @@ try {
 
   // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
-      $alertMessage = "Registration success. You can now log in."
-      echo "<script>alert('$message');</script>"; // javascript alert message
-  } else {
-      $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
-      echo "Registration failed: $msg";
-  }
+    header("Location: index.php?register_success=1");
+    exit;
+  } 
+  else {
+    $msg = is_array($response) ? urlencode($response['message'] ?? 'Unknown error') : 'No response from server';
+    header("Location: index.php?register_error=$msg");
+    exit;
+    }
 }
 catch (Exception $e) {
   echo "Error connecting to RabbitMQ: " . $e->getMessage();

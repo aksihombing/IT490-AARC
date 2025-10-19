@@ -59,6 +59,23 @@ if (!isset($_SESSION['session_key'])):
   <section id="welcome-section">
     <h2>Welcome!</h2>
     <p>You are logged in successfully.</p>
-    <p><a href="index.php?content=dashboard">Go to Dashboard</a> or <a href="logout.php">Logout</a></p>
+    
+    <br>
+    <br>
+
+    <section id="recent-releases">
+      <p>Recent Releases Go Here</p>
+    </section>
+    
+    <br>
+    <br>
+
+    <section id="popular-releases">
+      <p>Popular Releases Go Here</p>
+    </section>
+
+    <br>
+    <br>
+    <p><a href="logout.php">Logout</a></p>
   </section>
 <?php endif; ?>

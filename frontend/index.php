@@ -43,14 +43,17 @@ if ($sessionKey) {
     <?php
     // PAGE CONTENT HANDLER
     if (isset($_REQUEST['content'])) {
-      $allowedPages = ['browse', 'main','search','clubs','events','mylibrary', 'logout']; // prevent arbitrary includes; more dynamics
-      $content = $_REQUEST['content'];
+      //$allowedPages = ['browse', 'main','search','clubs','events','mylibrary', 'logout']; // prevent arbitrary includes; more dynamics
 
+      $content = $_REQUEST['content'];
+      include("$content.php")
+      /*
       if (in_array($content, $allowedPages)) {
         include("$content.php");
       } else {
         echo "<p>Page not found.</p>";
       }
+        */
     } else {
       include("main.inc.php");
     }

@@ -37,12 +37,12 @@ $username = $userData['username'] ?? 'User';
     <ul>
         <li><a href="index.php">Home</a></li>
         <li><a href="index.php?content=search">Search</a></li>
-        <li><a href="index.php?content=clubs">Book Clubs</a></li>
+        <li><a href="index.php?content=bookClub">Book Clubs</a></li>
 
         <li>
             <?php echo htmlspecialchars($username); ?>
             <ul>
-                <li><a href="index.php?content=mylibrary">My Library</a></li>
+                <li><a href="index.php?content=my_lib">My Library</a></li>
                 <li><a href="index.php?content=logout">Logout</a></li>
             </ul>
         </li>
