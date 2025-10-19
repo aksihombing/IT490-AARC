@@ -53,7 +53,8 @@ try {
 
   // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
-      echo "Registration success. You can now log in.";
+      $alertMessage = "Registration success. You can now log in."
+      echo "<script>alert('$message');</script>"; // javascript alert message
   } else {
       $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
       echo "Registration failed: $msg";

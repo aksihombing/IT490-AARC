@@ -1,16 +1,16 @@
 #!/usr/bin/php
 <?php
 // rmq script to stay running and listen for messages. listener
-// when it receives a message, should talk to sql and send back a result
+// when it receives a message, it should check the local apidb, request from the API itself if the query is not populated yet in the db, and then send back to the frontend
+
 // uses cURL for GET, POST, etc.. requests to/from API.
-// IT302 uses Postman but with UI
+
 // HUGE WORK IN PROGRESS !!!
 
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
 
-/*
 // connects to the local sql database
 function db() {
   $host = 'localhost'; 
@@ -25,84 +25,22 @@ function db() {
   return $mysqli;
 }
 
-*/
 
 // api listener processing functions
 
-function doBookSearch(array $req)
-{
-  $type = $req['searchType'] ?? 'title'; // to search by title
-  $query = urlencode($req['query'] ?? '');
-  if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
-
-  $base = "https://openlibrary.org/search.json";
-  if ($type === 'author') {
-    $url = "{$base}?author={$query}&limit=5";
-  } else {
-    $url = "{$base}?q={$query}&limit=5";
-  }
-
-
-
-  //https://www.php.net/manual/en/function.curl-setopt-array.php
-
-  $curl_handle = curl_init(); // cURL -> client URL
-  // cURL init --> creates cURL session
-
-
-  curl_setopt_array($curl_handle, [
-    CURLOPT_URL => $url,
-    CURLOPT_RETURNTRANSFER => true, // returns webpage
-    CURLOPT_SSL_VERIFYPEER => true // verifies SSL
-  ]);
-
-  echo "Fetching: $url\n"; //debugging hanging request
-  $response = curl_exec($curl_handle); // executes uRL
-  if (curl_errno($curl_handle)) { // if cURL error :
-    return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_handle)];
-  }
-
-  echo "Response length: " . strlen($response) . "\n";
-  curl_close($curl_handle);
-
-  $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
-
-  // api returns data as json (uses mongodb or non-relational db format)
-  // reminder : mongodb "collection" is equivalent to a table. || "document" is one RECORD in a collection, stored as JSON objects
-  // each attribute can have several data
-
-
-  if (empty($data['docs'])) return ['status' => 'fail', 'message' => 'no results'];
-
-  $results = [];
-  foreach ($data['docs'] as $book) {
-    $results[] = [
-      'title' => $book['title'] ?? 'Unknown title',
-      'author' => $book['author_name'][0] ?? 'Unknown author',
-      'year' => $book['first_publish_year'] ?? 'N/A'
-    ];
-  }
-
-  return ['status' => 'success', 'data' => $results];
-}
-
-
-
-
-/*
 
 // DATABASE CACHE VER --- !!
 function doBookSearch(array $req)
 {
   $type = $req['searchType'] ?? 'title'; // to search by title
-  $query = urlencode($req['query'] ?? '');
+  $query = strtolower(trim($req['query'] ?? ''));
   if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
-
-
-
 
   // library_cache check !!!!
   $mysqli = db();
+  
+  echo "Checking cache for: type={$type}, query='{$query}'\n"; //debugging
+
   $check_cache = $mysqli->prepare("SELECT response_json, last_updated FROM api_cache WHERE search_type=? AND query=? LIMIT 1");
   $check_cache->bind_param("ss", $type, $query);
   $check_cache->execute();
@@ -128,10 +66,11 @@ function doBookSearch(array $req)
 
   // CACHE MISS !!!!!
   $base = "https://openlibrary.org/search.json";
+  $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
   if ($type === 'author') {
-    $url = "{$base}?author={$query}&limit=5";
+    $url = "{$base}?author={$encodedQuery}&limit=5";
   } else {
-    $url = "{$base}?q={$query}&limit=5";
+    $url = "{$base}?q={$encodedQuery}&limit=5";
   }
 
   //https://www.php.net/manual/en/function.curl-setopt-array.php
@@ -144,10 +83,13 @@ function doBookSearch(array $req)
     CURLOPT_RETURNTRANSFER => true, // returns webpage
     CURLOPT_SSL_VERIFYPEER => true // verifies SSL
   ]);
+
+  echo "Fetching: $url\n"; //debugging hanging request
   $response = curl_exec($curl_handle); // executes uRL
   if (curl_errno($curl_handle)) { // if cURL error :
     return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_handle)];
   }
+  echo "Response length: " . strlen($response) . "\n"; // debugging
   curl_close($curl_handle);
 
   $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
@@ -162,8 +104,23 @@ function doBookSearch(array $req)
   $results = [];
   foreach ($data['docs'] as $book) {
     $results[] = [
+      // NOTE : within each doc, attributes have nested information within an array 
       'title' => $book['title'] ?? 'Unknown title',
+      'subtitle' => $book['subtitle'] ?? null,
+      'alternative_title' => $book['alternative_title'] ?? null,
+      'alternative_subtitle' => $book['alternative_subtitle'] ?? null,
       'author' => $book['author_name'][0] ?? 'Unknown author',
+      'isbn' => $book['isbn'][0] ?? null,
+      'publisher' => $book['publisher'][0] ?? null,
+      'publish_year' => $book['publish_year'][0] ?? null,
+      'ratings_count' => $book['ratings_count'] ?? null,
+
+      // SUBJECT/GENRE INFO
+      'subject_key' => $book['subject_key'] ?? [],
+      'person_key' => $book['person_key'] ?? [],
+      'place_key' => $book['place_key'] ?? [],
+      'time_key' => $book['time_key'] ?? [],
+
       'year' => $book['first_publish_year'] ?? 'N/A'
     ];
   }
@@ -178,6 +135,9 @@ function doBookSearch(array $req)
     VALUES (?, ?, ?)
     ON DUPLICATE KEY UPDATE response_json=VALUES(response_json), last_updated=CURRENT_TIMESTAMP
   ");
+
+  echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
+
   $insert->bind_param("sss", $type, $query, $response_json);
   $insert->execute();
 
@@ -186,8 +146,6 @@ function doBookSearch(array $req)
   return ['status' => 'success', 'data' => $results];
 }
 
-
-*/
 
 
 
@@ -210,8 +168,8 @@ function requestProcessor($req) {
 
   switch ($req['type']) {
     case 'book_search': return doBookSearch($req);
-    case 'book_details':    return doBookDetails($req);
-    case 'book_collect': return doBookCollect($req);
+    case 'book_details':    return doBookDetails($req); // not sure if needed
+    case 'book_collect': return doBookCollect($req); // not sure if needed
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }

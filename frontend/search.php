@@ -22,7 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             ];
 
             $response = $client->send_request($request);
-
+            var_dump($response); //debugging 
+            
             if ($response['status'] === 'success') {
                 $results = $response['data'];
             } else {

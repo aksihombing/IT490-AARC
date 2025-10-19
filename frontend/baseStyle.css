@@ -11,6 +11,8 @@ section {
 
 body {
   font-family: "Source Sans Pro", Arial, sans-serif;
+  align-items: center;
+  justify-content: center;
 }
 
 h1 {
