@@ -114,15 +114,23 @@ document.getElementById('reviewForm').addEventListener('submit', async (e) => {
 
 // add to library
 document.getElementById('addToLib').addEventListener('click', async () => {
-  const res = await fetch('/http/library_collect.php', {
+  const res = await fetch('/http/library_add.php', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     credentials: 'include',
-    body: JSON.stringify({ action:'add', works_id: WORKS_ID })
+    body: JSON.stringify({ works_id: WORKS_ID })
   });
-  if (res.ok) alert('Added to library!');
-  else alert('Failed to add.');
+
+  if (!res.ok) { alert('Failed to add.'); return; }
+  const d = await res.json().catch(()=>({}));
+  if (d.status === 'success') {
+    alert(d.message === 'already-in-library' ? 'Already in your library.' : 'Added to library!');
+  } else {
+    alert(d.message || 'Failed to add.');
+  }
 });
+
+loadDetails();
 
 loadReviews();
 </script>
