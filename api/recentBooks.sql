@@ -1,6 +1,6 @@
-CREATE TABLE IF NOT EXISTS popularBooks (
-    /* slightly different from the api_cache setup. 
-     In api_cache, we stored the general json data for the books in ONE column called json_response
+CREATE TABLE IF NOT EXISTS recentBooks (
+    /* slightly different from the library_cache setup. 
+     In library_cache, we stored the general json data for the books in ONE column called json_response
      --> might change it to this format IF AND ONLY IF we are certain about what info we want to keep for the website.
      
      This method will specifically store each part of the json response as its own column instead of having a big column
