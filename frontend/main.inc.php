@@ -56,32 +56,7 @@ if (!isset($_SESSION['session_key'])):
   </section>
 
 <?php else: ?>
-  <?php
-  // to load pre-loaded book data from cache db
-  require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-
-  $recentBooks = [];
-  //$popularBooks = [];
-
-  try {
-    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch');
-
-    // Recent books
-    $recentResponse = $client->send_request(['type' => 'recent_books']);
-    if ($recentResponse['status'] === 'success') {
-      $recentBooks = $recentResponse['data']; // NEED TO EDIT THIS !!! recentResponse should be the actual fields.
-
-      // $title => recentResponse['title']
-    }
-
-  } catch (Exception $e) {
-    echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
-  }
-
-
-  ?>
-
-
+  
 
   <section id="welcome-section">
     <h2>Welcome!</h2>
