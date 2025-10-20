@@ -1,14 +1,14 @@
-
 CREATE TABLE IF NOT EXISTS popularBooks (
     /* slightly different from the api_cache setup. 
-    In api_cache, we stored the general json data for the books in ONE column called json_response
-    --> might change it to this format IF AND ONLY IF we are certain about what info we want to keep for the website.
-
-    This method will specifically store each part of the json response as its own column instead of having a big column
-    
+     In api_cache, we stored the general json data for the books in ONE column called json_response
+     --> might change it to this format IF AND ONLY IF we are certain about what info we want to keep for the website.
+     
+     This method will specifically store each part of the json response as its own column instead of having a big column
+     
      */
     id INT AUTO_INCREMENT PRIMARY KEY,
-    olid VARCHAR(50) DEFAULT NULL, -- optional OpenLibrary ID
+    olid VARCHAR(50) DEFAULT NULL,
+    -- optional OpenLibrary ID
     title VARCHAR(255) NOT NULL,
     subtitle VARCHAR(255) DEFAULT NULL,
     alternative_title VARCHAR(255) DEFAULT NULL,

@@ -99,7 +99,7 @@ if (!isset($_SESSION['session_key'])):
       <?php if (!empty($recentBooks)): ?>
         <ul>
           <?php foreach ($recentBooks as $book):
-            // Generate a unique, URL-safe ID for linking
+            // URL-safe ID for linking. book_id can be by id, ibsn, or title. SUBJECT TO CHANGE AFTER TESTING
             $book_id = urlencode($book['id'] ?? $book['isbn'][0] ?? $book['title']);
             ?>
             <li>

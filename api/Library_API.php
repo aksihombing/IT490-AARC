@@ -4,6 +4,8 @@
 // when it receives a message, it should check the local apidb, request from the API itself if the query is not populated yet in the db, and then send back to the frontend
 
 // uses cURL for GET, POST, etc.. requests to/from API.
+// https://stackoverflow.com/questions/9802788/call-a-rest-api-in-php
+// https://weichie.com/blog/curl-api-calls-with-php/
 
 // HUGE WORK IN PROGRESS !!!
 
@@ -12,10 +14,10 @@ require_once __DIR__ . '/get_host_info.inc';
 
 
 // connects to the local sql database
-/* CHANGE api_cache TO library_cache AFTER MIDTERMS */ 
+/* CHANGE api_cache TO library_cache AFTER MIDTERMS */
 function db()
 {
-  $host = 'localhost'; 
+  $host = 'localhost';
   $user = 'apiAdmin';
   $pass = 'aarc490';
   $name = 'apidb';
@@ -71,29 +73,29 @@ function doBookSearch(array $req)
   $base = "https://openlibrary.org/search.json";
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
   if ($type === 'author') {
-    $url = "{$base}?author={$encodedQuery}&limit=5";
+    $url = "{$base}?author={$encodedQuery}&limit=5"; //limiting results to 5 for midterm idc
   } else {
     $url = "{$base}?q={$encodedQuery}&limit=5";
   }
 
   //https://www.php.net/manual/en/function.curl-setopt-array.php
 
-  $curl_handle = curl_init(); // cURL -> client URL
+  $curl_api = curl_init(); // cURL -> client URL
   // cURL init --> creates cURL session
 
-  curl_setopt_array($curl_handle, [
+  curl_setopt_array($curl_api, [
     CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true, // returns webpage
     CURLOPT_SSL_VERIFYPEER => true // verifies SSL
   ]);
 
   echo "Fetching: $url\n"; //debugging hanging request
-  $response = curl_exec($curl_handle); // executes uRL
-  if (curl_errno($curl_handle)) { // if cURL error :
-    return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_handle)];
+  $response = curl_exec($curl_api); // executes uRL
+  if (curl_errno($curl_api)) { // if cURL error :
+    return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_api)];
   }
   echo "Response length: " . strlen($response) . "\n"; // debugging
-  curl_close($curl_handle);
+  curl_close($curl_api);
 
   $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
 
@@ -127,12 +129,12 @@ function doBookSearch(array $req)
 
       'year' => $book['first_publish_year'] ?? 'N/A'
     ];
-  }
+  } // ANOTHER NOTE !! api_cache stores ALL of this under ONE COLUMN as a JSON type. still undecided on which would be best idk ugh
 
 
 
 
-  // upsert?/insert? results into the cache !!!!!!
+  // upsert?/insert? results into the cache db table !!!!!!
   $response_json = json_encode($results, JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE --> prevents errors, ensures data integrity with special chars
   $insert = $mysqli->prepare("
     INSERT INTO api_cache (search_type, query, response_json)
@@ -151,29 +153,31 @@ function doBookSearch(array $req)
 }
 
 
-// Pre-Populated via cron
-function getRecentBooks() {
-    $mysqli = db();
-    $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC LIMIT 10");
+// Cache Tables Pre-Populated via cron
+function getRecentBooks()
+{
+  $mysqli = db();
+  $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC LIMIT 10");
 
-    $books = [];
-    while ($row = $result->fetch_assoc()) {
-        $books[] = $row;
-    }
+  $books = [];
+  while ($row = $result->fetch_assoc()) {
+    $books[] = $row;
+  }
 
-    return ['status' => 'success', 'data' => $books];
+  return ['status' => 'success', 'data' => $books];
 }
 
-function getPopularBooks() {
-    $mysqli = db();
-    $result = $mysqli->query("SELECT title, author, year, cover_url FROM popularBooks ORDER BY year DESC LIMIT 10");
+function getPopularBooks()
+{
+  $mysqli = db();
+  $result = $mysqli->query("SELECT title, author, year, cover_url FROM popularBooks ORDER BY year DESC LIMIT 10");
 
-    $books = [];
-    while ($row = $result->fetch_assoc()) {
-        $books[] = $row;
-    }
+  $books = [];
+  while ($row = $result->fetch_assoc()) {
+    $books[] = $row;
+  }
 
-    return ['status' => 'success', 'data' => $books];
+  return ['status' => 'success', 'data' => $books];
 }
 
 
@@ -199,9 +203,9 @@ function requestProcessor($req)
     case 'book_search':
       return doBookSearch($req);
     case 'recent_books':
-      return getRecentBooks($req); // not sure if needed
+      return getRecentBooks(); // not done yet idk im spiraling
     case 'popular_books':
-      return getPopularBooks($req); // not sure if needed
+      return getPopularBooks(); // not done yet idk im spiraling
     case 'book_details':
       return doBookDetails($req); // not sure if needed
     case 'book_collect':
