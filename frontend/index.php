@@ -45,7 +45,7 @@ if ($sessionKey) {
     if (isset($_REQUEST['content'])) {
 
       $content = $_REQUEST['content'];
-      include("$content.php")
+      include("$content.php");
     } 
     
     else {
