@@ -1,6 +1,15 @@
 <?php
 // MAIN LANDING PAGE (Displays login + registration forms)
 
+/*
+10-20-25
+WAS GETTING "Unknown column 'year' in 'field list' from recent_books api call
+
+i think this is because of its not reworked the way i call it yet 
+
+*/
+
+
 // check session state
 if (!isset($_SESSION['session_key'])):
   ?>

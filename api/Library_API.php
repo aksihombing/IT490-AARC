@@ -111,7 +111,7 @@ function doBookSearch(array $req)
       author, isbn, publisher, publish_year, ratings_count,
       subject_key, person_key, place_key, time_key, cover_url
     )
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?), 
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) 
           ON DUPLICATE KEY UPDATE
           title=VALUES(title),
           subtitle=VALUES(subtitle),
