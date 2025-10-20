@@ -67,16 +67,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
 
-    <?php if (!empty($results)): // results success?> 
+     <?php if (!empty($results)): ?>
         <h2>Results:</h2>
         <ul>
-            <?php foreach ($results as $book): ?>
+            <?php foreach ($results as $book): 
+                // book identifier for the link (OLID, ISBN, or title+author fallback if OLID or ISBn not found)
+                $book_id = urlencode($book['id'] ?? $book['isbn'][0] ?? $book['title']);
+            ?>
                 <li>
-                    <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
-                    by <?php echo htmlspecialchars($book['author']); ?>
-                    (<?php echo htmlspecialchars($book['year']); ?>)
+                    <a href="book_page.php?id=<?php echo $book_id; ?>">
+                        <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
+                        by <?php echo htmlspecialchars($book['author']); ?>
+                        (<?php echo htmlspecialchars($book['year']); ?>)
+                    </a>
                 </li>
-            <?php endforeach; // an upgrade from it202, i love it! ?>
+            <?php endforeach; ?>
         </ul>
     <?php endif; ?>
 </body>

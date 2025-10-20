@@ -9,7 +9,7 @@ CREATE TABLE api_cache (
 
     https://dev.to/arctype/a-complete-guide-to-generated-columns-in-mysql-2lnb
     
-    STORED or VIRTUAL can be used for generated columns
+    STORED or VIRTUAL can be used for generated columns. says that the value is physicially stored
        */
     INDEX(search_type, query)
     /*  indexing it by search type and the query makes it easier to find it in the cache and call it  */

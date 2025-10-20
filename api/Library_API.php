@@ -12,15 +12,17 @@ require_once __DIR__ . '/get_host_info.inc';
 
 
 // connects to the local sql database
-function db() {
+/* CHANGE api_cache TO library_cache AFTER MIDTERMS */ 
+function db()
+{
   $host = 'localhost'; 
-  $user = 'apiAdmin'; 
+  $user = 'apiAdmin';
   $pass = 'aarc490';
-  $name = 'apidb'; 
+  $name = 'apidb';
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
-    throw new RuntimeException("DB connect failed: ".$mysqli->connect_error);
+    throw new RuntimeException("DB connect failed: " . $mysqli->connect_error);
   }
   return $mysqli;
 }
@@ -34,14 +36,15 @@ function doBookSearch(array $req)
 {
   $type = $req['searchType'] ?? 'title'; // to search by title
   $query = strtolower(trim($req['query'] ?? ''));
-  if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
+  if ($query === '')
+    return ['status' => 'fail', 'message' => 'missing query'];
 
   // library_cache check !!!!
   $mysqli = db();
-  
+
   echo "Checking cache for: type={$type}, query='{$query}'\n"; //debugging
 
-  $check_cache = $mysqli->prepare("SELECT response_json, last_updated FROM api_cache WHERE search_type=? AND query=? LIMIT 1");
+  $check_cache = $mysqli->prepare("SELECT response_json, last_updated FROM api_cache WHERE search_type=? AND query=? AND expires_at > NOW()LIMIT 1");
   $check_cache->bind_param("ss", $type, $query);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
@@ -99,7 +102,8 @@ function doBookSearch(array $req)
   // each attribute can have several data
 
 
-  if (empty($data['docs'])) return ['status' => 'fail', 'message' => 'no results']; // no results found
+  if (empty($data['docs']))
+    return ['status' => 'fail', 'message' => 'no results']; // no results found
 
   $results = [];
   foreach ($data['docs'] as $book) {
@@ -127,7 +131,7 @@ function doBookSearch(array $req)
 
 
 
- 
+
   // upsert?/insert? results into the cache !!!!!!
   $response_json = json_encode($results, JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE --> prevents errors, ensures data integrity with special chars
   $insert = $mysqli->prepare("
@@ -147,6 +151,30 @@ function doBookSearch(array $req)
 }
 
 
+// Pre-Populated via cron
+function getRecentBooks() {
+    $mysqli = db();
+    $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC LIMIT 10");
+
+    $books = [];
+    while ($row = $result->fetch_assoc()) {
+        $books[] = $row;
+    }
+
+    return ['status' => 'success', 'data' => $books];
+}
+
+function getPopularBooks() {
+    $mysqli = db();
+    $result = $mysqli->query("SELECT title, author, year, cover_url FROM popularBooks ORDER BY year DESC LIMIT 10");
+
+    $books = [];
+    while ($row = $result->fetch_assoc()) {
+        $books[] = $row;
+    }
+
+    return ['status' => 'success', 'data' => $books];
+}
 
 
 
@@ -157,20 +185,29 @@ function doBookSearch(array $req)
 // ---------------- SERVER ----------------
 
 // decides which function to run
-function requestProcessor($req) {
+function requestProcessor($req)
+{
   echo "Received request:\n";
-    var_dump($req);
-    flush();
-  
+  var_dump($req);
+  flush();
+
   if (!isset($req['type'])) {
-    return ['status'=>'fail','message'=>'no type'];
+    return ['status' => 'fail', 'message' => 'no type'];
   }
 
   switch ($req['type']) {
-    case 'book_search': return doBookSearch($req);
-    case 'book_details':    return doBookDetails($req); // not sure if needed
-    case 'book_collect': return doBookCollect($req); // not sure if needed
-    default:         return ['status'=>'fail','message'=>'unknown type'];
+    case 'book_search':
+      return doBookSearch($req);
+    case 'recent_books':
+      return getRecentBooks($req); // not sure if needed
+    case 'popular_books':
+      return getPopularBooks($req); // not sure if needed
+    case 'book_details':
+      return doBookDetails($req); // not sure if needed
+    case 'book_collect':
+      return doBookCollect($req); // not sure if needed
+    default:
+      return ['status' => 'fail', 'message' => 'unknown type'];
   }
 }
 
@@ -184,29 +221,30 @@ $which = $argv[1] ?? 'all';
 $iniPath = __DIR__ . "/rmqAccess.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
-    echo "Auth server starting for ALL queues...\n";
-    $sections = ['LibrarySearch', 'LibraryDetails', 'LibraryCollect'];
+  echo "Auth server starting for ALL queues...\n";
+  $sections = ['LibrarySearch', 'LibraryDetails', 'LibraryCollect'];
 
-    foreach ($sections as $section) {
-        $pid = pcntl_fork(); // process control fork; creats child process 
-        if ($pid == -1) {
-            die("Failed to fork for {$section}\n");
-        } elseif ($pid === 0) {
-            // child process
-            echo "Listening on {$section}\n";
-            $server = new rabbitMQServer($iniPath, $section);
-            $server->process_requests('requestProcessor');
-            exit(0);
-        }
+  foreach ($sections as $section) {
+    $pid = pcntl_fork(); // process control fork; creats child process 
+    if ($pid == -1) {
+      die("Failed to fork for {$section}\n");
+    } elseif ($pid === 0) {
+      // child process
+      echo "Listening on {$section}\n";
+      $server = new rabbitMQServer($iniPath, $section);
+      $server->process_requests('requestProcessor');
+      exit(0);
     }
+  }
 
-    // parent waits for all children
-    while (pcntl_wait($status) > 0) {}
+  // parent waits for all children
+  while (pcntl_wait($status) > 0) {
+  }
 } else {
-    echo "Auth server starting for queue section: {$which}\n";
-    $server = new rabbitMQServer($iniPath, $which);
-    echo "Connecting to queue: {$which}\n";
-    flush();
-    $server->process_requests('requestProcessor');
-    echo "Auth server stopped for {$which}\n";
+  echo "Auth server starting for queue section: {$which}\n";
+  $server = new rabbitMQServer($iniPath, $which);
+  echo "Connecting to queue: {$which}\n";
+  flush();
+  $server->process_requests('requestProcessor');
+  echo "Auth server stopped for {$which}\n";
 }
