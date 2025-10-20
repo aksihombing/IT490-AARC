@@ -14,7 +14,7 @@ require_once __DIR__ . '/get_host_info.inc';
 
 
 // connects to the local sql database
-/* CHANGE api_cache TO library_cache AFTER MIDTERMS */
+/* CHANGE library_cache TO library_cache AFTER MIDTERMS */
 function db()
 {
   $host = 'localhost';
@@ -46,7 +46,7 @@ function doBookSearch(array $req)
 
   echo "Checking cache for: type={$type}, query='{$query}'\n"; //debugging
 
-  $check_cache = $mysqli->prepare("SELECT * FROM api_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT 5"); // might need to change limit ? idk
+  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT 1"); // might need to change limit ? idk
   $check_cache->bind_param("ss", $type, $query);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
@@ -97,7 +97,7 @@ function doBookSearch(array $req)
 
   // api returns data as json (uses mongodb or non-relational db format)
   // reminder : mongodb "collection" is equivalent to a table. || "document" is one RECORD in a collection, stored as JSON objects
-  // each attribute can have several data
+  // each FIELD can have several data
 
 
   if (empty($curl_data['docs']))
@@ -105,7 +105,7 @@ function doBookSearch(array $req)
 
   //omg ... 17 ?
   $insert = $mysqli->prepare("
-    INSERT INTO api_cache (
+    INSERT INTO library_cache (
       search_type, query, olid, title, subtitle, 
       alternative_title, alternative_subtitle,
       author, isbn, publisher, publish_year, ratings_count,
@@ -131,8 +131,6 @@ function doBookSearch(array $req)
     "); // this looks horrible but need to make sure all data is updated when the key is duplicated
     // ** need to look into if last_updated is updated correctly ?
 
-  $searchbookresults = []; // empty array to get sent to the webserver, idk wehre it should actually go
-
   // https://github.com/internetarchive/openlibrary/blob/b4afa14b0981ae1785c26c71908af99b879fa975/openlibrary/plugins/worksearch/schemes/works.py#L119-L153
 
   foreach ($curl_data['docs'] as $book) {
@@ -156,7 +154,7 @@ function doBookSearch(array $req)
 
       $cover_url = !empty($book['cover_i'])
       ? "https://covers.openlibrary.org/b/id/" . $book['cover_i'] . "-L.jpg": null; // ternary -> if cover_i is set, then it saves the link
-  } // ANOTHER NOTE !! api_cache stores ALL of this under ONE COLUMN as a JSON type. still undecided on which would be best idk ugh --> nvm
+  } // ANOTHER NOTE !! library_cache stores ALL of this under ONE COLUMN as a JSON type. still undecided on which would be best idk ugh --> nvm
   // https://stackoverflow.com/questions/5986745/json-column-vs-multiple-columns
 
 
@@ -169,7 +167,9 @@ function doBookSearch(array $req)
   echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
 
   // binding params for such a big table... nightmare fuel for anyone who craves efficiency
+  $searchbookresults = []; // empty array to get sent to the webserver, idk wehre it should actually go
 
+  
   $insert->bind_param(
     "sssssssssiissssss",
     $type, $query,
@@ -218,7 +218,7 @@ function getRecentBooks()
   return ['status' => 'success', 'data' => $books];
 }
 
-// scrapped Popular_books 
+// (( scrapped Popular_books ))
 
 
 
@@ -242,12 +242,16 @@ function requestProcessor($req)
   switch ($req['type']) {
     case 'book_search':
       return doBookSearch($req);
+
     case 'recent_books':
       return getRecentBooks(); // not done yet idk im spiraling
+      
     case 'book_details':
       return doBookDetails($req); // not sure if needed
+
     case 'book_collect':
       return doBookCollect($req); // not sure if needed
+
     default:
       return ['status' => 'fail', 'message' => 'unknown type'];
   }
@@ -256,7 +260,7 @@ function requestProcessor($req)
 echo "API/DB server starting…\n";
 flush();
 
-// multi-queue capable version of the queue
+// multi-queue capable version of the queue from before
 
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
 $which = $argv[1] ?? 'all';
@@ -267,7 +271,7 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
   $sections = ['LibrarySearch', 'LibraryDetails', 'LibraryCollect'];
 
   foreach ($sections as $section) {
-    $pid = pcntl_fork(); // process control fork; creats child process 
+    $pid = pcntl_fork(); // process control fork; creates child process from parent process
     if ($pid == -1) {
       die("Failed to fork for {$section}\n");
     } elseif ($pid === 0) {

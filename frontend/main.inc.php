@@ -61,7 +61,7 @@ if (!isset($_SESSION['session_key'])):
   require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 
   $recentBooks = [];
-  $popularBooks = [];
+  //$popularBooks = [];
 
   try {
     $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch');
@@ -103,7 +103,7 @@ if (!isset($_SESSION['session_key'])):
                 <strong><?php echo htmlspecialchars($book['title']); ?></strong>
                 <br>
                 by <?php echo htmlspecialchars($book['author']); ?>
-                (<?php echo htmlspecialchars($book['year']); ?>)
+                (<?php echo htmlspecialchars($book['publish_year']); ?>)
                 <?php if (!empty($book['cover_url'])): ?>
                   <br><img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
                 <?php endif; ?>

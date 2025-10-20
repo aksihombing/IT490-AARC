@@ -106,7 +106,6 @@ input[type="submit"] {
   border: none;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 button:hover,

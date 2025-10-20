@@ -11,12 +11,11 @@ $name = 'apidb';
 
 // api endpoint
 $RECENT_API_URL  = "";
-$POPULAR_API_URL = "";
 
 
 
 try {
-    $conn = new mysqli($host, $user, $pass, $name);
+    $conn = new mysqli($host, $user, $pass, $name); // connect to local db 
     if ($conn->connect_errno) {
         throw new RuntimeException("DB connect failed: " . $conn->connect_error);
     }

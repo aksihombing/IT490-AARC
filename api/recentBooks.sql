@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS recentBooks;
+/* easy way to delete all entries when the script is run i guess !*/
+
+
 CREATE TABLE IF NOT EXISTS recentBooks (
     /* slightly different from the library_cache setup. 
      In library_cache, we stored the general json data for the books in ONE column called json_response
@@ -5,6 +9,7 @@ CREATE TABLE IF NOT EXISTS recentBooks (
      
      This method will specifically store each part of the json response as its own column instead of having a big column
      
+     WE NEED TO DELETE EXISTING ENTRIES when using the php script to run it.
      */
     id INT AUTO_INCREMENT PRIMARY KEY,
     olid VARCHAR(50) DEFAULT NULL,
