@@ -1,4 +1,4 @@
-CREATE TABLE api_cache (
+CREATE TABLE library_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
   search_type ENUM('title', 'author') NOT NULL,
   query VARCHAR(255) NOT NULL,
