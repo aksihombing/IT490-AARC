@@ -167,7 +167,7 @@ function getRecentBooks()
   return ['status' => 'success', 'data' => $books];
 }
 
-function getPopularBooks()
+function getPopularBooks()//idk how this works yet but it should just only access the books db cache thing bc cron updates it supposedly.
 {
   $mysqli = db();
   $result = $mysqli->query("SELECT title, author, year, cover_url FROM popularBooks ORDER BY year DESC LIMIT 10");

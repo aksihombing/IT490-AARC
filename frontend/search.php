@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             ];
 
             $response = $client->send_request($request);
-            var_dump($response); //debugging 
+            //var_dump($response); //debugging 
 
             if ($response['status'] === 'success') {
                 $results = $response['data'];
@@ -46,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 <body>
     <h1>Search The Library</h1>
 
+
+
     <form method="GET" action="index.php">
         <input type="hidden" name="content" value="search">
 
@@ -55,8 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         <label for="type">Search By:</label>
         <select name="type" id="type">
-            <option value="title" <?php echo ($_GET['type'] ?? '') === 'title' ? 'selected' : ''; ?>>Title</option>
-            <option value="author" <?php echo ($_GET['type'] ?? '') === 'author' ? 'selected' : ''; ?>>Author</option>
+            <option value="title" <?php echo ($_GET['type'] ?? '') === 'title'; ?>>Title</option>
+            <option value="author" <?php echo ($_GET['type'] ?? '') === 'author'; ?>>Author</option>
         </select>
 
         <button type="submit">Search</button>
