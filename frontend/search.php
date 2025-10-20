@@ -72,14 +72,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <h2>Results:</h2>
         <ul>
             <?php foreach ($results as $book):
-                // book identifier for the link (OLID, ISBN, or title+author fallback if OLID or ISBn not found)
-                $book_id = urlencode($book['id'] ?? $book['isbn'][0] ?? $book['title']);
+                // book identifier for the link (OLID, ISBN, or title+author fallback if OLID or ISBn not found) // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
+                $book_id = urlencode($book['id'] ?? $book['isbn'] ?? $book['title']);
                 ?>
                 <li>
                     <a href="book_page.php?id=<?php echo $book_id; ?>">
                         <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
                         by <?php echo htmlspecialchars($book['author']); ?>
-                        (<?php echo htmlspecialchars($book['year']); ?>)
+                        (<?php echo htmlspecialchars($book['publish_year']); ?>)
                     </a>
                 </li>
             <?php endforeach; ?>

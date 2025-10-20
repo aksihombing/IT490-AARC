@@ -46,32 +46,28 @@ function doBookSearch(array $req)
 
   echo "Checking cache for: type={$type}, query='{$query}'\n"; //debugging
 
-  $check_cache = $mysqli->prepare("SELECT response_json, last_updated FROM api_cache WHERE search_type=? AND query=? AND expires_at > NOW()LIMIT 1");
+  $check_cache = $mysqli->prepare("SELECT * FROM api_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT 5"); // might need to change limit ? idk
   $check_cache->bind_param("ss", $type, $query);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
 
-  if ($cache_result->num_rows > 0) {
-    $row = $cache_result->fetch_assoc();
-
-    $age = time() - strtotime($row['last_updated']);
-    $maxAge = 86400; // 24 hours
-
-    if ($age < $maxAge) {
+  if ($cache_result->num_rows > 0) { // if there is 1 or more results
       echo "Cache HIT for {$type}={$query}\n";
-      $cachedData = json_decode($row['response_json'], true);
+      $cachedData = [];
+
+      while ($row = $cache_result->fetch_assoc()) {
+        $cachedData[] = $row;
+      }
+
       return ['status' => 'success', 'data' => $cachedData];
       // RETURNES CACHED DATA !!!! AKA CACHE HIT !!!!!
-    } else {
-      echo "Cache EXPIRED for {$type}={$query}\n";
-      // nothing returned, so it considers it a miss
     }
-  }
 
 
   // CACHE MISS !!!!!
-  $base = "https://openlibrary.org/search.json";
+  $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
+  // need to decode it when its actually stored in db to remove + and other symbols
   if ($type === 'author') {
     $url = "{$base}?author={$encodedQuery}&limit=5"; //limiting results to 5 for midterm idc
   } else {
@@ -94,62 +90,117 @@ function doBookSearch(array $req)
   if (curl_errno($curl_api)) { // if cURL error :
     return ['status' => 'fail', 'message' => 'API error: ' . curl_error($curl_api)];
   }
-  echo "Response length: " . strlen($response) . "\n"; // debugging
+  //echo "Response length: " . strlen($response) . "\n"; // debugging
   curl_close($curl_api);
 
-  $data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects.
+  $curl_data = json_decode($response, true); // true is for the associative arrays. if false, it returns the json objects into objects. make sure to decode the response from the api before upserting? inserting? it back into the db
 
   // api returns data as json (uses mongodb or non-relational db format)
   // reminder : mongodb "collection" is equivalent to a table. || "document" is one RECORD in a collection, stored as JSON objects
   // each attribute can have several data
 
 
-  if (empty($data['docs']))
+  if (empty($curl_data['docs']))
     return ['status' => 'fail', 'message' => 'no results']; // no results found
 
-  $results = [];
-  foreach ($data['docs'] as $book) {
-    $results[] = [
+  //omg ... 17 ?
+  $insert = $mysqli->prepare("
+    INSERT INTO api_cache (
+      search_type, query, olid, title, subtitle, 
+      alternative_title, alternative_subtitle,
+      author, isbn, publisher, publish_year, ratings_count,
+      subject_key, person_key, place_key, time_key, cover_url
+    )
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?), 
+          ON DUPLICATE KEY UPDATE
+          title=VALUES(title),
+          subtitle=VALUES(subtitle),
+          alternative_title=VALUES(alternative_title),
+          alternative_subtitle=VALUES(alternative_subtitle),
+          author=VALUES(author),
+          isbn=VALUES(isbn),
+          publisher=VALUES(publisher),
+          publish_year=VALUES(publish_year),
+          ratings_count=VALUES(ratings_count),
+          subject_key=VALUES(subject_key),
+          person_key=VALUES(person_key),
+          place_key=VALUES(place_key),
+          time_key=VALUES(time_key),
+          cover_url=VALUES(cover_url),
+          last_updated=CURRENT_TIMESTAMP
+    "); // this looks horrible but need to make sure all data is updated when the key is duplicated
+    // ** need to look into if last_updated is updated correctly ?
+
+  $searchbookresults = []; // empty array to get sent to the webserver, idk wehre it should actually go
+
+  // https://github.com/internetarchive/openlibrary/blob/b4afa14b0981ae1785c26c71908af99b879fa975/openlibrary/plugins/worksearch/schemes/works.py#L119-L153
+
+  foreach ($curl_data['docs'] as $book) {
       // NOTE : within each doc, attributes have nested information within an array 
-      'title' => $book['title'] ?? 'Unknown title',
-      'subtitle' => $book['subtitle'] ?? null,
-      'alternative_title' => $book['alternative_title'] ?? null,
-      'alternative_subtitle' => $book['alternative_subtitle'] ?? null,
-      'author' => $book['author_name'][0] ?? 'Unknown author',
-      'isbn' => $book['isbn'][0] ?? null,
-      'publisher' => $book['publisher'][0] ?? null,
-      'publish_year' => $book['publish_year'][0] ?? null,
-      'ratings_count' => $book['ratings_count'] ?? null,
+      $olid = $book['cover_edition_key'] ?? null; //string
+      $title = $book['title'] ?? 'Unknown title'; //string
+      $subtitle = $book['subtitle'] ?? null; //string
+      $alternative_title = $book['alternative_title'] ?? null; //string
+      $alternative_subtitle = $book['alternative_subtitle'] ?? null;//string
+      $author = $book['author_name'][0] ?? 'Unknown author'; //string
+      $isbn = $book['isbn'][0] ?? null; //string
+      $publisher = $book['publisher'][0] ?? null; //string
+      $publish_year = $book['publish_year'][0] ?? null; //int
+      $ratings_count = $book['ratings_count'] ?? null; //int
 
       // SUBJECT/GENRE INFO
-      'subject_key' => $book['subject_key'] ?? [],
-      'person_key' => $book['person_key'] ?? [],
-      'place_key' => $book['place_key'] ?? [],
-      'time_key' => $book['time_key'] ?? [],
+      $subject_key = json_encode($book['subject_key'] ?? []); //string technically?
+      $person_key = json_encode($book['person_key'] ?? []); //string 
+      $place_key = json_encode($book['place_key'] ?? []); //string 
+      $time_key = json_encode($book['time_key'] ?? []); //string 
 
-      'year' => $book['first_publish_year'] ?? 'N/A'
-    ];
-  } // ANOTHER NOTE !! api_cache stores ALL of this under ONE COLUMN as a JSON type. still undecided on which would be best idk ugh
+      $cover_url = !empty($book['cover_i'])
+      ? "https://covers.openlibrary.org/b/id/" . $book['cover_i'] . "-L.jpg": null; // ternary -> if cover_i is set, then it saves the link
+  } // ANOTHER NOTE !! api_cache stores ALL of this under ONE COLUMN as a JSON type. still undecided on which would be best idk ugh --> nvm
+  // https://stackoverflow.com/questions/5986745/json-column-vs-multiple-columns
 
 
 
 
   // upsert?/insert? results into the cache db table !!!!!!
-  $response_json = json_encode($results, JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE --> prevents errors, ensures data integrity with special chars
-  $insert = $mysqli->prepare("
-    INSERT INTO api_cache (search_type, query, response_json)
-    VALUES (?, ?, ?)
-    ON DUPLICATE KEY UPDATE response_json=VALUES(response_json), last_updated=CURRENT_TIMESTAMP
-  ");
+ // $response_json = json_encode($results, JSON_UNESCAPED_UNICODE); // JSON_UNESCAPED_UNICODE --> prevents errors, ensures data integrity with special chars
+
 
   echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
 
-  $insert->bind_param("sss", $type, $query, $response_json);
+  // binding params for such a big table... nightmare fuel for anyone who craves efficiency
+
+  $insert->bind_param(
+    "sssssssssiissssss",
+    $type, $query,
+    $olid, $title, $subtitle,
+    $alternative_title, $alternative_subtitle,
+    $author, $isbn, $publisher, $publish_year, $ratings_count,
+    $subject_key, $person_key, $place_key, $time_key, $cover_url
+    ); // need to check if this was done correctly bc its just TOOO much
+
   $insert->execute();
+
+    $searchbookresults[] = [ // this gets returns to the webserver
+      'olid' => $olid,
+      'title' => $title,
+      'subtitle' => $subtitle,
+      'author' => $author,
+      'isbn' => $isbn,
+      'publisher' => $publisher,
+      'publish_year' => $publish_year,
+      'ratings_count' => $ratings_count,
+      'subject_key' => $subject_key,
+      'person_key' => $person_key,
+      'place_key' => $place_key,
+      'time_key' => $time_key,
+      'cover_url' => $cover_url
+    ];
+
 
   echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
 
-  return ['status' => 'success', 'data' => $results];
+  return ['status' => 'success', 'data' => $searchbookresults];
 }
 
 
@@ -167,7 +218,7 @@ function getRecentBooks()
   return ['status' => 'success', 'data' => $books];
 }
 
-
+// scrapped Popular_books 
 
 
 

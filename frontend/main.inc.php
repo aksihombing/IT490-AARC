@@ -94,11 +94,14 @@ if (!isset($_SESSION['session_key'])):
         <ul>
           <?php foreach ($recentBooks as $book):
             // URL-safe ID for linking. book_id can be by id, ibsn, or title. SUBJECT TO CHANGE AFTER TESTING
+            // i actually have lost the plot with this it seems...
             $book_id = urlencode($book['id'] ?? $book['isbn'][0] ?? $book['title']);
             ?>
             <li>
               <a href="book_page.php?id=<?php echo $book_id; ?>">
-                <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
+
+                <strong><?php echo htmlspecialchars($book['title']); ?></strong>
+                <br>
                 by <?php echo htmlspecialchars($book['author']); ?>
                 (<?php echo htmlspecialchars($book['year']); ?>)
                 <?php if (!empty($book['cover_url'])): ?>

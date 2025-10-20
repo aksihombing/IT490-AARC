@@ -24,6 +24,6 @@ CREATE TABLE IF NOT EXISTS popularBooks (
     time_key JSON DEFAULT NULL,
     cover_url TEXT DEFAULT NULL,
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_year (publish_year),
-    INDEX idx_title (title)
+    INDEX index_by_year (publish_year),
+    INDEX index_by_title (title)
 )
