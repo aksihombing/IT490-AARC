@@ -1,22 +1,24 @@
 CREATE TABLE library_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  search_type ENUM('title', 'author') NOT NULL,
+  search_type ENUM('title', 'author') NOT NULL, /* maybe i dont need this in the cache.*/
   query VARCHAR(255) NOT NULL,
 
   /* basics -- may need more depending on what info we need for the website ? */
   olid VARCHAR(50) DEFAULT NULL,
   title VARCHAR(255) NOT NULL,
   subtitle VARCHAR(255) DEFAULT NULL,
-  alternative_title VARCHAR(255) DEFAULT NULL,
-  alternative_subtitle VARCHAR(255) DEFAULT NULL,
   author VARCHAR(255) DEFAULT 'Unknown Author',
-  isbn VARCHAR(50) DEFAULT NULL,
-  publisher VARCHAR(255) DEFAULT NULL,
+  isbn VARCHAR(50) DEFAULT NULL, -- from /works/olid/edition.json
+  -- publisher VARCHAR(255) DEFAULT NULL,--> removed bc this depends on the edition
+  book_desc VARCHAR(500) DEFAULT NULL,
+
+  /* ints */
   publish_year INT DEFAULT NULL,
+  ratings_average INT DEFAULT NULL,
   ratings_count INT DEFAULT NULL,
 
   /* subject/genre */
-  subject_key JSON DEFAULT NULL,
+  subjects JSON DEFAULT NULL,
   person_key JSON DEFAULT NULL,
   place_key JSON DEFAULT NULL,
   time_key JSON DEFAULT NULL,
