@@ -167,18 +167,7 @@ function getRecentBooks()
   return ['status' => 'success', 'data' => $books];
 }
 
-function getPopularBooks()//idk how this works yet but it should just only access the books db cache thing bc cron updates it supposedly.
-{
-  $mysqli = db();
-  $result = $mysqli->query("SELECT title, author, year, cover_url FROM popularBooks ORDER BY year DESC LIMIT 10");
 
-  $books = [];
-  while ($row = $result->fetch_assoc()) {
-    $books[] = $row;
-  }
-
-  return ['status' => 'success', 'data' => $books];
-}
 
 
 
@@ -204,8 +193,6 @@ function requestProcessor($req)
       return doBookSearch($req);
     case 'recent_books':
       return getRecentBooks(); // not done yet idk im spiraling
-    case 'popular_books':
-      return getPopularBooks(); // not done yet idk im spiraling
     case 'book_details':
       return doBookDetails($req); // not sure if needed
     case 'book_collect':

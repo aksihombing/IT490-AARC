@@ -72,12 +72,6 @@ if (!isset($_SESSION['session_key'])):
       $recentBooks = $recentResponse['data'];
     }
 
-    // Popular books
-    $popularResponse = $client->send_request(['type' => 'popular_books']);
-    if ($popularResponse['status'] === 'success') {
-      $popularBooks = $popularResponse['data'];
-    }
-
   } catch (Exception $e) {
     echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
   }
@@ -116,33 +110,6 @@ if (!isset($_SESSION['session_key'])):
         </ul>
       <?php else: ?>
         <p>No recent releases available right now.</p>
-      <?php endif; ?>
-    </section>
-
-    <br>
-    <br>
-
-    <section id="popular-books">
-      <h3>Popular Books</h3>
-      <?php if (!empty($popularBooks)): ?>
-        <ul>
-          <?php foreach ($popularBooks as $book):
-            $book_id = urlencode($book['id'] ?? $book['isbn'][0] ?? $book['title']);
-            ?>
-            <li>
-              <a href="book_page.php?id=<?php echo $book_id; ?>">
-                <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
-                by <?php echo htmlspecialchars($book['author']); ?>
-                (<?php echo htmlspecialchars($book['year']); ?>)
-                <?php if (!empty($book['cover_url'])): ?>
-                  <br><img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
-                <?php endif; ?>
-              </a>
-            </li>
-          <?php endforeach; ?>
-        </ul>
-      <?php else: ?>
-        <p>No popular releases available right now.</p>
       <?php endif; ?>
     </section>
 
