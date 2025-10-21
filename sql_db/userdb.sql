@@ -61,9 +61,28 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+CREATE TABLE user_library (
+  user_id  INT NOT NULL,
+  works_id VARCHAR(50) NOT NULL,
+  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY (user_id, works_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE reviews (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id  INT NOT NULL,
+  works_id VARCHAR(50) NOT NULL,
+  rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  body TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY (user_id, works_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 --
 -- Dumping data for table `users`
 --
+INSERT INTO user_library (user_id, works_id) VALUES (1,'OL82548W');
 
 /*LOCK TABLES `users` WRITE;*/
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
