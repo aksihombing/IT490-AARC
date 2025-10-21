@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS library_cache (
 
   /* ints */
   publish_year INT DEFAULT NULL,
-  ratings_average DECIMAL(1,2) DEFAULT NULL,
+  ratings_average DECIMAL(3,2) DEFAULT NULL,
   ratings_count INT DEFAULT NULL,
 
   /* subject/genre */
