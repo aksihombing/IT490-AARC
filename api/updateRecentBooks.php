@@ -82,7 +82,7 @@ try {
         $author = $book['author_name'][0] ?? 'Unknown author'; //string
 
 
-        $publish_year = $book['first_publish_year'];
+        $publish_year = $book['first_publish_year'] ?? null;
         // sanitize publish_year because books returned using q=*&sort=new have the year 9000+ on them for some reason.
         if (($publish_year) > date('Y', $publish_year)) {
 
@@ -107,11 +107,12 @@ try {
             $work_data = json_decode($work_json, true); // decode to read all data
 
 
-            if (is_array($work_data['description'])) {
-                $book_desc = $work_data['description']['value'];
+            $desc_check = $work_data['description'] ?? null;
+            if (is_array($desc_check)) {
+                $book_desc = $desc_check['value'];
             } // some books have an array for description
-            else if (is_string($work_data['description'])) {
-                $book_desc = $work_data['description'];
+            else if (is_string($desc_check)) {
+                $book_desc = $desc_check;
             } else {
                 $book_desc = null;
             }
