@@ -108,6 +108,7 @@ grid.innerHTML = detailed.map(cardHTML).join('');
 
     // Hide “empty” message and display the book cards
     document.getElementById('empty').style.display = 'none';
+    
     grid.innerHTML = items.map(cardHTML).join('');
 
     // remove with a simple db delete request

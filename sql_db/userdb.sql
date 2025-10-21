@@ -82,7 +82,7 @@ CREATE TABLE reviews (
 --
 -- Dumping data for table `users`
 --
-INSERT INTO user_library (user_id, works_id) VALUES (1,'OL82548W');
+INSERT INTO user_library (user_id, works_id) VALUES (2,'OL82548W');
 
 /*LOCK TABLES `users` WRITE;*/
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;

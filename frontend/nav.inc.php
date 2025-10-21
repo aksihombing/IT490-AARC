@@ -42,7 +42,7 @@ $username = $userData['username'] ?? 'User';
         <li>
             <?php echo htmlspecialchars($username); ?>
             <ul>
-                <li><a href="index.php?content=mylibrary">My Library</a></li>
+                <li><a href="my_library.php">My Library</a></li>
                 <li><a href="index.php?content=logout">Logout</a></li>
             </ul>
         </li>
