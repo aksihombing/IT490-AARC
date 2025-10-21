@@ -130,19 +130,19 @@ function doBookSearch(array $req)
     $time_key = null;
 
     if ($work_json) {
-      $work_data = json_decode($work_json, true);
+      $work_data = json_decode($work_json, true); // decode to read all data
 
-      $book_desc = $work_data['description'] ?? ''; // do i need to encode this?
-      $subjects = $work_data['subjects'] ?? [];
-      $person_key = $work_data['subject_people'] ?? [];
-      $place_key = $work_data['subject_places'] ?? [];
-      $time_key = $work_data['subject_times'] ?? [];
+      $book_desc = json_encode($work_data['description'] ?? ''); // need to encode the json because the database column is of JSON type
+      $subjects = json_encode($work_data['subjects'] ?? []);
+      $person_key = json_encode($work_data['subject_people'] ?? []);
+      $place_key = json_encode($work_data['subject_places'] ?? []);
+      $time_key = json_encode($work_data['subject_times'] ?? []);
 
       // DEBUGGING
-      var_dump($subjects);
-      var_dump($person_key);
-      var_dump($place_key);
-      var_dump($time_key);
+      //var_dump($subjects);
+      //var_dump($person_key);
+      //var_dump($place_key);
+      //var_dump($time_key);
     }
 
 
