@@ -108,7 +108,7 @@ function doBookSearch(array $req)
 
 
   foreach ($curl_data['docs'] as $book) { // reading each doc that was returned
-    $olid = $book['cover_edition_key'] ?? null; //string, not sure if i should save the ['key'] too?
+    $olid = str_replace('/works/', '', $book['key'] ?? null); //string --> cover_edition_key was specific to the edition of a book and not the actual OLID value in /works/
     $title = $book['title'] ?? 'Unknown title'; //string
     $subtitle = $book['subtitle'] ?? null; //string
     $author = $book['author_name'][0] ?? 'Unknown author'; //string
@@ -222,15 +222,15 @@ function doBookSearch(array $req)
     $title, // string
     $subtitle, // string
     $author, // string
-    $isbn, // string
-    $book_desc, // string
+    $isbn, // string -- still null
+    $book_desc, // string -- still null
     $publish_year, // int
-    $ratings_average, //int
-    $ratings_count, // int
-    $subjects, // string
-    $person_key, // string
-    $place_key, // string
-    $time_key, // string
+    $ratings_average, //int -- still null
+    $ratings_count, // int -- still null
+    $subjects, // string -- still null
+    $person_key, // string -- still null
+    $place_key, // string -- still null
+    $time_key, // string -- still null
     $cover_url // string
   ); // need to check if this was done correctly bc its just TOOO much
 
