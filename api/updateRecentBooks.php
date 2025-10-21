@@ -64,7 +64,7 @@ try {
 
     $insertToTable = $conn->prepare("
     INSERT INTO library_cache (
-      search_type, query, olid, title, subtitle, author, isbn,
+      olid, title, subtitle, author, isbn,
       book_desc, publish_year, ratings_average, ratings_count,
       subjects, person_key, place_key, time_key, cover_url
     )
@@ -165,14 +165,12 @@ try {
 
         // INSERT INTO TABLE ON CACHE MISS ! ----------------------------------
 
-        echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
+        echo "Saving to cache: title={$title}, author='{$quauthorery}'\n"; // debugging
 
         // binding params for such a big table... nightmare fuel for anyone who craves efficiency
 
         $insertToTable->bind_param(
-            "ssssssssidisssss",
-            $type, // string
-            $query, // string
+            "ssssssidisssss",
             $olid, // string
             $title, // string
             $subtitle, // string
