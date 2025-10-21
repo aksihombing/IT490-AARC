@@ -1,3 +1,5 @@
+i dont think this is necessary ugh sorry
+
 sudo apt install php-curl
 
 sudo a2enmod cache

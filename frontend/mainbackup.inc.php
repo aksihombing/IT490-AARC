@@ -1,6 +1,15 @@
 <?php
 // MAIN LANDING PAGE (Displays login + registration forms)
 
+/*
+10-20-25
+WAS GETTING "Unknown column 'year' in 'field list' from recent_books api call
+
+i think this is because of its not reworked the way i call it yet 
+
+*/
+
+
 // check session state
 if (!isset($_SESSION['session_key'])):
   ?>
@@ -56,7 +65,30 @@ if (!isset($_SESSION['session_key'])):
   </section>
 
 <?php else: ?>
-  
+  <?php
+  // to load pre-loaded book data from cache db
+  require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+
+  $recentBooks = [];
+  //$popularBooks = [];
+
+  try {
+    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch');
+
+    // Recent books
+    $recentResponse = $client->send_request(['type' => 'recent_books']);
+    if ($recentResponse['status'] === 'success') {
+      $recentBooks = $recentResponse['data'];
+    }
+
+  } catch (Exception $e) {
+    echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
+  }
+
+
+  ?>
+
+
 
   <section id="welcome-section">
     <h2>Welcome!</h2>
@@ -67,7 +99,30 @@ if (!isset($_SESSION['session_key'])):
 
     <section id="recent-books">
       <h3>Recent Books</h3>
-      
+      <?php if (!empty($recentBooks)): ?>
+        <ul>
+          <?php foreach ($recentBooks as $book):
+            // URL-safe ID for linking. book_id can be by id, ibsn, or title. SUBJECT TO CHANGE AFTER TESTING
+            // i actually have lost the plot with this it seems...
+            $book_id = urlencode($book['id'] ?? $book['isbn'][0] ?? $book['title']);
+            ?>
+            <li>
+              <a href="book_page.php?id=<?php echo $book_id; ?>">
+
+                <strong><?php echo htmlspecialchars($book['title']); ?></strong>
+                <br>
+                by <?php echo htmlspecialchars($book['author']); ?>
+                (<?php echo htmlspecialchars($book['publish_year']); ?>)
+                <?php if (!empty($book['cover_url'])): ?>
+                  <br><img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                <?php endif; ?>
+              </a>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      <?php else: ?>
+        <p>No recent releases available right now.</p>
+      <?php endif; ?>
     </section>
 
     <br>
