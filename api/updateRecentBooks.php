@@ -66,9 +66,9 @@ try {
     INSERT INTO library_cache (
       olid, title, subtitle, author, isbn,
       book_desc, publish_year, ratings_average, ratings_count,
-      subjects, person_key, place_key, time_key, cover_url, added_at
+      subjects, person_key, place_key, time_key, cover_url
     )
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       olid=VALUES(olid),
       title=VALUES(title),
@@ -83,8 +83,7 @@ try {
       person_key=VALUES(person_key),
       place_key=VALUES(place_key),
       time_key=VALUES(time_key),
-      cover_url=VALUES(cover_url),
-      added_at=CURRENT_TIMESTAMP
+      cover_url=VALUES(cover_url)
   ");
 
 
