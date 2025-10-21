@@ -62,7 +62,7 @@ try {
         return ['status' => 'fail', 'message' => 'no results']; // no results found
 
 
-    $insertToTable = $mysqli->prepare("
+    $insertToTable = $conn->prepare("
     INSERT INTO library_cache (
       search_type, query, olid, title, subtitle, author, isbn,
       book_desc, publish_year, ratings_average, ratings_count,
