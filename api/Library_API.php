@@ -148,7 +148,17 @@ function doBookSearch(array $req)
 
     if ($editions_json) {
       $editions_data = json_decode($editions_json, true);
-      $isbn = $editions_data['editions']['isbn_13'][0];
+      $first_entry = $editions_data['entries'][0]; // gets the first entry result bc it will have ALL editions with different isbns listed. this is good enough for now, but it might be good to have a list of isbns.
+      $isbn = $first_entry['isbn_13'][0]; 
+      if (!empty($first_entry['isbn_13'][0])){
+        $isbn = $first_entry['isbn_13'][0]; 
+      }
+      elseif (!empty($first_entry['isbn_10'][0])){
+        $isbn = $first_entry['isbn_10'][0]; 
+      }
+      else {
+        $isbn = $first_entry[''][0]; // no isbn found
+      }
     }
 
 
