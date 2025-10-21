@@ -193,7 +193,7 @@ try {
     echo "All books updated";
 } 
 catch (Exception $e) {
-    error_log("logout.php exception sending logout request: " . $e->getMessage());
+    error_log("Unable to update recentBooks table : " . $e->getMessage());
     exit(1);
 }
 
