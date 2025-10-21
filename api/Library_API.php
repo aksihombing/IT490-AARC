@@ -137,6 +137,12 @@ function doBookSearch(array $req)
       $person_key = $work_data['subject_people'] ?? [];
       $place_key = $work_data['subject_places'] ?? [];
       $time_key = $work_data['subject_times'] ?? [];
+
+      // DEBUGGING
+      var_dump($subjects);
+      var_dump($person_key);
+      var_dump($place_key);
+      var_dump($time_key);
     }
 
 
@@ -227,10 +233,10 @@ function doBookSearch(array $req)
     $publish_year, // int
     $ratings_average, //int -- still null
     $ratings_count, // int -- still null
-    $subjects, // string -- still null
-    $person_key, // string -- still null
-    $place_key, // string -- still null
-    $time_key, // string -- still null
+    $subjects, // ARRAY -- still null
+    $person_key, // ARRAY -- still null
+    $place_key, // ARRAY -- still null
+    $time_key, // ARRAY -- still null
     $cover_url // string
   ); // need to check if this was done correctly bc its just TOOO much
 
