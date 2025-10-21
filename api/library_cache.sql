@@ -1,4 +1,6 @@
-CREATE TABLE library_cache (
+DROP TABLE IF EXISTS library_cache;
+
+CREATE TABLE IF NOT EXISTS library_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
   search_type ENUM('title', 'author') NOT NULL, /* maybe i dont need this in the cache.*/
   query VARCHAR(255) NOT NULL,
@@ -14,7 +16,7 @@ CREATE TABLE library_cache (
 
   /* ints */
   publish_year INT DEFAULT NULL,
-  ratings_average INT DEFAULT NULL,
+  ratings_average DECIMAL(1,2) DEFAULT NULL,
   ratings_count INT DEFAULT NULL,
 
   /* subject/genre */
