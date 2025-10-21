@@ -52,8 +52,9 @@ try {
     // COPIED FROM Library_API.php
 
     $currentYear = date('Y');
-    $searchByNew = "https://openlibrary.org/search.json?q=*&sort=new&limit=20"; //
+    $searchByNew = "https://openlibrary.org/search.json?q=*&first_publish_year={$currentYear}&limit=10&sort=new"; //
 
+// EXAMPLE https://openlibrary.org/search.json?q=*&first_publish_year=2022&limit=10&sort=new
 
     $search_response = curl_get($searchByNew);
     $curl_data = json_decode($search_response, true);
@@ -63,27 +64,12 @@ try {
 
 
     $insertToTable = $conn->prepare("
-    INSERT INTO library_cache (
+    INSERT INTO recentBooks (
       olid, title, subtitle, author, isbn,
       book_desc, publish_year, ratings_average, ratings_count,
       subjects, person_key, place_key, time_key, cover_url
     )
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    ON DUPLICATE KEY UPDATE
-      olid=VALUES(olid),
-      title=VALUES(title),
-      subtitle=VALUES(subtitle),
-      author=VALUES(author),
-      isbn=VALUES(isbn),
-      book_desc=VALUES(book_desc),
-      publish_year=VALUES(publish_year),
-      ratings_average=VALUES(ratings_average),
-      ratings_count=VALUES(ratings_count),
-      subjects=VALUES(subjects),
-      person_key=VALUES(person_key),
-      place_key=VALUES(place_key),
-      time_key=VALUES(time_key),
-      cover_url=VALUES(cover_url)
   ");
 
 
@@ -94,7 +80,14 @@ try {
         $title = $book['title'] ?? 'Unknown title'; //string
         $subtitle = $book['subtitle'] ?? null; //string
         $author = $book['author_name'][0] ?? 'Unknown author'; //string
+
+
         $publish_year = $book['first_publish_year'];
+        // sanitize publish_year because books returned using q=*&sort=new have the year 9000+ on them for some reason.
+        if (($publish_year) > date('Y', $publish_year)) {
+
+        }
+
         $cover_url = !empty($book['cover_i'])
             ? "https://covers.openlibrary.org/b/id/" . $book['cover_i'] . "-L.jpg" : null;
 
