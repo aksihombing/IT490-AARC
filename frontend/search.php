@@ -1,5 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+include __DIR__ . '/../links/book_link.inc.php';
 //session_start();
 
 $results = [];
