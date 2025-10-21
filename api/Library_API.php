@@ -94,11 +94,8 @@ function doBookSearch(array $req)
   // for search.json!!!  ----------------------
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
-  if ($type === 'author') {
-    $searchurl = "{$base}?author={$encodedQuery}&limit=10";
-  } else {
-    $searchurl = "{$base}?q={$encodedQuery}&limit=10";
-  } // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
+  $searchurl = "{$base}?q={$encodedQuery}&limit=10";
+  // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
 
   $search_response = curl_get($searchurl);
   $curl_data = json_decode($search_response, true); // true is for the associative arrays. if false, it returns the json objects into objects. make sure to decode the response from the api before upserting/ inserting it back into the db
