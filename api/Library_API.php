@@ -142,14 +142,13 @@ function doBookSearch(array $req)
 
     // data from /works/{OLID}/editions.json ----------------------
 
-    $isbn = null;
     $editions_url = "https://openlibrary.org/works/{$olid}/editions.json?limit=1"; // only get 1 of the editions isbn
     $editions_json = curl_get($editions_url);
 
     if ($editions_json) {
       $editions_data = json_decode($editions_json, true);
       $first_entry = $editions_data['entries'][0]; // gets the first entry result bc it will have ALL editions with different isbns listed. this is good enough for now, but it might be good to have a list of isbns.
-      $isbn = $first_entry['isbn_13'][0]; 
+       
       if (!empty($first_entry['isbn_13'][0])){
         $isbn = $first_entry['isbn_13'][0]; 
       }
@@ -157,7 +156,7 @@ function doBookSearch(array $req)
         $isbn = $first_entry['isbn_10'][0]; 
       }
       else {
-        $isbn = $first_entry[''][0]; // no isbn found
+        $isbn = null; // no isbn found
       }
     }
 
