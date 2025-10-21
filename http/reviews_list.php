@@ -27,7 +27,7 @@ $user_id = $_SESSION['uid'] ?? 1; // fallback for testing
 $client  = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', "ListReviews");// may need changes
 
 $request = [
-  'type'     => 'library.review',// 
+  'type'     => 'library.review.list',// 
   'user_id'  => $user_id,
   'works_id' => $works_id,
   'rating'   => $rating,//will be ignored

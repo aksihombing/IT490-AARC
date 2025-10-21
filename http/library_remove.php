@@ -27,7 +27,7 @@ require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 $client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini', 'LibraryRemove'); // <- DB queue
 
 $req = [
-  'type'     => 'library.remove', //new queue type
+  'type'     => 'library.personal.remove', //new queue type
   'user_id'  => (int)$_SESSION['uid'],
   'works_id' => (string)$works_id,
 ];

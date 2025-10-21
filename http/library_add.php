@@ -27,7 +27,7 @@ require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryAdd');
   $resp = $client->send_request([
-    'type'     => 'library.add',
+    'type'     => 'library.personal.add',
     'user_id'  => (int)$_SESSION['uid'],
     'works_id' => $works_id,
   ]);

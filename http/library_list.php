@@ -13,7 +13,7 @@ $userId = $_SESSION['uid'];
 $client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini', "LibraryPersonal");
 
 $response = $client->send_request([
-   'type'    => 'library.personal',  // request to get all books for a specific user
+   'type'    => 'library.personal.list',  // request to get all books for a specific user
   'user_id' => $userId,          // identifies which user's library we want to fetch (comes from their session ID)
   'limit'   => 200,              // limits how many books to return at once 
   'offset'  => 0                 // for pagination:start at the first record (0 = beginning of the list)

@@ -26,7 +26,7 @@ $user_id = $_SESSION['uid'];
 $client  = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', "CreateReviews"); // DB listener queue
 
 $request = [
-  'type'     => 'library.create_review', // new queue type
+  'type'     => 'library.review.create', // new queue type
   'user_id'  => $user_id,
   'works_id' => $works_id,
   'rating'   => $rating,

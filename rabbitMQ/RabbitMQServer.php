@@ -301,11 +301,11 @@ function requestProcessor($req) {
     case 'login':    return doLogin($req);
     case 'validate': return doValidate($req);
     case 'logout':   return doLogout($req);
-    case 'library.remove': return doLibraryRemove($req);
-    case 'library.review':   return doReviewsList($req);
-    case 'library.create_review': return doReviewsCreate($req);
-    case 'library.personal': return doLibraryList($req);
-    case 'library.add': return doLibraryAdd($req);
+    case 'library.personal.remove': return doLibraryRemove($req);
+    case 'library.review.list':   return doReviewsList($req);
+    case 'library.review.create': return doReviewsCreate($req);
+    case 'library.personal.list': return doLibraryList($req);
+    case 'library.personal.add': return doLibraryAdd($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
