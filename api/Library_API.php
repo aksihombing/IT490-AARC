@@ -163,7 +163,16 @@ function doBookSearch(array $req)
     if ($work_json) {
       $work_data = json_decode($work_json, true); // decode to read all data
 
-      $book_desc = $work_data['description'] ?? '';
+
+      if (is_array($work_data['description'])) {
+        $book_desc = $work_data['description']['value'];
+      } // some books have an array for description
+      else if (is_string($work_data['description'])) {
+        $book_desc = $work_data['description'];
+      }
+      else {
+        $book_desc = null;
+      }
 
       // need to encode the json because the database column is of JSON type
       $subjects = json_encode($work_data['subjects'] ?? []);
