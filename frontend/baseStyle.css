@@ -1,0 +1,42 @@
+/* BASIC ELEMENTS */
+div {
+    align-items: center;
+    justify-content: center;
+}
+
+section {
+    align-items: center;
+    justify-content: center;
+}
+
+body {
+  font-family: "Source Sans Pro", Arial, sans-serif;
+  align-items: center;
+  justify-content: center;
+}
+
+h1 {
+
+}
+
+h2 {
+
+}
+
+h3 {
+
+}
+
+a {
+
+}
+
+
+
+/* FORMS */
+form {
+  border : solid #6C5A49 2px;
+  border-radius : 5px;
+  padding : 10px;
+  display: inline-block;
+}
