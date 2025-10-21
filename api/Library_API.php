@@ -95,9 +95,9 @@ function doBookSearch(array $req)
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
   if ($type === 'author') {
-    $searchurl = "{$base}?author={$encodedQuery}&limit=5"; //limiting results to 5 for midterm idc
+    $searchurl = "{$base}?author={$encodedQuery}&limit=10";
   } else {
-    $searchurl = "{$base}?q={$encodedQuery}&limit=5";
+    $searchurl = "{$base}?q={$encodedQuery}&limit=10";
   } // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
 
   $search_response = curl_get($searchurl);
@@ -106,8 +106,39 @@ function doBookSearch(array $req)
   if (empty($curl_data['docs']))
     return ['status' => 'fail', 'message' => 'no results']; // no results found
 
+  // prepare insertToTable before reading the docs that are returned because reading each result from the query will be done in a FOREACH loop !!
+  // $insertToTable will be repeatedly called from the loop
+  $insertToTable = $mysqli->prepare("
+    INSERT INTO library_cache (
+      search_type, query, olid, title, subtitle, author, isbn,
+      book_desc, publish_year, ratings_average, ratings_count,
+      subjects, person_key, place_key, time_key, cover_url
+    )
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE
+      title=VALUES(title),
+      subtitle=VALUES(subtitle),
+      author=VALUES(author),
+      isbn=VALUES(isbn),
+      book_desc=VALUES(book_desc),
+      publish_year=VALUES(publish_year),
+      ratings_average=VALUES(ratings_average),
+      ratings_count=VALUES(ratings_count),
+      subjects=VALUES(subjects),
+      person_key=VALUES(person_key),
+      place_key=VALUES(place_key),
+      time_key=VALUES(time_key),
+      cover_url=VALUES(cover_url),
+      last_updated=CURRENT_TIMESTAMP
+  ");
+  // ** need to look into if last_updated is updated correctly ?
 
-  foreach ($curl_data['docs'] as $book) { // reading each doc that was returned
+  // https://github.com/internetarchive/openlibrary/blob/b4afa14b0981ae1785c26c71908af99b879fa975/openlibrary/plugins/worksearch/schemes/works.py#L119-L153
+
+
+
+  foreach ($curl_data['docs'] as $book) { // FOREACH BOOK START
+    // reading each doc that was returned
     $olid = str_replace('/works/', '', $book['key'] ?? null); //string --> cover_edition_key was specific to the edition of a book and not the actual OLID value in /works/
     $title = $book['title'] ?? 'Unknown title'; //string
     $subtitle = $book['subtitle'] ?? null; //string
@@ -132,7 +163,7 @@ function doBookSearch(array $req)
     if ($work_json) {
       $work_data = json_decode($work_json, true); // decode to read all data
 
-      $book_desc = $work_data['description'] ?? ''; 
+      $book_desc = $work_data['description'] ?? '';
 
       // need to encode the json because the database column is of JSON type
       $subjects = json_encode($work_data['subjects'] ?? []);
@@ -156,14 +187,12 @@ function doBookSearch(array $req)
     if ($editions_json) {
       $editions_data = json_decode($editions_json, true);
       $first_entry = $editions_data['entries'][0]; // gets the first entry result bc it will have ALL editions with different isbns listed. this is good enough for now, but it might be good to have a list of isbns.
-       
-      if (!empty($first_entry['isbn_13'][0])){
-        $isbn = $first_entry['isbn_13'][0]; 
-      }
-      elseif (!empty($first_entry['isbn_10'][0])){
-        $isbn = $first_entry['isbn_10'][0]; 
-      }
-      else {
+
+      if (!empty($first_entry['isbn_13'][0])) {
+        $isbn = $first_entry['isbn_13'][0];
+      } elseif (!empty($first_entry['isbn_10'][0])) {
+        $isbn = $first_entry['isbn_10'][0];
+      } else {
         $isbn = null; // no isbn found
       }
     }
@@ -181,85 +210,54 @@ function doBookSearch(array $req)
       $ratings_count = $ratings_data['summary']['count'] ?? null;
     }
 
+
+    // INSERT INTO TABLE ON CACHE MISS ! ----------------------------------
+
+    echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
+
+    // binding params for such a big table... nightmare fuel for anyone who craves efficiency
+    $searchbookresults = []; // empty array to get sent to the webserver, idk wehre it should actually go
+
+
+    $insertToTable->bind_param(
+      "ssssssssidisssss",
+      $type, // string
+      $query, // string
+      $olid, // string
+      $title, // string
+      $subtitle, // string
+      $author, // string
+      $isbn, // string
+      $book_desc, // string
+      $publish_year, // int
+      $ratings_average, // decimal (double)
+      $ratings_count, // int
+      $subjects, // json_encode(array)
+      $person_key, // json_encode(array)
+      $place_key, // json_encode(array)
+      $time_key, // json_encode(array)
+      $cover_url // string
+    ); // need to check if this was done correctly bc its just TOOO much
+
+    $insertToTable->execute();
+
+    $searchbookresults[] = [ // this gets returns to the webserver
+      'olid' => $olid,
+      'title' => $title,
+      'subtitle' => $subtitle,
+      'author' => $author,
+      'isbn' => $isbn,
+      'book_desc' => $book_desc,
+      'publish_year' => $publish_year,
+      'ratings_average' => $ratings_average,
+      'ratings_count' => $ratings_count,
+      'subjects' => $subjects,
+      'cover_url' => $cover_url
+    ];
+
+
+    echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
   }
-
-
-
-  // need to make sure all data is in order
-  $insertToTable = $mysqli->prepare( "
-    INSERT INTO library_cache (
-      search_type, query, olid, title, subtitle, author, isbn,
-      book_desc, publish_year, ratings_average, ratings_count,
-      subjects, person_key, place_key, time_key, cover_url
-    )
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-    ON DUPLICATE KEY UPDATE
-      title=VALUES(title),
-      subtitle=VALUES(subtitle),
-      author=VALUES(author),
-      isbn=VALUES(isbn),
-      book_desc=VALUES(book_desc),
-      publish_year=VALUES(publish_year),
-      ratings_average=VALUES(ratings_average),
-      ratings_count=VALUES(ratings_count),
-      subjects=VALUES(subjects),
-      person_key=VALUES(person_key),
-      place_key=VALUES(place_key),
-      time_key=VALUES(time_key),
-      cover_url=VALUES(cover_url),
-      last_updated=CURRENT_TIMESTAMP
-  " );
-  // ** need to look into if last_updated is updated correctly ?
-
-  // https://github.com/internetarchive/openlibrary/blob/b4afa14b0981ae1785c26c71908af99b879fa975/openlibrary/plugins/worksearch/schemes/works.py#L119-L153
-
-
-  // INSERT INTO TABLE ON CACHE MISS ! ----------------------------------
-
-  echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
-
-  // binding params for such a big table... nightmare fuel for anyone who craves efficiency
-  $searchbookresults = []; // empty array to get sent to the webserver, idk wehre it should actually go
-
-
-  $insertToTable->bind_param(
-    "ssssssssiiisssss",
-    $type, // string
-    $query, // string
-    $olid, // string
-    $title, // string
-    $subtitle, // string
-    $author, // string
-    $isbn, // string -- still null
-    $book_desc, // string -- still null
-    $publish_year, // int
-    $ratings_average, //int -- still null
-    $ratings_count, // int -- still null
-    $subjects, // ARRAY -- still null
-    $person_key, // ARRAY -- still null
-    $place_key, // ARRAY -- still null
-    $time_key, // ARRAY -- still null
-    $cover_url // string
-  ); // need to check if this was done correctly bc its just TOOO much
-
-  $insertToTable->execute();
-
-  $searchbookresults[] = [ // this gets returns to the webserver
-    'olid' => $olid,
-    'title' => $title,
-    'subtitle' => $subtitle,
-    'author' => $author,
-    'isbn' => $isbn,
-    'book_desc' => $book_desc,
-    'publish_year' => $publish_year,
-    'ratings_average' => $ratings_average,
-    'ratings_count' => $ratings_count,
-    'subjects' => $subjects,
-    'cover_url' => $cover_url
-  ];
-
-
-  echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
 
   return ['status' => 'success', 'data' => $searchbookresults];
 }
@@ -269,7 +267,7 @@ function doBookSearch(array $req)
 function getRecentBooks()
 {
   $mysqli = db();
-  $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC LIMIT 10"); // will return 10 results
+  $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC "); // LIMIT 10 will return 10 results
 
   $books = [];
   while ($row = $result->fetch_assoc()) {

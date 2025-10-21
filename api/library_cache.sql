@@ -10,7 +10,7 @@ CREATE TABLE library_cache (
   author VARCHAR(255) DEFAULT 'Unknown Author',
   isbn VARCHAR(50) DEFAULT NULL, -- from /works/olid/edition.json
   -- publisher VARCHAR(255) DEFAULT NULL,--> removed bc this depends on the edition
-  book_desc VARCHAR(500) DEFAULT NULL,
+  book_desc TEXT DEFAULT NULL,
 
   /* ints */
   publish_year INT DEFAULT NULL,
@@ -18,6 +18,8 @@ CREATE TABLE library_cache (
   ratings_count INT DEFAULT NULL,
 
   /* subject/genre */
+  -- these should be JSON_ENCODE(data) when INSERTING values
+  -- use JSON_DECODE(data) when reading it from the frontend
   subjects JSON DEFAULT NULL,
   person_key JSON DEFAULT NULL,
   place_key JSON DEFAULT NULL,
