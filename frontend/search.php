@@ -55,11 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <input type="text" name="query" id="query" placeholder="Enter book title or author"
             value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
 
+            <!-- SCRAPPED - search by title (search.json/q=query) or author (search.json/author=query)
         <label for="type">Search By:</label>
         <select name="type" id="type">
-            <option value="title" <?php echo ($_GET['type'] ?? '') === 'title'; ?>>Title</option>
-            <option value="author" <?php echo ($_GET['type'] ?? '') === 'author'; ?>>Author</option>
-        </select>
+            <option value="title" < ?php echo ($_GET['type'] ?? '') === 'title'; ?>>Title</option>
+            <option value="author" < ?php echo ($_GET['type'] ?? '') === 'author'; ?>>Author</option> 
+        </select> 
+        -->
 
         <button type="submit">Search</button>
     </form>

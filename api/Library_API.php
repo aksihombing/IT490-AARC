@@ -135,7 +135,8 @@ function doBookSearch(array $req)
 
   // https://github.com/internetarchive/openlibrary/blob/b4afa14b0981ae1785c26c71908af99b879fa975/openlibrary/plugins/worksearch/schemes/works.py#L119-L153
 
-
+  $searchbookresults = []; // empty array to get sent to the webserver, idk wehre it should actually go
+  // needs to be declared outside the loop to collect ALL book data
 
   foreach ($curl_data['docs'] as $book) { // FOREACH BOOK START
     // reading each doc that was returned
@@ -225,8 +226,6 @@ function doBookSearch(array $req)
     echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
 
     // binding params for such a big table... nightmare fuel for anyone who craves efficiency
-    $searchbookresults = []; // empty array to get sent to the webserver, idk wehre it should actually go
-
 
     $insertToTable->bind_param(
       "ssssssssidisssss",
@@ -266,7 +265,7 @@ function doBookSearch(array $req)
 
 
     echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
-  }
+  } // END FOREACH BOOK
 
   return ['status' => 'success', 'data' => $searchbookresults];
 }

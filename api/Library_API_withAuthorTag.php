@@ -46,7 +46,7 @@ function doBookSearch(array $req)
 
   echo "Checking cache for: type={$type}, query='{$query}'\n"; //debugging
 
-  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT 10"); // might need to change limit ? idk
+  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT 10"); // might need to change limit ? idk --> takes too long to get response for 10 results
   $check_cache->bind_param("ss", $type, $query);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
@@ -67,13 +67,16 @@ function doBookSearch(array $req)
   // CACHE MISS !!!!!
   // for search.json
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
-  $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
+  $encodedQuery = urlencode($query); 
+  $url = "{$base}?q={$encodedQuery}&limit=5";
+  
+  // url encodes query when its actually getting sent to the API
   // need to decode it when its actually stored in db to remove + and other symbols
-  if ($type === 'author') {
+  /*if ($type === 'author') {
     $url = "{$base}?author={$encodedQuery}&limit=5"; //limiting results to 5 for midterm idc
   } else {
     $url = "{$base}?q={$encodedQuery}&limit=5";
-  }
+  }*/
 
   //https://www.php.net/manual/en/function.curl-setopt-array.php
 
@@ -215,7 +218,7 @@ function doBookSearch(array $req)
 function getRecentBooks()
 {
   $mysqli = db();
-  $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC LIMIT 10"); // will return 10 results
+  $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC LIMIT 10"); // will return 5 results
 
   $books = [];
   while ($row = $result->fetch_assoc()) {
