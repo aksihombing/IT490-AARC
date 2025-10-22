@@ -66,15 +66,16 @@ if (!isset($_SESSION['session_key'])):
 
 
 <?php else: ?>
+
   <?php
   // to load pre-loaded book data from cache db
   require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 
   $recentBooks = [];
-  //$popularBooks = [];
+  //$popularBooks = []; // scrapped
 
   try {
-    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch');
+    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
 
     // Recent books
     $recentResponse = $client->send_request(['type' => 'recent_books']);

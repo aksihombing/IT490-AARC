@@ -167,8 +167,7 @@ function doBookSearch(array $req)
       } // some books have an array for description
       else if (is_string($work_data['description'])) {
         $book_desc = $work_data['description'];
-      }
-      else {
+      } else {
         $book_desc = null;
       }
 
@@ -271,15 +270,24 @@ function doBookSearch(array $req)
 // Cache Tables Pre-Populated via cron
 function getRecentBooks()
 {
-  $mysqli = db();
-  $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY year DESC "); // LIMIT 10 will return 10 results
+  try {
+    $mysqli = db();
+    $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY publish_year DESC "); // LIMIT 10 will return 10 results
 
-  $books = [];
-  while ($row = $result->fetch_assoc()) {
-    $books[] = $row;
+    $books = [];
+    while ($row = $result->fetch_assoc()) {
+      $books[] = $row;
+    }
+    return ['status' => 'success', 'data' => $books];
+
+  } 
+  catch (Exception $e) {
+    error_log("getRecentBooks() error: " . $e->getMessage());
+    return [
+      "status"=> "error",
+      "message"=> "Failed to load recent books: " . $e->getMessage()
+    ];
   }
-
-  return ['status' => 'success', 'data' => $books];
 }
 
 // (( scrapped Popular_books ))
