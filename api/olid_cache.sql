@@ -1,10 +1,7 @@
-DROP TABLE IF EXISTS library_cache;
+DROP TABLE IF EXISTS olid_cache;
 
-CREATE TABLE IF NOT EXISTS library_cache (
+CREATE TABLE IF NOT EXISTS olid_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  search_type ENUM('title', 'author') NOT NULL, /* maybe i dont need this in the cache.*/
-  query VARCHAR(255) NOT NULL,
-
   /* basics -- may need more depending on what info we need for the website ? */
   olid VARCHAR(50) DEFAULT NULL,
   title VARCHAR(255) NOT NULL,
@@ -40,6 +37,6 @@ CREATE TABLE IF NOT EXISTS library_cache (
    
    STORED or VIRTUAL can be used for generated columns. says that the value is physicially stored
    */
-  INDEX(search_type, query)
+  INDEX(olid)
   /*  indexing it by search type and the query makes it easier to find it in the cache and call it  */
 );
