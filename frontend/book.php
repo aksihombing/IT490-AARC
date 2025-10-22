@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'type'    => 'library.personal.add',
         'user_id' => $_SESSION['uid'],
         'works_id' => $olid,
-        'olid'     => $olid,
+        
       ]);
 
       
@@ -61,7 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'type'     => 'library.review.create',
         'user_id'  => $_SESSION['uid'],
         'works_id' => $olid,
-        'olid'      => $olid,
         'rating'   => $rating,
         'comment'  => $comment,
       ]);
@@ -82,7 +81,7 @@ try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   $response = $client->send_request([
     'type' => 'book_details',
-    'olid' => $olid,
+    'works_id' => $olid,
   ]);
 } catch (Exception $e) {
   $response = [
@@ -104,7 +103,7 @@ try {
   $resp = $client->send_request([
     'type'     => 'library.reviews.list',
     'works_id' => $olid,
-    'olid'     => $olid,
+    
   ]);
   if ($resp['status'] === 'success') {
     $reviews = $resp['items'];
