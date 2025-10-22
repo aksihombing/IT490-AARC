@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         <img src="
                         <?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
                     <?php endif; ?>
-                    <a href="index.php?content=book&olid=<?php echo $olid; ?>
+                    <a href="index.php?content=book&olid=<?php htmlspecialchars($olid); ?>
                     ">
                         <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
                         by <?php echo htmlspecialchars($book['author']); ?>

@@ -63,6 +63,12 @@ function doBookSearch(array $req)
   if ($query === '')
     return ['status' => 'fail', 'message' => 'missing query'];
 
+
+
+  // FEATURE PROPOSAL : page, offset, and limit parameters
+
+
+
   // CACHE CHECK ----------------------------------
   $mysqli = db();
 
@@ -273,7 +279,7 @@ function getRecentBooks()
 {
   try {
     $mysqli = db();
-    $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY publish_year DESC "); // LIMIT 10 will return 10 results
+    $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY publish_year DESC "); // LIMIT 10 will return 10 results but the database only has 10 entries anyway
 
     $books = [];
     while ($row = $result->fetch_assoc()) {
