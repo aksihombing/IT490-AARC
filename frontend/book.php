@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-session_start();
+//session_start();
 /*
 PULLED CHIZZYS CODE
 edited by Rea
@@ -125,9 +125,9 @@ try {
 </head>
 
 
-<body>
+body>
   <!-- failed to collect book data -->
-  <?php if (!$book): ?>
+  <?php if (!$book || empty($book)): ?>
     <h2>Error loading book</h2>
     <p>No details available.</p>
 
@@ -155,9 +155,10 @@ try {
   -->
 
 
-  <? else: ?>
-    <h2 id="book-title"><?php echo htmlspecialchars($book['title'] ?? 'Unknown Title'); ?></h2>
-    <p id="book-author"><?php echo htmlspecialchars($book['author'] ?? 'Unknown Author'); ?></p>
+  <?php else: ?>
+    <p><?php var_dump($book)?></p> <!-- DEBUGGING -->
+    <h2 id="book-title"><?php echo htmlspecialchars($book['title']); ?></h2>
+    <p id="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
 
     <div class="book-info">
       <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
@@ -170,9 +171,9 @@ try {
         <p><strong>First Published: </strong> <?php echo htmlspecialchars($book['publish_year']); ?> </p>
 
         <?php // FOR SUBJECTS, comma separated
-          $subjects = json_decode($book['subjects'] ?? '[]', true);
+          $subjects = json_decode($books['subjects'] ?? '[]', true);
 
-          echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>"; 
+          echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>";
           ?>
 
         <!--
