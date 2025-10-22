@@ -1,13 +1,6 @@
 <?php
 // MAIN LANDING PAGE (Displays login + registration forms)
 
-/*
-10-20-25
-WAS GETTING "Unknown column 'year' in 'field list' from recent_books api call
-
-i think this is because of its not reworked the way i call it yet 
-
-*/
 
 
 // check session state
@@ -109,9 +102,12 @@ if (!isset($_SESSION['session_key'])):
             ?>
             <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
             <li>
-              <a href="index.php?content=book&olid=<?php echo $olid; ?>">
+              <a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>
+              ">
+
                 <?php if (!empty($book['cover_url'])): ?>
                   <br>
+                  <!--  < ?php echo "<p>OLID : $olid</p>";// DEBUGGING ?> -->
                   <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
                 <?php endif; ?>
                 <strong><?php echo htmlspecialchars($book['title']); ?></strong>
@@ -126,7 +122,15 @@ if (!isset($_SESSION['session_key'])):
         <p>No recent releases available right now.</p>
       <?php endif; ?>
     </section>
+      <!-- 
+    // https://openlibrary.org/search.json?q=*&sort=rating%20desc&page=2 DOESNT WORK BC ITS TOO MANY RESULTS
 
+
+    FOR GENERAL BROWSING
+    https://openlibrary.org/search.json?q=adventure&limit=10&page=2
+
+    
+      -->
     <br>
     <br>
     <p><a id="logoutbutton" href="logout.php">Logout</a></p>
