@@ -2,10 +2,14 @@
 // Start session and check if user is logged in.
 // If not, send them back to login page.
 session_start();
+/*
+index should already be checking session keys
 if (!isset($_SESSION['session_key'])) { 
-  header("Location: main.inc.php"); 
+  //header("Location: main.inc.php"); 
+  header("Location: index.php"); // 
   exit; 
 }
+  */
 ?>
 <!doctype html>
 <html>
@@ -21,7 +25,7 @@ if (!isset($_SESSION['session_key'])) {
 
   <!-- Message that shows up when a user has no saved books, will go to the search page assuming its called search??? -->
   <div id="empty" class="empty" style="display:none;">
-    Your library is empty. <a href="search.php">Search for books →</a>
+    Your library is empty. <a href="index.php?content=search">Search for books →</a>
   </div>
 
   <!-- This grid will hold all the book cards -->
@@ -32,7 +36,7 @@ if (!isset($_SESSION['session_key'])) {
   function cardHTML(it){
     // If book has a cover ID, use Open Library’s cover API to show it
     const cover = it.cover_id
-      ? `https://covers.openlibrary.org/b/id/${it.cover_id}-M.jpg?default=false`
+      ? 'https://covers.openlibrary.org/b/id/${it.cover_id}-M.jpg?default=false'
       // Otherwise, show a simple "No cover" placeholder image
       : 'data:image/svg+xml;charset=utf8,' + encodeURIComponent(
           "<svg xmlns='http://www.w3.org/2000/svg' width='300' height='400'><rect width='100%' height='100%' fill='#eee'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='#777'>No cover</text></svg>"

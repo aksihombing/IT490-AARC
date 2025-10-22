@@ -107,16 +107,17 @@ if (!isset($_SESSION['session_key'])):
             // THIS IS SUBJECT TO CHANGE DEPENDING ON CHIZZY'S STRUCTURE
             $book_id = urlencode($book['isbn']);
             ?>
+            <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
             <li>
               <a href="book_page.php?id=<?php echo $book_id; ?>">
-
+                <?php if (!empty($book['cover_url'])): ?>
+                  <br>
+                  <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                <?php endif; ?>
                 <strong><?php echo htmlspecialchars($book['title']); ?></strong>
                 <br>
                 by <?php echo htmlspecialchars($book['author']); ?>
                 (<?php echo htmlspecialchars($book['publish_year']); ?>)
-                <?php if (!empty($book['cover_url'])): ?>
-                  <br><img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
-                <?php endif; ?>
               </a>
             </li>
           <?php endforeach; ?>

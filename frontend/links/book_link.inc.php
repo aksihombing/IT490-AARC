@@ -1,4 +1,6 @@
 <?php
+
+// index.php?content=book&olid=
 function book_link(array $b): string {
   if (empty($b['works_id'])) return '#';
   $base = 'content=book';

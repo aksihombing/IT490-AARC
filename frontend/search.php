@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <input type="text" name="query" id="query" placeholder="Enter book title or author"
             value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
 
-            <!-- SCRAPPED - search by title (search.json/q=query) or author (search.json/author=query)
+        <!-- SCRAPPED - search by title (search.json/q=query) or author (search.json/author=query)
         <label for="type">Search By:</label>
         <select name="type" id="type">
             <option value="title" < ?php echo ($_GET['type'] ?? '') === 'title'; ?>>Title</option>
@@ -78,11 +78,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 // book identifier for the link (OLID, ISBN, or title+author fallback if OLID or ISBn not found) // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
                 $book_id = urlencode($book['id'] ?? $book['isbn'] ?? $book['title']);
                 ?>
+                <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
                 <li>
+                    <?php if (!empty($book['cover_url'])): ?>
+                        <br>
+                        <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                    <?php endif; ?>
                     <a href="book_page.php?id=<?php echo $book_id; ?>">
                         <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
                         by <?php echo htmlspecialchars($book['author']); ?>
                         (<?php echo htmlspecialchars($book['publish_year']); ?>)
+
                     </a>
                 </li>
             <?php endforeach; ?>
