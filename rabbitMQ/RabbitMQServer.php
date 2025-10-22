@@ -481,8 +481,7 @@ $iniPath = __DIR__ . "/host.ini";
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
     $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
-      'AuthLogout', 'LibrarySearch', 'LibraryDetails', 
-      'LibraryCollect', 'LibraryPersonal', 'LibraryRemove', 
+      'AuthLogout', 'LibraryPersonal', 'LibraryRemove', 
       'CreateReviews','ListReviews','LibraryAdd'];
 
     foreach ($sections as $section) {
