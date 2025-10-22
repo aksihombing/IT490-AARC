@@ -8,14 +8,14 @@ edited by Rea
 // url format -> /index.php?content=book&olid={OLID}
 */
 
-// idk if this is necessary
+// idk if this is necessar
 //if (!isset($_SESSION['session_key'])) { header("Location: index.php"); exit; }
 
 /*
 FOR FRONTEND FOR EASIER COPY AND PASTING LINKS
 
 <a href="index.php?content=book&olid=<?php echo $olid; ?>">
-$olid = urlencode($book['olid']);
+$olid = urlencode($book['olid'])
 */
 
 
