@@ -92,7 +92,7 @@ if (($response['status'] === 'success') && is_array($response)) {
 
 
   <?php else: ?>
-    <p><?php echo $book   ?></p> <!-- DEBUGGING -->
+    <p><?php var_dump($book)?></p> <!-- DEBUGGING -->
     <h2 id="book-title"><?php echo htmlspecialchars($book['title']); ?></h2>
     <p id="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
 
@@ -109,7 +109,7 @@ if (($response['status'] === 'success') && is_array($response)) {
         <?php // FOR SUBJECTS, comma separated
           $subjects = json_decode($books['subjects'] ?? '[]', true);
 
-          echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>"; 
+          echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>";
           ?>
 
         <!--
