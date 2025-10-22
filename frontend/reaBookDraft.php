@@ -27,62 +27,11 @@ if ($olid == '') {
   exit;
 }
 
-$error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  try {
-    $action = $_POST['action'] ?? '';
-
-    if ($action === 'add_to_library'){
-      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
-      $client->send_request([
-        'type'    => 'library.personal.add',
-        'user_id' => $_SESSION['uid'],
-        'works_id' => $olid,
-        'olid'     => $olid,
-      ]);
-
-      
-    
-
-      header("Location: index.php?content=book&olid=" . urlencode($olid));
-      exit;// should we reedirect after to show it works?
-      
-      echo "<p>Book added to your library!</p>";
-
-    }
-
-    //handling  the review submission
-    if ($action === 'create_review') {
-      $rating  = $_POST['rating']  ?? 0;
-      $comment = $_POST['comment'] ?? '';
-
-      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
-      $client->send_request([
-        'type'     => 'library.review.create',
-        'user_id'  => $_SESSION['uid'],
-        'works_id' => $olid,
-        'olid'      => $olid,
-        'rating'   => $rating,
-        'comment'  => $comment,
-      ]);
-
-      header("Location: index.php?content=book&olid=" . urlencode($olid));
-      exit;
-    }
-  } catch (Exception $e) {
-    $error = "Error processing request: " . $e->getMessage();
-  }
-}
-
-
-
-
-// loading the deatails of the book using the doBookDetails queue -REA
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   $response = $client->send_request([
     'type' => 'book_details',
-    'olid' => $olid,
+    'olid' => $olid
   ]);
 } catch (Exception $e) {
   $response = [
@@ -96,24 +45,10 @@ if (($response['status'] === 'success') && is_array($response)) {
   $book = json_decode($response['body'], true);
 }
 
-//fetch reviews and then list reviews
-
-$reviews=[];
-try {
-  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
-  $resp = $client->send_request([
-    'type'     => 'library.reviews.list',
-    'works_id' => $olid,
-    'olid'     => $olid,
-  ]);
-  if ($resp['status'] === 'success') {
-    $reviews = $resp['items'];
-  }
-  } catch (Exception $e) {
-
-}
-
 ?>
+
+
+
 
 
 <!doctype html>
@@ -121,7 +56,7 @@ try {
 
 <head>
   <title>Book Details</title>
-  <link rel="stylesheet" href="baseStyle.css">
+  <link rel="stylesheet" href="/css/book.css">
 </head>
 
 
@@ -156,8 +91,8 @@ try {
 
 
   <? else: ?>
-    <h2 id="book-title"><?php echo htmlspecialchars($book['title'] ?? 'Unknown Title'); ?></h2>
-    <p id="book-author"><?php echo htmlspecialchars($book['author'] ?? 'Unknown Author'); ?></p>
+    <h2 id="book-title"><?php echo htmlspecialchars($book['title']); ?></h2>
+    <p id="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
 
     <div class="book-info">
       <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
@@ -170,7 +105,7 @@ try {
         <p><strong>First Published: </strong> <?php echo htmlspecialchars($book['publish_year']); ?> </p>
 
         <?php // FOR SUBJECTS, comma separated
-          $subjects = json_decode($book['subjects'] ?? '[]', true);
+          $subjects = json_decode($books['subjects'] ?? '[]', true);
 
           echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>"; 
           ?>
@@ -184,16 +119,13 @@ try {
       </div>
     </div>
 
-    <form method="POST" style="margin-top:12px;">
-    <input type="hidden" name="action" value="add_to_library">            
-    <button class="btn" type="submit">Add to My Library</button>         
-  </form>
+    <button id="addToLib" class="btn">Add to My Library</button>
+
 
     <!-- CHIZZY -->
     <section>
       <h3>Write a Review</h3>
-      <form id="reviewForm" method="POST">
-        <input type="hidden" name="action" value="create_review">
+      <form id="reviewForm">
         <label>Rating:
           <select id="rating" required>
             <option value="">Select...</option>
@@ -215,22 +147,9 @@ try {
     <section>
       <h3>User Reviews</h3>
       <div id="reviews"></div>
-      <?php if (empty($reviews)): ?>
-        <p>No reviews yet!</p>
-      <?php else: ?>
-        <?php foreach ($reviews as $review): ?>
-          <div class="card">
-            <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
-             — <?= (int)($review['rating'] ?? 0) ?>/5  
-            <p><?= htmlspecialchars($review['comment'] ?? ''); ?></p>
-            <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-        </div>
     </section>
     <!-- CHIZZY, END -->
-  <?php endif; ?>
+  <? endif; ?>
 
 </body>
 
