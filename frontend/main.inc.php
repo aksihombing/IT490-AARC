@@ -64,6 +64,7 @@ if (!isset($_SESSION['session_key'])):
     ?>
   </section>
 
+
 <?php else: ?>
   <?php
   // to load pre-loaded book data from cache db

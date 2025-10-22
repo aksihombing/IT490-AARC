@@ -16,7 +16,6 @@ if (!isset($_SESSION['session_key'])) {
   <link rel="stylesheet" href="/css/library.css">
 </head>
 <body>
-  <?php include("nav.inc.php"); ?>
   <!-- Page heading -->
   <h2>My Library</h2>
 
