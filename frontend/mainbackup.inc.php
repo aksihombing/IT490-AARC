@@ -13,6 +13,7 @@
 
 
 <?php
+/*
 // MAIN LANDING PAGE (Displays login + registration forms)
 
 // check session state
@@ -88,4 +89,4 @@ if (!isset($_SESSION['session_key'])):
     <br>
     <p><a id="logoutbutton" href="logout.php">Logout</a></p>
   </section>
-<?php endif; ?>
+<?php endif; */ ?>

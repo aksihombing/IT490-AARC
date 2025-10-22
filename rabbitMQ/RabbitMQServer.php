@@ -27,6 +27,9 @@ function db() {
 
 
 // request handlers
+
+
+// --- AUTHENTICATION ---
 function doRegister(array $req) {
   $email = $req['email'] ?? '';
   $username = $req['username'] ?? '';
@@ -164,6 +167,135 @@ function doLogout(array $req) {
   $stmt->execute();
   return ['status'=>'success'];
 }
+
+// --- MIDTERM GROUP DELIVERABLES (WEBSITE FEATURES) ---
+
+// CHIZZY'S FUNCTIONS
+//removes a book from user's library
+function doLibraryRemove(array $req) {
+  $uid  = (int)($req['user_id'] ?? 0);
+  $work = $req['works_id'] ?? '';
+  if (!$uid || $work === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
+
+  $conn = db();
+  $stmt = $conn->prepare("DELETE FROM user_library WHERE user_id=? AND works_id=? LIMIT 1");
+  if (!$stmt) return ['status'=>'fail','message'=>'prep failed'];
+  $stmt->bind_param("is", $uid, $work);
+  if (!$stmt->execute()) return ['status'=>'fail','message'=>'execute failed'];
+
+  return ($stmt->affected_rows > 0)
+    ? ['status'=>'success']
+    : ['status'=>'fail','message'=>'not found'];
+}
+
+//gets all the reviews for a specific book
+function doReviewsList(array $req) {
+  $works_id = trim($req['works_id'] ?? '');
+  if ($works_id === '') return ['status'=>'fail','message'=>'missing works_id'];
+
+  $conn = db();
+
+  $stmt = $conn->prepare("
+    SELECT r.id, r.user_id, u.username, r.rating, r.body, r.created_at
+    FROM reviews r
+    JOIN users u ON u.id = r.user_id
+    WHERE r.works_id = ?
+    ORDER BY r.created_at DESC
+    LIMIT 200
+  ");
+  $stmt->bind_param("s", $works_id);
+  $stmt->execute();
+  $res = $stmt->get_result();
+
+  $items = [];
+  while ($row = $res->fetch_assoc()) $items[] = $row;
+
+  return [
+    'status' => 'success',
+    'items'  => $items
+  ];
+}
+
+function doReviewsCreate(array $req) {
+  $user_id  = (int)($req['user_id'] ?? 0);
+  $works_id = trim($req['works_id'] ?? '');
+  $rating   = (int)($req['rating'] ?? 0);
+  $body     = trim($req['body'] ?? ($req['comment'] ?? ''));
+
+  if ($user_id <= 0 || $works_id === '' || $rating < 1 || $rating > 5) {
+    return ['status'=>'fail','message'=>'missing or invalid fields'];
+  }
+
+  $conn = db();
+
+  $stmt = $conn->prepare("
+    INSERT INTO reviews (user_id, works_id, rating, body)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE rating=VALUES(rating), body=VALUES(body), created_at=NOW()
+  ");
+  $stmt->bind_param("isis", $user_id, $works_id, $rating, $body);
+  $ok = $stmt->execute();
+
+  return $ok
+    ? ['status'=>'success','message'=>'review saved']
+    : ['status'=>'fail','message'=>'database error'];
+}
+
+function doLibraryList(array $req) {
+  $user_id = (int)($req['user_id'] ?? 0);
+  if ($user_id <= 0) {
+    return ['status' => 'fail', 'message' => 'missing user_id'];
+  }
+
+  $conn = db();
+
+  // Get books saved by this user
+  $stmt = $conn->prepare("
+    SELECT works_id
+    FROM user_library
+    WHERE user_id = ?
+    ORDER BY added_at DESC
+    LIMIT 200
+  ");
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $res = $stmt->get_result();
+
+  $items = [];
+  while ($row = $res->fetch_assoc()) {
+    $items[] = [
+      'works_id' => $row['works_id']
+    ];
+  }
+
+  return [
+    'status' => 'success',
+    'items'  => $items
+  ];
+}
+
+
+// adds a book to user's library, forgot to add this function earlier
+function doLibraryAdd(array $req) {
+  $uid  = (int)($req['user_id'] ?? 0);
+  $work = trim($req['works_id'] ?? '');
+  if ($uid <= 0 || $work === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
+
+  $conn = db();
+  $stmt = $conn->prepare("INSERT IGNORE INTO user_library (user_id, works_id) VALUES (?, ?)");
+  if (!$stmt) return ['status'=>'fail','message'=>'prep failed'];
+  $stmt->bind_param("is", $uid, $work);
+  if (!$stmt->execute()) return ['status'=>'fail','message'=>'execute failed'];
+
+  // INSERT IGNORE → if already there, affected_rows==0; still count as success
+  return ['status'=>'success', 'message'=> ($stmt->affected_rows ? 'added' : 'already-in-library')];
+}
+
+
+
+
+
+// --- REQUEST PROCESSOR ---
 
 // decides which function to run
 function requestProcessor($req) {

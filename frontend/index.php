@@ -9,14 +9,14 @@ $client = new rabbitMQClient(__DIR__ . "/../host.ini", "AuthValidate");
 $sessionKey = $_SESSION['session_key'] ?? null;
 $userData = null;
 
-if ($sessionKey) {
+if ($sessionKey) { // validate session key
   $response = $client->send_request([
     'type' => 'validate',
     'session_key' => $sessionKey
   ]);
 
   if ($response['status'] === 'success') {
-    $userData = $response['user'];
+    $userData = $response['user']; // saves user data
   } else {
     // invalid or expired session
     unset($_SESSION['session_key']);
