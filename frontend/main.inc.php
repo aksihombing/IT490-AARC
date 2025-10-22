@@ -105,11 +105,11 @@ if (!isset($_SESSION['session_key'])):
         <ul>
           <?php foreach ($recentBooks as $book):
             // THIS IS SUBJECT TO CHANGE DEPENDING ON CHIZZY'S STRUCTURE
-            $book_id = urlencode($book['isbn']);
+            $olid = urlencode($book['olid']);
             ?>
             <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
             <li>
-              <a href="book_page.php?id=<?php echo $book_id; ?>">
+              <a href="index.php?content=book&olid=<?php echo $olid; ?>">
                 <?php if (!empty($book['cover_url'])): ?>
                   <br>
                   <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
