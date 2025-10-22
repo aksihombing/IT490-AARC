@@ -481,8 +481,9 @@ $iniPath = __DIR__ . "/host.ini";
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
     $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
-      'AuthLogout', 'ClubProcessor', 'LibraryPersonal',
-      'LibraryRemove','ListReviews','CreateReviews' ];
+      'AuthLogout', 'LibrarySearch', 'LibraryDetails', 
+      'LibraryCollect', 'LibraryPersonal', 'LibraryRemove', 
+      'CreateReviews','ListReviews','LibraryAdd'];
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
