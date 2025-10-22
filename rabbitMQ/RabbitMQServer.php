@@ -45,7 +45,7 @@ function doRegister(array $req) {
   $conn = db();
 
 // see if user already exists in db
-  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
+  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR email=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
   $stmt->store_result();
@@ -56,7 +56,7 @@ function doRegister(array $req) {
   $stmt->close();
 
 // inserts new user into database
-  $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
+  $stmt = $conn->prepare("INSERT INTO users (username,email,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
     return ['status'=>'fail','message'=>'db insert failed'];
