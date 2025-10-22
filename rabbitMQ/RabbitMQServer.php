@@ -17,9 +17,9 @@ require_once __DIR__ . '/get_host_info.inc';
 // connects to the local sql database
 function db() {
   $host = 'localhost'; 
-  $user = 'testUser'; 
-  $pass = '12345';
-  $name = 'testdb'; 
+  $user = 'userAdmin'; 
+  $pass = 'aarc490';
+  $name = 'userdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
@@ -45,7 +45,7 @@ function doRegister(array $req) {
   $conn = db();
 
 // see if user already exists in db
-  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR email=?");
+  $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
   $stmt->store_result();
@@ -56,7 +56,7 @@ function doRegister(array $req) {
   $stmt->close();
 
 // inserts new user into database
-  $stmt = $conn->prepare("INSERT INTO users (username,email,password_hash) VALUES (?,?,?)");
+  $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
     return ['status'=>'fail','message'=>'db insert failed'];
@@ -138,7 +138,7 @@ function doValidate(array $req) {
 
   $conn = db();
   $stmt = $conn->prepare("
-      SELECT u.id,u.username,u.email,s.expires_at
+      SELECT u.id,u.username,u.emailAddress,s.expires_at
       FROM sessions s
       JOIN users u ON u.id=s.user_id
       WHERE s.session_key=? LIMIT 1
@@ -454,6 +454,11 @@ function requestProcessor($req) {
     case 'login':    return doLogin($req);
     case 'validate': return doValidate($req);
     case 'logout':   return doLogout($req);
+    case 'library.personal.remove': return doLibraryRemove($req);
+    case 'library.review.list':   return doReviewsList($req);
+    case 'library.review.create': return doReviewsCreate($req);
+    case 'library.personal.list': return doLibraryList($req);
+    case 'library.personal.add': return doLibraryAdd($req);
     case 'club.create': return doCreateClub($req);
     case 'club.invite': return doInviteMember($req);
     case 'club.list': return doList($req);
@@ -475,7 +480,9 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
-    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 'AuthLogout', 'ClubProcessor', 'LibrarySearch','LibraryDetails','LibraryCollect'];
+    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
+      'AuthLogout', 'ClubProcessor', 'LibraryPersonal',
+      'LibraryRemove','ListReviews','CreateReviews' ];
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
