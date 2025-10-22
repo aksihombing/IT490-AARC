@@ -40,7 +40,7 @@ try {
   ];
 }
 
-$book = null;
+$book = [];
 if (($response['status'] === 'success') && is_array($response)) {
   //$book = json_decode($response['data'], true); //i dont think we need to decode the json if its already returned as an array of data
   $book = $response['data'];
@@ -63,7 +63,7 @@ if (($response['status'] === 'success') && is_array($response)) {
 
 <body>
   <!-- failed to collect book data -->
-  <?php if (!$book): ?>
+  <?php if (!$book || empty($book)): ?>
     <h2>Error loading book</h2>
     <p>No details available.</p>
 
