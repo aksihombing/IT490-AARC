@@ -1,143 +1,237 @@
 <?php
+require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 session_start();
-if (!isset($_SESSION['session_key'])) { header("Location: main.inc.php"); exit; }
+/*
+PULLED CHIZZYS CODE
+edited by Rea
 
-$work = $_GET['works_id'] ?? '';
-if ($work === '') { header("Location: main.inc.php?content=search"); exit; }
+// url format -> /index.php?content=book&olid={OLID}
+*/
+
+// idk if this is necessary
+//if (!isset($_SESSION['session_key'])) { header("Location: index.php"); exit; }
+
+/*
+FOR FRONTEND FOR EASIER COPY AND PASTING LINKS
+
+<a href="index.php?content=book&olid=<?php echo $olid; ?>">
+$olid = urlencode($book['olid']);
+*/
+
+
+// validate OLID request
+$olid = $_GET['olid'];
+if ($olid == '') {
+  http_response_code(400);
+  echo "<p>ERROR: Missing OLID in request.</p>";
+  exit;
+}
+
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  try {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'add_to_library'){
+      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+      $client->send_request([
+        'type'    => 'library.personal.add',
+        'user_id' => $_SESSION['uid'],
+        'works_id' => $olid,
+        'olid'     => $olid,
+      ]);
+
+      
+    
+
+      header("Location: index.php?content=book&olid=" . urlencode($olid));
+      exit;// should we reedirect after to show it works?
+      
+      echo "<p>Book added to your library!</p>";
+
+    }
+
+    //handling  the review submission
+    if ($action === 'create_review') {
+      $rating  = $_POST['rating']  ?? 0;
+      $comment = $_POST['comment'] ?? '';
+
+      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
+      $client->send_request([
+        'type'     => 'library.review.create',
+        'user_id'  => $_SESSION['uid'],
+        'works_id' => $olid,
+        'olid'      => $olid,
+        'rating'   => $rating,
+        'comment'  => $comment,
+      ]);
+
+      header("Location: index.php?content=book&olid=" . urlencode($olid));
+      exit;
+    }
+  } catch (Exception $e) {
+    $error = "Error processing request: " . $e->getMessage();
+  }
+}
+
+
+
+
+// loading the deatails of the book using the doBookDetails queue -REA
+try {
+  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+  $response = $client->send_request([
+    'type' => 'book_details',
+    'olid' => $olid,
+  ]);
+} catch (Exception $e) {
+  $response = [
+    'status' => 'error',
+    'message' => 'Unable to connect to LibraryDetails' . $e->getMessage()
+  ];
+}
+
+$book = null;
+if (($response['status'] === 'success') && is_array($response)) {
+  $book = json_decode($response['body'], true);
+}
+
+//fetch reviews and then list reviews
+
+$reviews=[];
+try {
+  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
+  $resp = $client->send_request([
+    'type'     => 'library.reviews.list',
+    'works_id' => $olid,
+    'olid'     => $olid,
+  ]);
+  if ($resp['status'] === 'success') {
+    $reviews = $resp['items'];
+  }
+  } catch (Exception $e) {
+
+}
+
 ?>
+
+
 <!doctype html>
 <html>
+
 <head>
-  <meta charset="utf-8">
   <title>Book Details</title>
-  <link rel="stylesheet" href="/css/book.css">
+  <link rel="stylesheet" href="baseStyle.css">
 </head>
+
+
 <body>
-<?php include("nav.inc.php"); ?>
-<h2 id="book-title">Book Title</h2>
-<p id="book-author">by Author Name</p>
+  <!-- failed to collect book data -->
+  <?php if (!$book): ?>
+    <h2>Error loading book</h2>
+    <p>No details available.</p>
 
-<div class="book-info">
-  <img id="cover" class="cover" alt="Book Cover">
-  <div id="book-data">Book details go here (release, genre, etc.)</div>
-</div>
+    <!-- book success -->
 
-<button id="addToLib" class="btn">Add to My Library</button>
+    <!-- FOR REFERENCE, this is what information is returned from doBookDetails
 
-<section>
-  <h3>Write a Review</h3>
-  <form id="reviewForm">
-    <label>Rating:
-      <select id="rating" required>
-        <option value="">Select...</option>
-        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-      </select>
-    </label>
-    <br>
-    <label>Review:</label><br>
-    <textarea id="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
-    <br>
-    <button class="btn" type="submit">Submit</button>
+   $searchbookresults[] = [ // this gets returns to the webserver
+    'olid' => $olid,
+    'title' => $title,
+    'subtitle' => $subtitle,
+    'author' => $author,
+    'isbn' => $isbn,
+    'book_desc' => $book_desc,
+    'publish_year' => $publish_year,
+    'ratings_average' => $ratings_average,
+    'ratings_count' => $ratings_count,
+    'subjects' => $subjects,
+    'person_key' => $person_key,
+    'place_key' => $place_key,
+    'time_key' => $time_key,
+    'cover_url' => $cover_url
+  ];
+
+  -->
+
+
+  <? else: ?>
+    <h2 id="book-title"><?php echo htmlspecialchars($book['title'] ?? 'Unknown Title'); ?></h2>
+    <p id="book-author"><?php echo htmlspecialchars($book['author'] ?? 'Unknown Author'); ?></p>
+
+    <div class="book-info">
+      <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
+
+      <div id="book-data">
+        <p><strong>Rating</strong> <?php echo htmlspecialchars($book['rating_average']); ?> </p>
+        <br>
+        <p><strong>ISBN: </strong> <?php echo htmlspecialchars($book['isbn']); ?> </p>
+        <p><strong>Description: </strong> <?php echo htmlspecialchars($book['book_desc']); ?> </p>
+        <p><strong>First Published: </strong> <?php echo htmlspecialchars($book['publish_year']); ?> </p>
+
+        <?php // FOR SUBJECTS, comma separated
+          $subjects = json_decode($book['subjects'] ?? '[]', true);
+
+          echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>"; 
+          ?>
+
+        <!--
+        <p><strong></strong>     </p>
+        <p><strong></strong>     </p>
+        <p><strong></strong>    </p>
+  -->
+
+      </div>
+    </div>
+
+    <form method="POST" style="margin-top:12px;">
+    <input type="hidden" name="action" value="add_to_library">            
+    <button class="btn" type="submit">Add to My Library</button>         
   </form>
-</section>
 
-<section>
-  <h3>User Reviews</h3>
-  <div id="reviews"></div>
-</section>
+    <!-- CHIZZY -->
+    <section>
+      <h3>Write a Review</h3>
+      <form id="reviewForm" method="POST">
+        <input type="hidden" name="action" value="create_review">
+        <label>Rating:
+          <select id="rating" required>
+            <option value="">Select...</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+          </select>
+        </label>
+        <br>
+        <label>Review:</label><br>
+        <textarea id="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
+        <br>
+        <button class="btn" type="submit">Submit</button>
+      </form>
+    </section>
 
-<script>
-const WORKS_ID = "<?= htmlspecialchars($work, ENT_QUOTES, 'UTF-8') ?>";
-
-// optional fast-fill via query params
-const qs = new URLSearchParams(location.search);
-const qTitle   = qs.get('title');
-const qAuthors = qs.getAll('author_names[]');
-const qCoverId = qs.get('cover_id');
-if (qTitle) document.getElementById('book-title').textContent = qTitle;
-if (qAuthors && qAuthors.length)
-  document.getElementById('book-author').textContent = 'by ' + qAuthors.join(', ');
-if (qCoverId)
-  document.getElementById('cover').src = `https://covers.openlibrary.org/b/id/${encodeURIComponent(qCoverId)}-L.jpg?default=false`;
-
-function esc(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-
-// load reviews
-async function loadReviews(){
-  const res = await fetch(`/http/reviews_list.php?works_id=${encodeURIComponent(WORKS_ID)}`);
-  if (!res.ok){ document.getElementById('reviews').innerHTML = '<div>Failed to load reviews.</div>'; return; }
-  const data = await res.json();
-  const items = Array.isArray(data.items) ? data.items : [];
-  const html = items.length ? items.map(r => {
-    const name = r.user_display || r.username || 'User';
-    const rating = Number(r.rating)||0;
-    const text = r.comment ?? r.body ?? '';
-    return `<div class="review"><b>${esc(name)}</b> (${rating}/5): ${esc(text)}</div>`;
-  }).join('') : '<div>No reviews yet.</div>';
-  document.getElementById('reviews').innerHTML = html;
-}
-
-//although we may have some data from query params, this load full details from backend 
-async function loadDetails(){
-  const r = await fetch(`/http/book_details.php?works_id=${encodeURIComponent(WORKS_ID)}`, {credentials:'include'});
-  if (!r.ok) return; 
-  const d = await r.json();
-  if (d.status !== 'success') return;
-
-  const b = d.item || {};
-  document.getElementById('book-title').textContent  = b.title || 'Unknown';
-  document.getElementById('book-author').textContent = (b.author_names && b.author_names.length)
-    ? 'by ' + b.author_names.join(', ')
-    : '';
-  if (b.cover_id) {
-    document.getElementById('cover').src = `https://covers.openlibrary.org/b/id/${b.cover_id}-L.jpg?default=false`;
-  }
-  document.getElementById('book-data').textContent = b.description || '';
-}
-
-// submit review
-document.getElementById('reviewForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const rating  = Number(document.getElementById('rating').value);
-  const comment = document.getElementById('comment').value.trim();
-  if (!rating || rating < 1 || rating > 5) { alert('Pick a rating 1–5'); return; }
-
-  const res = await fetch('/http/reviews_create.php', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    credentials: 'include',
-    body: JSON.stringify({ works_id: WORKS_ID, rating, comment })
-  });
-  if (res.ok) { e.target.reset(); loadReviews(); }
-  else { alert('Error saving review.'); }
-});
-
-// add to library
-document.getElementById('addToLib').addEventListener('click', async () => {
-  const res = await fetch('/http/library_add.php', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    credentials: 'include',
-    body: JSON.stringify({ works_id: WORKS_ID })
-  });
-
-  if (!res.ok) { alert('Failed to add.'); return; }
-  const d = await res.json().catch(()=>({}));
-  if (d.status === 'success') {
-    alert(d.message === 'already-in-library' ? 'Already in your library.' : 'Added to library!');
-  } else {
-    alert(d.message || 'Failed to add.');
-  }
-});
-
-loadDetails();
-
-loadReviews();
-</script>
+    <section>
+      <h3>User Reviews</h3>
+      <div id="reviews"></div>
+      <?php if (empty($reviews)): ?>
+        <p>No reviews yet!</p>
+      <?php else: ?>
+        <?php foreach ($reviews as $review): ?>
+          <div class="card">
+            <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
+             — <?= (int)($review['rating'] ?? 0) ?>/5  
+            <p><?= htmlspecialchars($review['comment'] ?? ''); ?></p>
+            <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
+          </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+        </div>
+    </section>
+    <!-- CHIZZY, END -->
+  <?php endif; ?>
 
 </body>
+
 </html>
-
-
-
-
