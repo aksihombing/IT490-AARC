@@ -1,42 +1,114 @@
-/* BASIC ELEMENTS */
-div {
-    align-items: center;
-    justify-content: center;
+/* GLOBAL vARIABLE STYLES */
+:root {
+  --bg-color: #f8f5f2;
+  --text-color: #2b2b2b;
+  --accent-color: #6C5A49;
+  --accent-light: #d8c7b2;
+  --border-radius: 8px;
+  --font-main: "Source Sans Pro", Arial, sans-serif;
 }
 
-section {
-    align-items: center;
-    justify-content: center;
-}
+
+
+/* BASIC ELEMENTS */
 
 body {
-  font-family: "Source Sans Pro", Arial, sans-serif;
+  font-family: var(--font-main);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--accent-color);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+p {
+  line-height: 1.6;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+
+/* CONTAINERS */
+section {
   align-items: center;
   justify-content: center;
 }
 
-h1 {
-
+#auth-section,
+#welcome-section {
+  text-align: center;
+  /*idk if necessary*/
 }
 
-h2 {
-
+footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  color: #666;
 }
-
-h3 {
-
-}
-
-a {
-
-}
-
-
 
 /* FORMS */
 form {
-  border : solid #6C5A49 2px;
-  border-radius : 5px;
-  padding : 10px;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid var(--accent-color);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  background-color: #fff;
+}
+
+label {
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+input,
+select {
+  width: 80%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent-color);
+}
+
+button,
+input[type="submit"] {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
+button:hover,
+input[type="submit"]:hover {
+  background-color: #4f4338;
 }
