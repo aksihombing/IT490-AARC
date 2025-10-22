@@ -1,6 +1,6 @@
 <?php
-require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
-require_once(__DIR__ . '/../../rabbitMQ/get_host_info.inc');
+require_once(__DIR__ . '../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '../rabbitMQ/get_host_info.inc');
 
 header('Content-Type: application/json');
 
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payload['type'] = $map[$type];
 
     try {
-        $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
+        $client = new rabbitMQClient(__DIR__ . '../rabbitMQ/host.ini', 'ClubProcessor');
         $res = $client->send_request($payload);
         echo json_encode($res);
     } catch (Exception $e) {

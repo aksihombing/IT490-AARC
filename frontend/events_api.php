@@ -1,6 +1,6 @@
 <?php
-require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
-require_once(__DIR__ . '/../../rabbitMQ/get_host_info.inc');
+require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../rabbitMQ/get_host_info.inc');
 
 header('Content-Type: application/json');
 
