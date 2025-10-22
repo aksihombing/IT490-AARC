@@ -1,9 +1,15 @@
 <?php
 session_start();
-if (!isset($_SESSION['session_key'])) { header("Location: main.inc.php"); exit; }
+/*
+CHIZZYS CODE
+edited by Rea
 
+
+if (!isset($_SESSION['session_key'])) { header("Location: main.inc.php"); exit; }
+*/
 $work = $_GET['works_id'] ?? '';
-if ($work === '') { header("Location: main.inc.php?content=search"); exit; }
+if ($work === '') { header("Location: index.php?content=search"); exit; }
+
 ?>
 <!doctype html>
 <html>
@@ -13,7 +19,6 @@ if ($work === '') { header("Location: main.inc.php?content=search"); exit; }
   <link rel="stylesheet" href="/css/book.css">
 </head>
 <body>
-<?php include("nav.inc.php"); ?>
 <h2 id="book-title">Book Title</h2>
 <p id="book-author">by Author Name</p>
 
@@ -72,14 +77,14 @@ async function loadReviews(){
     const name = r.user_display || r.username || 'User';
     const rating = Number(r.rating)||0;
     const text = r.comment ?? r.body ?? '';
-    return `<div class="review"><b>${esc(name)}</b> (${rating}/5): ${esc(text)}</div>`;
+    return '<div class="review"><b>${esc(name)}</b> (${rating}/5): ${esc(text)}</div>';
   }).join('') : '<div>No reviews yet.</div>';
   document.getElementById('reviews').innerHTML = html;
 }
 
 //although we may have some data from query params, this load full details from backend 
 async function loadDetails(){
-  const r = await fetch(`/http/book_details.php?works_id=${encodeURIComponent(WORKS_ID)}`, {credentials:'include'});
+  const r = await fetch('/http/book_details.php?works_id=${encodeURIComponent(WORKS_ID)}', {credentials:'include'});
   if (!r.ok) return; 
   const d = await r.json();
   if (d.status !== 'success') return;

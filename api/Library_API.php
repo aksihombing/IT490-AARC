@@ -145,6 +145,7 @@ function doBookSearch(array $req)
     $cover_url = !empty($book['cover_i'])
       ? "https://covers.openlibrary.org/b/id/" . $book['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
     // cover_i only saves the id of where the cover is, so we have to build the link manually
+    // gets the -L (Large) version of the image
 
 
     // data from /works/{OLID}.json ----------------------
@@ -316,10 +317,10 @@ function requestProcessor($req)
       return doBookSearch($req);
 
     case 'recent_books':
-      return getRecentBooks(); // not done yet idk im spiraling
+      return getRecentBooks();
 
     case 'book_details':
-      return doBookDetails($req); // not sure if needed
+      return doBookSearch($req); // not sure if needed
 
     case 'book_collect':
       return doBookCollect($req); // not sure if needed

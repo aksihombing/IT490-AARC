@@ -9,15 +9,15 @@ if (!isset($_GET['works_id']) || $_GET['works_id']==='') {
   exit;
 }
 
-$worksId = $_GET['works_id'];
+$worksId = $_GET['olid'];
 
 require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   $resp = $client->send_request([
-    'type'     => 'library.details',
-    'works_id' => $worksId
+    'type'     => 'book_details',
+    'olid' => $worksId
   ]);
 
   if (is_array($resp) && ($resp['status'] ?? '') === 'success') {
