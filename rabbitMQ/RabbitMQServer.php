@@ -323,6 +323,7 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
     $sections = [
   'AuthRegister','AuthLogin','AuthValidate','AuthLogout',
+  'LibrarySearch', 'LibraryDetails', 'LibraryCollect',
   'LibraryPersonal','LibraryRemove','ListReviews','CreateReviews'
 ];
 
