@@ -90,7 +90,7 @@ if (($response['status'] === 'success') && is_array($response)) {
   -->
 
 
-  <? else: ?>
+  <?php else: ?>
     <h2 id="book-title"><?php echo htmlspecialchars($book['title']); ?></h2>
     <p id="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
 
@@ -149,7 +149,7 @@ if (($response['status'] === 'success') && is_array($response)) {
       <div id="reviews"></div>
     </section>
     <!-- CHIZZY, END -->
-  <? endif; ?>
+  <?php endif; ?>
 
 </body>
 

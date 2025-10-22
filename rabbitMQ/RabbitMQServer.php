@@ -27,9 +27,6 @@ function db() {
 
 
 // request handlers
-
-
-// --- AUTHENTICATION ---
 function doRegister(array $req) {
   $email = $req['email'] ?? '';
   $username = $req['username'] ?? '';
@@ -168,9 +165,6 @@ function doLogout(array $req) {
   return ['status'=>'success'];
 }
 
-// --- MIDTERM GROUP DELIVERABLES (WEBSITE FEATURES) ---
-
-// CHIZZY'S FUNCTIONS
 //removes a book from user's library
 function doLibraryRemove(array $req) {
   $uid  = (int)($req['user_id'] ?? 0);
@@ -292,11 +286,6 @@ function doLibraryAdd(array $req) {
 }
 
 
-
-
-
-// --- REQUEST PROCESSOR ---
-
 // decides which function to run
 function requestProcessor($req) {
   echo "Received request:\n";
@@ -312,6 +301,11 @@ function requestProcessor($req) {
     case 'login':    return doLogin($req);
     case 'validate': return doValidate($req);
     case 'logout':   return doLogout($req);
+    case 'library.personal.remove': return doLibraryRemove($req);
+    case 'library.review.list':   return doReviewsList($req);
+    case 'library.review.create': return doReviewsCreate($req);
+    case 'library.personal.list': return doLibraryList($req);
+    case 'library.personal.add': return doLibraryAdd($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
@@ -327,7 +321,11 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
-    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 'AuthLogout'];
+    $sections = [
+  'AuthRegister','AuthLogin','AuthValidate','AuthLogout',
+  'LibraryPersonal','LibraryRemove','ListReviews','CreateReviews'
+];
+
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 

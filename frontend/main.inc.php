@@ -129,7 +129,15 @@ if (!isset($_SESSION['session_key'])):
         <p>No recent releases available right now.</p>
       <?php endif; ?>
     </section>
+      <!-- 
+    // https://openlibrary.org/search.json?q=*&sort=rating%20desc&page=2 DOESNT WORK BC ITS TOO MANY RESULTS
 
+
+    FOR GENERAL BROWSING
+    https://openlibrary.org/search.json?q=adventure&limit=10&page=2
+
+    
+      -->
     <br>
     <br>
     <p><a id="logoutbutton" href="logout.php">Logout</a></p>
