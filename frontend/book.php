@@ -42,7 +42,7 @@ try {
 
 $book = null;
 if (($response['status'] === 'success') && is_array($response)) {
-  $book = json_decode($response['body'], true);
+  $book = json_decode($response['data'], true);
 }
 
 ?>
