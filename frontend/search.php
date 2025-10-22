@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
                 $olid = urlencode($book['olid']);
                 // used for book.php GET queries
+                echo "OLID : $olid";
                 ?>
                 <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
                 <li>
