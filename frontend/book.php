@@ -27,6 +27,8 @@ if ($olid == '') {
   exit;
 }
 
+
+// --------- ADD TO LIBRARY
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -50,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     }
 
+    // ------------- CREATE REVIEW
     //handling  the review submission
     if ($action === 'create_review') {
       $rating  = $_POST['rating']  ?? 0;
@@ -75,12 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-// loading the deatails of the book using the doBookDetails queue -REA
+// -------------- DO BOOK DETAILS
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   $response = $client->send_request([
     'type' => 'book_details',
-    'works_id' => $olid
+    'olid' => $olid
   ]);
 } catch (Exception $e) {
   $response = [
@@ -89,11 +92,14 @@ try {
   ];
 }
 
-$book = null;
+$book = [];
 if (($response['status'] === 'success') && is_array($response)) {
-  $book = json_decode($response['body'], true);
+  //$book = json_decode($response['data'], true); //i dont think we need to decode the json if its already returned as an array of data
+  $book = $response['data'];
 }
 
+
+// ------------- LIST REVIEWS
 //fetch reviews and then list reviews
 
 $reviews=[];
