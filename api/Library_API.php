@@ -404,9 +404,21 @@ function doBookDetails(array $req)
     }
 
 
+  // data from /works/{OLID}/ratings.json ----------------------
+
+  $ratings_average = null;
+  $ratings_count = null;
+  $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
+  $ratings_json = curl_get($ratings_url);
+  if ($ratings_json) {
+    $ratings_data = json_decode($ratings_json, true);
+    $ratings_average = $ratings_data['summary']['average'] ?? null;
+    $ratings_count = $ratings_data['summary']['count'] ?? null;
+  }
 
 
-    $bookDetailsResults[] = [ // this gets returns to the webserver
+  // returning results
+ $bookDetailsResults[] = [ // this gets returns to the webserver
       'olid' => $olid,
       'title' => $title,
       'subtitle' => $subtitle,
@@ -426,47 +438,8 @@ function doBookDetails(array $req)
     ];
 
   }
-
-
-
-
-
-
-  // data from /works/{OLID}/ratings.json ----------------------
-
-  $ratings_average = null;
-  $ratings_count = null;
-  $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
-  $ratings_json = curl_get($ratings_url);
-  if ($ratings_json) {
-    $ratings_data = json_decode($ratings_json, true);
-    $ratings_average = $ratings_data['summary']['average'] ?? null;
-    $ratings_count = $ratings_data['summary']['count'] ?? null;
-  }
-
-
-  $searchbookresults[] = [ // this gets returns to the webserver
-    'olid' => $olid,
-    'title' => $title,
-    'subtitle' => $subtitle,
-    'author' => $author,
-    'isbn' => $isbn,
-    'book_desc' => $book_desc,
-    'publish_year' => $publish_year,
-    'ratings_average' => $ratings_average,
-    'ratings_count' => $ratings_count,
-    'subjects' => $subjects,
-    'person_key' => $person_key,
-    'place_key' => $place_key,
-    'time_key' => $time_key,
-    'cover_url' => $cover_url
-  ];
-
-
   echo "Returning details for {$olid}={$title}\n";
   //} // END FOREACH BOOK
-
-  return ['status' => 'success', 'data' => $searchbookresults];
 
 }
 
