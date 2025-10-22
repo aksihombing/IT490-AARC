@@ -276,7 +276,6 @@ function doLibraryList(array $req) {
   ];
 }
 
-
 // adds a book to user's library, forgot to add this function earlier
 function doLibraryAdd(array $req) {
   $uid  = (int)($req['user_id'] ?? 0);
@@ -476,7 +475,7 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
-    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 'AuthLogout', 'ClubProcessor'];
+    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 'AuthLogout', 'ClubProcessor', 'LibrarySearch','LibraryDetails','LibraryCollect'];
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
