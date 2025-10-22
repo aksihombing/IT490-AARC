@@ -18,7 +18,7 @@ require_once __DIR__ . '/get_host_info.inc';
 function db() {
   $host = 'localhost'; 
   $user = 'userAdmin'; 
-  $pass = 'pccc';
+  $pass = 'aarc490';
   $name = 'userdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
