@@ -272,7 +272,7 @@ function doBookSearch(array $req)
 function getRecentBooks()
 {
   $mysqli = db();
-  $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC "); // LIMIT 10 will return 10 results
+  $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY year DESC "); // LIMIT 10 will return 10 results
 
   $books = [];
   while ($row = $result->fetch_assoc()) {
