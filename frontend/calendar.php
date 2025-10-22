@@ -17,9 +17,8 @@ if (!isset($_SESSION['login'])) {
   <link rel="stylesheet" href="/themes/scheduler_8.css">
 </head>
 <body>
-<?php include("../nav.inc.php"); ?>
 
-//
+
 <h2>Book Club Meeting Calendar</h2>
 
 <div id="calendar"></div>
