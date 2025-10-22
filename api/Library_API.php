@@ -267,7 +267,7 @@ function doBookSearch(array $req)
     ];
 
 
-    echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
+    echo "Cache MISS (fetched + saved) for {$type} = {$query}\n";
   } // END FOREACH BOOK
 
   return ['status' => 'success', 'data' => $searchbookresults];
