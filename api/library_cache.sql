@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS library_cache (
   author VARCHAR(255) DEFAULT 'Unknown Author',
   isbn VARCHAR(50) DEFAULT NULL, -- from /works/olid/edition.json
   -- publisher VARCHAR(255) DEFAULT NULL,--> removed bc this depends on the edition
-  book_desc TEXT DEFAULT NULL,
+  book_desc TEXT DEFAULT "No description available",
 
   /* ints */
   publish_year INT DEFAULT NULL,
