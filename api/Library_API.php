@@ -173,10 +173,10 @@ function doBookSearch(array $req)
       }
 
       // need to encode the json because the database column is of JSON type
-      $subjects = json_encode($work_data['subjects'] ?? []);
-      $person_key = json_encode($work_data['subject_people'] ?? []);
-      $place_key = json_encode($work_data['subject_places'] ?? []);
-      $time_key = json_encode($work_data['subject_times'] ?? []);
+      $subjects = json_encode(array_slice($work_data['subjects'] ?? [], 0, 20)); // take the first 20 subjects max
+      $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
+      $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
+      $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
 
       // DEBUGGING
       //var_dump($subjects);
