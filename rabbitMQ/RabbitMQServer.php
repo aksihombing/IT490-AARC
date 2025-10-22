@@ -85,7 +85,7 @@ function doLogin(array $req) {
   $stmt->bind_param("s", $username);
 
   if (!$stmt->execute()) {
-        error_log("[doLogin] execute SELECT failed: " . $stmt->error);
+        error_log("doLogin execute SELECT failed: " . $stmt->error);
         return ['status'=>'fail','message'=>'server error'];
     }
   
@@ -138,7 +138,7 @@ function doValidate(array $req) {
 
   $conn = db();
   $stmt = $conn->prepare("
-      SELECT u.id,u.username,u.emailAddress,s.expires_at
+      SELECT u.id,u.username,u.email,s.expires_at
       FROM sessions s
       JOIN users u ON u.id=s.user_id
       WHERE s.session_key=? LIMIT 1
@@ -455,6 +455,12 @@ function requestProcessor($req) {
     case 'login':    return doLogin($req);
     case 'validate': return doValidate($req);
     case 'logout':   return doLogout($req);
+    case 'club.create': return doCreateClub($req);
+    case 'club.invite': return doInviteMember($req);
+    case 'club.list': return doList($req);
+    case 'club.events.create': return doCreateEvent($req);
+    case 'club.events.list': return doListEvents($req);
+    case 'club.events.cancel': return doCancelEvent($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
