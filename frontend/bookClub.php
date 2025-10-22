@@ -6,7 +6,6 @@
   <link rel="stylesheet" href="/css/baseStyle.css">
 </head>
 <body>
-<?php include(__DIR__."/nav.inc.php"); ?>
 <h2>My Book Clubs</h2>
 
 <section id="myClubs">
