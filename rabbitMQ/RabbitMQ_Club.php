@@ -136,6 +136,34 @@ function doCancelEvent(array $req) {
   return ['status' => 'success', 'message' => 'event cancelled'];
 }
 
+// ---- feature 6: list clubs -----
+function doList(array $req) {
+  $user_id = $req['user_id'] ?? 0;
+  if (!$user_id) return ['status' => 'fail', 'message' => 'missing user_id'];
+
+  $conn = db();
+  // user is owner or member of club
+  $stmt = $conn->prepare("
+    SELECT DISTINCT c.club_id, c.name, c.description, c.owner_id
+    FROM clubs c
+    LEFT JOIN club_members m ON c.club_id = m.club_id
+    WHERE c.owner_id = ? OR m.user_id = ?
+    ORDER BY c.name ASC
+  ");
+  $stmt->bind_param("ii", $user_id, $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  $clubs = [];
+  while ($row = $result->fetch_assoc()) {
+    $clubs[] = $row;
+  }
+  $stmt->close();
+  $conn->close();
+
+  return ['status' => 'success', 'clubs' => $clubs];
+}
+
 
 // decides which function to run
 function requestProcessor($req) {
@@ -151,8 +179,9 @@ function requestProcessor($req) {
     case 'club.create': return doCreateClub($req);
     case 'club.invite': return doInviteMember($req);
     case 'club.events.create': return doCreateEvent($req);
-    case 'club.events.list': return doListEvents($req);
     case 'club.events.cancel': return doCancelEvent($req);
+    case 'club.list': return doList($req);
+    case 'club.events.list': return doListEvents($req);
     default: return ['status' => 'fail', 'message' => 'unknown type'];
   }
 }
