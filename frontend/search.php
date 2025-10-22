@@ -3,8 +3,8 @@ require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 include __DIR__ . '/../links/book_link.inc.php';
 //session_start();
 
-$results = [];
-$error = '';
+$results = []; // update results while doBookSearch loop
+$error = ''; // error catching
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $searchType = $_GET['type'] ?? 'title';
@@ -75,16 +75,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <h2>Results:</h2>
         <ul>
             <?php foreach ($results as $book):
-                // book identifier for the link (OLID, ISBN, or title+author fallback if OLID or ISBn not found) // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
-                $book_id = urlencode($book['id'] ?? $book['isbn'] ?? $book['title']);
+                // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
+                $olid = urlencode($book['olid']);
+                // used for book.php GET queries
                 ?>
                 <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
                 <li>
                     <?php if (!empty($book['cover_url'])): ?>
                         <br>
-                        <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                        <img src="
+                        <?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
                     <?php endif; ?>
-                    <a href="book_page.php?id=<?php echo $book_id; ?>">
+                    <a href="index.php?content=book&olid=<?php echo $olid; ?>
+                    ">
                         <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
                         by <?php echo htmlspecialchars($book['author']); ?>
                         (<?php echo htmlspecialchars($book['publish_year']); ?>)

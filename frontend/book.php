@@ -11,6 +11,13 @@ edited by Rea
 // idk if this is necessary
 //if (!isset($_SESSION['session_key'])) { header("Location: index.php"); exit; }
 
+/*
+FOR FRONTEND FOR EASIER COPY AND PASTING LINKS
+
+<a href="index.php?content=book&olid=<?php echo $olid; ?>">
+$olid = urlencode($book['olid']);
+*/
+
 
 // validate OLID request
 $olid = $_GET['olid'];
