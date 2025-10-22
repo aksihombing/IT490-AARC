@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $error = "Please enter a search term.";
     } else {
         try {
-            $client = new rabbitMQClient(__DIR__ . "../rabbitMQ/host.ini", "LibrarySearch");
+            $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibrarySearch");
 
             $request = [
                 'type' => 'book_search',
@@ -69,13 +69,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     <?php if (!empty($results)): // results success?> 
         <h2>Results:</h2>
         <ul>
-            <?php foreach ($results as $book): ?>
-                <li>
-                    <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
-                    by <?php echo htmlspecialchars($book['author']); ?>
-                    (<?php echo htmlspecialchars($book['year']); ?>)
-                </li>
-            <?php endforeach; // an upgrade from it202, i love it! ?>
+           <?php foreach ($results as $book): ?>
+    <li>
+        <a href="<?= htmlspecialchars(book_link($book)) ?>">
+            <strong><?= htmlspecialchars($book['title']) ?></strong>
+        </a><br>
+        by <?= htmlspecialchars($book['author'] ?? 'Unknown Author') ?>
+        (<?= htmlspecialchars($book['year'] ?? 'N/A') ?>)
+    </li>
+<?php endforeach; ?>
+ // an upgrade from it202, i love it! ?>
         </ul>
     <?php endif; ?>
 </body>

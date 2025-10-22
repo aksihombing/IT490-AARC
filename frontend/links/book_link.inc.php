@@ -1,20 +1,25 @@
 <?php
+// /links/book_link.inc.php
 function book_link(array $b): string {
-  if (empty($b['works_id'])) return '#';
-  $base = 'book.php';
-  $q = [
-    'works_id' => $b['works_id'],
+
+  $worksID = $b['olid'] ?? $b['works_id'] ?? '';
+  if ($worksID === '') return 'book.php'; // fallback
+
+  $params = [
+    'works_id'     => $worksID,
+    'title'        => $b['title'] ?? null,
+    'author_names[]' => isset($b['author']) ? [$b['author']] : null,
+
   ];
-  if (!empty($b['title']))    $q['title']    = $b['title'];
-  if (!empty($b['cover_id'])) $q['cover_id'] = $b['cover_id'];
 
-  $url = $base . '?' . http_build_query($q, '', '&', PHP_QUERY_RFC3986);
-
-  if (!empty($b['author_names']) && is_array($b['author_names'])) {
-    foreach ($b['author_names'] as $name) {
-      $url .= '&author_names[]=' . rawurlencode($name);
+  $q = [];
+  foreach ($params as $k => $v) {
+    if ($v === null) continue;
+    if (is_array($v)) {
+      foreach ($v as $vv) $q[] = urlencode($k) . '=' . urlencode($vv);
+    } else {
+      $q[] = urlencode($k) . '=' . urlencode($v);
     }
   }
-  return $url;
+  return 'book.php?' . implode('&', $q);
 }
-?>
