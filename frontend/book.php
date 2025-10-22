@@ -128,7 +128,7 @@ try {
 </head>
 
 
-body>
+<body>
   <!-- failed to collect book data -->
   <?php if (!$book || empty($book)): ?>
     <h2>Error loading book</h2>
@@ -159,7 +159,7 @@ body>
 
 
   <?php else: ?>
-    <!--<p>< ?php var_dump($book)? ></p>  DEBUGGING -->
+    <!--<p>< php var_dump($book)? ></p>  DEBUGGING -->
     <h2 id="book-title"><?php echo htmlspecialchars($book['title']); ?></h2>
     <p id="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
 
