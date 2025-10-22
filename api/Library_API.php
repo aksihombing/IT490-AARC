@@ -63,6 +63,12 @@ function doBookSearch(array $req)
   if ($query === '')
     return ['status' => 'fail', 'message' => 'missing query'];
 
+
+
+  // FEATURE PROPOSAL : page, offset, and limit parameters
+
+
+
   // CACHE CHECK ----------------------------------
   $mysqli = db();
 
@@ -94,11 +100,8 @@ function doBookSearch(array $req)
   // for search.json!!!  ----------------------
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
-  if ($type === 'author') {
-    $searchurl = "{$base}?author={$encodedQuery}&limit=10";
-  } else {
-    $searchurl = "{$base}?q={$encodedQuery}&limit=10";
-  } // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
+  $searchurl = "{$base}?q={$encodedQuery}&limit=10";
+  // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
 
   $search_response = curl_get($searchurl);
   $curl_data = json_decode($search_response, true); // true is for the associative arrays. if false, it returns the json objects into objects. make sure to decode the response from the api before upserting/ inserting it back into the db
@@ -148,6 +151,7 @@ function doBookSearch(array $req)
     $cover_url = !empty($book['cover_i'])
       ? "https://covers.openlibrary.org/b/id/" . $book['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
     // cover_i only saves the id of where the cover is, so we have to build the link manually
+    // gets the -L (Large) version of the image
 
 
     // data from /works/{OLID}.json ----------------------
@@ -155,7 +159,7 @@ function doBookSearch(array $req)
     $work_url = "https://openlibrary.org/works/{$olid}.json";
     $work_json = curl_get($work_url);
 
-    $book_desc = '';
+    $book_desc = 'No book description available';
     $subjects = null;
     $person_key = null;
     $place_key = null;
@@ -170,16 +174,15 @@ function doBookSearch(array $req)
       } // some books have an array for description
       else if (is_string($work_data['description'])) {
         $book_desc = $work_data['description'];
-      }
-      else {
-        $book_desc = null;
+      } else {
+        $book_desc = 'No book description available';
       }
 
       // need to encode the json because the database column is of JSON type
-      $subjects = json_encode($work_data['subjects'] ?? []);
-      $person_key = json_encode($work_data['subject_people'] ?? []);
-      $place_key = json_encode($work_data['subject_places'] ?? []);
-      $time_key = json_encode($work_data['subject_times'] ?? []);
+      $subjects = json_encode(array_slice($work_data['subjects'] ?? [], 0, 20)); // take the first 20 subjects max
+      $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
+      $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
+      $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
 
       // DEBUGGING
       //var_dump($subjects);
@@ -264,7 +267,7 @@ function doBookSearch(array $req)
     ];
 
 
-    echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
+    echo "Cache MISS (fetched + saved) for {$type} = {$query}\n";
   } // END FOREACH BOOK
 
   return ['status' => 'success', 'data' => $searchbookresults];
@@ -274,21 +277,161 @@ function doBookSearch(array $req)
 // Cache Tables Pre-Populated via cron
 function getRecentBooks()
 {
-  $mysqli = db();
-  $result = $mysqli->query("SELECT title, author, year, cover_url FROM recentBooks ORDER BY year DESC "); // LIMIT 10 will return 10 results
+  try {
+    $mysqli = db();
+    $result = $mysqli->query("SELECT * FROM recentBooks ORDER BY publish_year DESC "); // switched to return all fields from recentBooks
 
-  $books = [];
-  while ($row = $result->fetch_assoc()) {
-    $books[] = $row;
+    // $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY publish_year DESC "); // LIMIT 10 will return 10 results but the database only has 10 entries anyway
+
+    $books = [];
+    while ($row = $result->fetch_assoc()) {
+      $books[] = $row;
+    }
+    return ['status' => 'success', 'data' => $books];
+
+  } catch (Exception $e) {
+    error_log("getRecentBooks() error: " . $e->getMessage());
+    return [
+      "status" => "error",
+      "message" => "Failed to load recent books: " . $e->getMessage()
+    ];
   }
-
-  return ['status' => 'success', 'data' => $books];
 }
 
 // (( scrapped Popular_books ))
 
 
 
+// Get Book Details (On-The-Spot GET request to API, no caching in apidb here)
+function doBookDetails(array $req)
+{
+  // reuses doBookSearch format
+  $olid = $req['olid'] ?? $req['works_id'] ?? ''; // check for olid or works_id
+  if ($olid === '')
+    return ['status' => 'fail', 'message' => 'missing olid for query'];
+
+  $encodedOlid = urlencode($olid);
+  // this is based on if OLID actually exists
+  $work_url = "https://openlibrary.org/works/{$encodedOlid}.json";
+  $work_json = curl_get($work_url);
+  $work_data = json_decode($work_json, true);
+
+
+  if (!$work_data)
+    return ['status' => 'fail', 'message' => 'Failed to get /works/ information'];
+
+
+  // data from /works/{OLID}.json ----------------------
+
+  $title = $work_data['title'] ?? 'Unknown title';
+
+  if (isset($work_data['description'])) { // check if it actually exists
+    if (is_array($work_data['description'])) {
+      $book_desc = $work_data['description']['value'];
+    } // some books have an array for description
+    else if (is_string($work_data['description'])) {
+      $book_desc = $work_data['description'];
+    } else {
+      $book_desc = "No book description available";
+    }
+  } else {
+    $book_desc = "No book description available";
+  }
+  // need to encode the json because the database column is of JSON type
+
+
+
+  $subjects = json_encode(array_slice($work_data['subjects'] ?? [], 0, 20)); // take the first 20 subjects max
+  $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
+  $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
+  $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
+
+  // for search.json!!!  ----------------------
+  $searchbase = "https://openlibrary.org/search.json"; //base url for endpoint
+  $encodedQuery = urlencode($title); // url encodes query when its actually getting sent to the API
+  $searchurl = "{$searchbase}?q={$encodedQuery}&limit=1";
+
+  $search_response = curl_get($searchurl);
+  $curl_data = json_decode($search_response, true);
+
+
+  $author = 'Unknown author';
+  $subtitle = null;
+  $publish_year = null;
+  $cover_url = null;
+
+  if ($curl_data && isset($curl_data['docs'][0])) { // get first doc only
+    $doc = $curl_data['docs'][0]; // we only care about the first result
+    $subtitle = $doc['subtitle'] ?? null; //string
+    $author = $doc['author_name'][0] ?? 'Unknown author'; //string
+    $publish_year = $doc['first_publish_year'];
+    $cover_url = !empty($doc['cover_i'])
+      ? "https://covers.openlibrary.org/b/id/" . $doc['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
+    // cover_i only saves the id of where the cover is, so we have to build the link manually
+    // gets the -L (Large) version of the image
+
+  }
+
+  // data from /works/{OLID}/editions.json ----------------------
+  $isbn = null;
+
+  $editions_url = "https://openlibrary.org/works/{$olid}/editions.json?limit=1"; // only get 1 of the editions isbn
+  $editions_json = curl_get($editions_url);
+
+  if ($editions_json) {
+    $editions_data = json_decode($editions_json, true);
+    $first_entry = $editions_data['entries'][0]; // gets the first entry result bc it will have ALL editions with different isbns listed. this is good enough for now, but it might be good to have a list of isbns.
+
+    if (!empty($first_entry['isbn_13'][0])) {
+      $isbn = $first_entry['isbn_13'][0];
+    } elseif (!empty($first_entry['isbn_10'][0])) {
+      $isbn = $first_entry['isbn_10'][0];
+    } else {
+      $isbn = null; // no isbn found
+    }
+
+  }
+  // data from /works/{OLID}/ratings.json ----------------------
+
+  $ratings_average = null;
+  $ratings_count = null;
+  $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
+  $ratings_json = curl_get($ratings_url);
+  if ($ratings_json) {
+    $ratings_data = json_decode($ratings_json, true);
+    $ratings_average = $ratings_data['summary']['average'] ?? null;
+    $ratings_count = $ratings_data['summary']['count'] ?? null;
+  }
+
+
+  // returning results
+  $bookDetailsResults= [ // this gets returns to the webserver
+    'olid' => $olid,
+    'title' => $title,
+    'subtitle' => $subtitle,
+    'author' => $author,
+    'isbn' => $isbn,
+    'book_desc' => $book_desc,
+    'publish_year' => $publish_year,
+    'ratings_average' => $ratings_average,
+    'ratings_count' => $ratings_count,
+    'subjects' => $subjects,
+    'person_key' => $person_key,
+    'place_key' => $place_key,
+    'time_key' => $time_key,
+    'cover_url' => $cover_url
+  ];
+
+
+  echo "Returning details for {$olid}={$title}\n";
+  return [
+    'status' => 'success',
+    'data' => $bookDetailsResults
+  ];
+
+
+
+} // end doBookDetails
 
 
 
@@ -308,13 +451,13 @@ function requestProcessor($req)
 
   switch ($req['type']) {
     case 'book_search':
-      return doBookSearch($req);
+      return doBookSearch($req); // check api db cache before calling api
 
     case 'recent_books':
-      return getRecentBooks(); // not done yet idk im spiraling
+      return getRecentBooks(); // pull information from recentBooks, which uses CRON to auto-update table
 
     case 'book_details':
-      return doBookDetails($req); // not sure if needed
+      return doBookDetails($req); // does not store into api cache, calls the details in-the-moment from the api
 
     case 'book_collect':
       return doBookCollect($req); // not sure if needed

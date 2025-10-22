@@ -42,12 +42,14 @@ try {
     header("Location: index.php");
     echo json_encode("Login Success.");
     exit;
-  } else {
+  } 
+  else {
     $msg = $response['message'] ?? 'Invalid login';
     header("Location: index.php?error=" . urlencode($msg));
     exit;
   }
-} catch (Exception $e) {
+} 
+catch (Exception $e) {
   echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }
 ?>

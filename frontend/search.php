@@ -2,8 +2,8 @@
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 //session_start();
 
-$results = [];
-$error = '';
+$bookSearchResults = []; // update results while doBookSearch loop
+$error = ''; // error catching
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $searchType = $_GET['type'] ?? 'title';
@@ -19,13 +19,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'type' => 'book_search',
                 'searchType' => $searchType,
                 'query' => $query
+                // FOR WHEN WE ADD PAGE AND LIMIT PARAMS
+                /*
+                'limit' => 10,
+                'page' => 1
+                */
+                
+                
             ];
 
             $response = $client->send_request($request);
             //var_dump($response); //debugging 
 
             if ($response['status'] === 'success') {
-                $results = $response['data'];
+                $bookSearchResults = $response['data'];
             } else {
                 $error = $response['message'] ?? 'Unknown error from server.';
             }
@@ -55,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <input type="text" name="query" id="query" placeholder="Enter book title or author"
             value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
 
-            <!-- SCRAPPED - search by title (search.json/q=query) or author (search.json/author=query)
+        <!-- SCRAPPED - search by title (search.json/q=query) or author (search.json/author=query)
         <label for="type">Search By:</label>
         <select name="type" id="type">
             <option value="title" < ?php echo ($_GET['type'] ?? '') === 'title'; ?>>Title</option>
@@ -70,18 +77,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
 
-    <?php if (!empty($results)): ?>
+    <?php if (!empty($bookSearchResults)): ?>
         <h2>Results:</h2>
         <ul>
-            <?php foreach ($results as $book):
-                // book identifier for the link (OLID, ISBN, or title+author fallback if OLID or ISBn not found) // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
-                $book_id = urlencode($book['id'] ?? $book['isbn'] ?? $book['title']);
+            <?php foreach ($bookSearchResults as $book):
+                // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
+                $olid = urlencode($book['olid']);
+                // used for book.php GET queries
+                // echo "<p>OLID : $olid</p>";// DEBUGGING
                 ?>
+
+
+                <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
                 <li>
-                    <a href="book_page.php?id=<?php echo $book_id; ?>">
+                    <?php if (!empty($book['cover_url'])): ?>
+                        <br>
+                        <img src="
+                        <?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                    <?php endif; ?>
+                    <a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>
+                    ">
                         <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
                         by <?php echo htmlspecialchars($book['author']); ?>
                         (<?php echo htmlspecialchars($book['publish_year']); ?>)
+
                     </a>
                 </li>
             <?php endforeach; ?>

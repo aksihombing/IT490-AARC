@@ -1,6 +1,8 @@
 <?php
 // MAIN LANDING PAGE (Displays login + registration forms)
 
+
+
 // check session state
 if (!isset($_SESSION['session_key'])):
   ?>
@@ -55,8 +57,33 @@ if (!isset($_SESSION['session_key'])):
     ?>
   </section>
 
+
 <?php else: ?>
-  
+
+  <?php
+  // to load pre-loaded book data from cache db
+  require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+
+  $recentBooks = [];
+  //$popularBooks = []; // scrapped
+
+  try {
+    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
+
+    // Recent books
+    $recentResponse = $client->send_request(['type' => 'recent_books']);
+    if ($recentResponse['status'] === 'success') {
+      $recentBooks = $recentResponse['data'];
+    }
+
+  } catch (Exception $e) {
+    echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
+  }
+
+
+  ?>
+
+
 
   <section id="welcome-section">
     <h2>Welcome!</h2>
@@ -67,9 +94,43 @@ if (!isset($_SESSION['session_key'])):
 
     <section id="recent-books">
       <h3>Recent Books</h3>
-      
-    </section>
+      <?php if (!empty($recentBooks)): ?>
+        <ul>
+          <?php foreach ($recentBooks as $book):
+            // THIS IS SUBJECT TO CHANGE DEPENDING ON CHIZZY'S STRUCTURE
+            $olid = urlencode($book['olid']);
+            ?>
+            <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
+            <li>
+              <a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>
+              ">
 
+                <?php if (!empty($book['cover_url'])): ?>
+                  <br>
+                  <!--  < ?php echo "<p>OLID : $olid</p>";// DEBUGGING ?> -->
+                  <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                <?php endif; ?>
+                <strong><?php echo htmlspecialchars($book['title']); ?></strong>
+                <br>
+                by <?php echo htmlspecialchars($book['author']); ?>
+                (<?php echo htmlspecialchars($book['publish_year']); ?>)
+              </a>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      <?php else: ?>
+        <p>No recent releases available right now.</p>
+      <?php endif; ?>
+    </section>
+      <!-- 
+    // https://openlibrary.org/search.json?q=*&sort=rating%20desc&page=2 DOESNT WORK BC ITS TOO MANY RESULTS
+
+
+    FOR GENERAL BROWSING
+    https://openlibrary.org/search.json?q=adventure&limit=10&page=2
+
+    
+      -->
     <br>
     <br>
     <p><a id="logoutbutton" href="logout.php">Logout</a></p>
