@@ -3,5 +3,5 @@ CREATE TABLE `clubs` (
   `owner_id` INT(11) NULL,
   `name` VARCHAR(100) NULL,
   `description` TEXT NULL,
-  PRIMARY KEY (`club_id`),
+  PRIMARY KEY (`club_id`)
 );
