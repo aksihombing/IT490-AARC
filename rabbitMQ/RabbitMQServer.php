@@ -17,9 +17,9 @@ require_once __DIR__ . '/get_host_info.inc';
 // connects to the local sql database
 function db() {
   $host = 'localhost'; 
-  $user = 'testUser'; 
-  $pass = '12345';
-  $name = 'testdb'; 
+  $user = 'userAdmin'; 
+  $pass = 'pccc';
+  $name = 'userdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
