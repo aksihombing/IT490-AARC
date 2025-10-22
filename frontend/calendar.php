@@ -1,6 +1,6 @@
-// angela's bookClub.php reworked so it works with rmq?!!! pleae work
-
 <?php
+
+// angela's bookClub.php reworked so it works with rmq?!!! pleae work
 session_start();
 if (!isset($_SESSION['login'])) {
     header("Location: /frontend/login.php");
