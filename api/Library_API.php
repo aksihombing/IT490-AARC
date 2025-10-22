@@ -338,13 +338,13 @@ function doBookDetails(array $req)
     $book_desc = "No book description available";
   }
   // need to encode the json because the database column is of JSON type
+
+
+
   $subjects = json_encode(array_slice($work_data['subjects'] ?? [], 0, 20)); // take the first 20 subjects max
   $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
   $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
   $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
-
-
-
 
   // for search.json!!!  ----------------------
   $searchbase = "https://openlibrary.org/search.json"; //base url for endpoint
@@ -390,18 +390,18 @@ function doBookDetails(array $req)
       $isbn = null; // no isbn found
     }
 
+  }
+  // data from /works/{OLID}/ratings.json ----------------------
 
-    // data from /works/{OLID}/ratings.json ----------------------
-
-    $ratings_average = null;
-    $ratings_count = null;
-    $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
-    $ratings_json = curl_get($ratings_url);
-    if ($ratings_json) {
-      $ratings_data = json_decode($ratings_json, true);
-      $ratings_average = $ratings_data['summary']['average'] ?? null;
-      $ratings_count = $ratings_data['summary']['count'] ?? null;
-    }
+  $ratings_average = null;
+  $ratings_count = null;
+  $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
+  $ratings_json = curl_get($ratings_url);
+  if ($ratings_json) {
+    $ratings_data = json_decode($ratings_json, true);
+    $ratings_average = $ratings_data['summary']['average'] ?? null;
+    $ratings_count = $ratings_data['summary']['count'] ?? null;
+  }
 
 
   // data from /works/{OLID}/ratings.json ----------------------
@@ -418,30 +418,33 @@ function doBookDetails(array $req)
 
 
   // returning results
- $bookDetailsResults[] = [ // this gets returns to the webserver
-      'olid' => $olid,
-      'title' => $title,
-      'subtitle' => $subtitle,
-      'author' => $author,
-      'isbn' => $isbn,
-      'book_desc' => $book_desc,
-      'publish_year' => $publish_year,
-      'ratings_average' => $ratings_average,
-      'ratings_count' => $ratings_count,
-      'subjects' => $subjects,
-      'cover_url' => $cover_url
-    ];
+  $bookDetailsResults[] = [ // this gets returns to the webserver
+    'olid' => $olid,
+    'title' => $title,
+    'subtitle' => $subtitle,
+    'author' => $author,
+    'isbn' => $isbn,
+    'book_desc' => $book_desc,
+    'publish_year' => $publish_year,
+    'ratings_average' => $ratings_average,
+    'ratings_count' => $ratings_count,
+    'subjects' => $subjects,
+    'person_key' => $person_key,
+    'place_key' => $place_key,
+    'time_key' => $time_key,
+    'cover_url' => $cover_url
+  ];
 
-    return [
-      'status' => 'success',
-      'data' => $bookDetailsResults
-    ];
 
-  }
   echo "Returning details for {$olid}={$title}\n";
-  //} // END FOREACH BOOK
+  return [
+    'status' => 'success',
+    'data' => $bookDetailsResults
+  ];
 
-}
+
+
+} // end doBookDetails
 
 
 
