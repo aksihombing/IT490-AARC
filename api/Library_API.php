@@ -279,7 +279,9 @@ function getRecentBooks()
 {
   try {
     $mysqli = db();
-    $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY publish_year DESC "); // LIMIT 10 will return 10 results but the database only has 10 entries anyway
+    $result = $mysqli->query("SELECT * FROM recentBooks ORDER BY publish_year DESC "); // switched to return all fields from recentBooks
+
+   // $result = $mysqli->query("SELECT title, author, publish_year, cover_url FROM recentBooks ORDER BY publish_year DESC "); // LIMIT 10 will return 10 results but the database only has 10 entries anyway
 
     $books = [];
     while ($row = $result->fetch_assoc()) {
