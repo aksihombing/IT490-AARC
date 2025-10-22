@@ -418,7 +418,7 @@ function doBookDetails(array $req)
 
 
   // returning results
-  $bookDetailsResults[] = [ // this gets returns to the webserver
+  $bookDetailsResults= [ // this gets returns to the webserver
     'olid' => $olid,
     'title' => $title,
     'subtitle' => $subtitle,
