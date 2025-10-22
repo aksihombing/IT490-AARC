@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-session_start();
+//session_start();
 /*
 PULLED CHIZZYS CODE
 edited by Rea
@@ -42,7 +42,8 @@ try {
 
 $book = null;
 if (($response['status'] === 'success') && is_array($response)) {
-  $book = json_decode($response['data'], true);
+  //$book = json_decode($response['data'], true); //i dont think we need to decode the json if its already returned as an array of data
+  $book = $response['data'];
 }
 
 ?>

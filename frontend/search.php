@@ -2,7 +2,7 @@
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 //session_start();
 
-$results = []; // update results while doBookSearch loop
+$bookSearchResults = []; // update results while doBookSearch loop
 $error = ''; // error catching
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             //var_dump($response); //debugging 
 
             if ($response['status'] === 'success') {
-                $results = $response['data'];
+                $bookSearchResults = $response['data'];
             } else {
                 $error = $response['message'] ?? 'Unknown error from server.';
             }
@@ -77,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
 
-    <?php if (!empty($results)): ?>
+    <?php if (!empty($bookSearchResults)): ?>
         <h2>Results:</h2>
         <ul>
-            <?php foreach ($results as $book):
+            <?php foreach ($bookSearchResults as $book):
                 // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
                 $olid = urlencode($book['olid']);
                 // used for book.php GET queries
