@@ -62,7 +62,7 @@ if ($resp['status'] === 'success') {
   <meta charset="utf-8">
   <title>My Library</title>
   <!-- linking your external CSS file for styling -->
-  <link rel="stylesheet" href=baseStyle.css>">
+  <link rel="stylesheet" href="baseStyle.css">
 </head>
 <body>
   <!-- Page heading -->
