@@ -267,7 +267,7 @@ function doBookSearch(array $req)
     ];
 
 
-    echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
+    echo "Cache MISS (fetched + saved) for {$type} = {$query}\n";
   } // END FOREACH BOOK
 
   return ['status' => 'success', 'data' => $searchbookresults];
@@ -404,21 +404,8 @@ function doBookDetails(array $req)
   }
 
 
-  // data from /works/{OLID}/ratings.json ----------------------
-
-  $ratings_average = null;
-  $ratings_count = null;
-  $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
-  $ratings_json = curl_get($ratings_url);
-  if ($ratings_json) {
-    $ratings_data = json_decode($ratings_json, true);
-    $ratings_average = $ratings_data['summary']['average'] ?? null;
-    $ratings_count = $ratings_data['summary']['count'] ?? null;
-  }
-
-
   // returning results
-  $bookDetailsResults[] = [ // this gets returns to the webserver
+  $bookDetailsResults= [ // this gets returns to the webserver
     'olid' => $olid,
     'title' => $title,
     'subtitle' => $subtitle,

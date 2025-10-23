@@ -25,16 +25,15 @@ CREATE TABLE `sessions` (
   PRIMARY KEY (`session_id`),
   UNIQUE KEY `session_key` (`session_key`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 );
 
 CREATE TABLE `clubs` (
   `club_id` INT(11) NOT NULL AUTO_INCREMENT,
   `owner_id` INT(11) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
-  `description` TEXT,
-  PRIMARY KEY (`club_id`),
-  FOREIGN KEY (`owner_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+  `description` TEXT NULL,
+  PRIMARY KEY (`club_id`)
 );
 
 CREATE TABLE `club_members` (
@@ -42,15 +41,13 @@ CREATE TABLE `club_members` (
   `club_id` INT(11) NOT NULL,
   `user_id` INT(11) NOT NULL,
   PRIMARY KEY (`member_id`),
-  UNIQUE KEY (`club_id`, `user_id`),
-  FOREIGN KEY (`club_id`) REFERENCES `clubs`(`club_id`) ON DELETE CASCADE,
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    KEY (`club_id`)
 );
 
 CREATE TABLE `events` (
   `eventID` INT(11) NOT NULL AUTO_INCREMENT,
   `creatorUserID` INT(11) NOT NULL,
-  'club_ID' INT NULL,
+  `club_id` INT NULL,
   `title` VARCHAR(255) NOT NULL,
   `description` TEXT NULL,
   `location` VARCHAR(255) NULL,
@@ -60,7 +57,7 @@ CREATE TABLE `events` (
   PRIMARY KEY (`eventID`),
   KEY `creatorUserID` (`creatorUserID`),
   CONSTRAINT `fk_creator_user` FOREIGN KEY (`creatorUserID`) REFERENCES `users` (`id`),
-  CONSTRAINT 'fk_event_club' FOREIGN KEY ('club_id') REFERENCES 'clubs'('club_id') ON DELETE CASCADE;
+  CONSTRAINT `fk_event_club` FOREIGN KEY (`club_id`) REFERENCES `clubs`(`club_id`) ON DELETE CASCADE;
 );
 
 CREATE TABLE `EventAttendees` (
@@ -93,3 +90,4 @@ CREATE TABLE reviews (
   UNIQUE KEY (user_id, works_id),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+

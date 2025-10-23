@@ -17,9 +17,9 @@ require_once __DIR__ . '/get_host_info.inc';
 // connects to the local sql database
 function db() {
   $host = 'localhost'; 
-  $user = 'testUser'; 
-  $pass = '12345';
-  $name = 'testdb'; 
+  $user = 'userAdmin'; 
+  $pass = 'aarc490';
+  $name = 'userdb'; 
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
@@ -482,7 +482,7 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
     $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
       'AuthLogout', 'LibraryPersonal', 'LibraryRemove', 
-      'CreateReviews','ListReviews','LibraryAdd'];
+      'CreateReviews','ListReviews','LibraryAdd','ClubProcessor'];
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
