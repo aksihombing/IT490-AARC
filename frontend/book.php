@@ -83,8 +83,7 @@ try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   $response = $client->send_request([
     'type' => 'book_details',
-    'olid
-    ' => $olid
+    'olid' => $olid
   ]);
 } catch (Exception $e) {
   $response = [

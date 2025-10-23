@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 }
 
 try {
-  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
-  $resp = $client->send_request([
+  $listclient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+  $resp = $listclient->send_request([
     'type'    => 'library.personal.list',
     'user_id' => $userId,
     
@@ -47,10 +47,37 @@ if ($resp['status'] === 'success') {
   $error = "Error connecting to library service: " . $e->getMessage();
 }
 
+try {
+  $detailsclient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+  foreach ($library as &$book) {
+    $olid = $book['works_id'] ?? '';
+    if (!$olid) continue;
 
+    try {
+      $details = $detailsclient->send_request([
+        'type' => 'book_details',
+        'olid' => $olid
+      ]);
+
+      if ($details['status'] === 'success') {
+        $bookDetails = $details['items'] ?? $details['data'] ?? [];
+
+       
+        $book['title']        = $bookDetails['title'] ?? 'Unknown Title';
+        $book['author']       = $bookDetails['author'] ?? 'Unknown Author';
+        $book['cover_url']    = $bookDetails['cover_url'] ?? '';
+        $book['publish_year'] = $bookDetails['publish_year'] ?? 'Unknown Year';
+        $book['isbn']         = $bookDetails['isbn'] ?? 'N/A';
+      }
+    } catch (Exception $e) {
+      error_log("Error getting details: " . $e->getMessage());
+    }
+  }
+ 
+} catch (Exception $e) {
+  $error = "Error connecting to LibraryDetails: " . $e->getMessage();
+}
 ?>
-
-
 
 
 
@@ -71,29 +98,25 @@ if ($resp['status'] === 'success') {
  <?php if (empty($library)): ?>
   <p>You haven’t added any books yet.</p>
   <p><a href="index.php?content=search" class="btn">Go to Search Page →</a></p>
-<?php else: ?>
-<div class="grid">
-    <?php foreach ($library as $book): ?>
-      <?php
-        $worksId = htmlspecialchars($book['works_id']);
-        $title   = htmlspecialchars($book['title'] ?? 'Unknown Title');
-        $author  = htmlspecialchars($book['author'] ?? 'Unknown Author');
-        $cover   = htmlspecialchars($book['cover_url'] ?? '');
-      ?>
-      <div class="card">
-        <?php if ($cover): ?>
-          <img class="cover" src="<?php echo $cover; ?>" alt="Cover">
-        <?php endif; ?>
-        <h4><a href="book.php?works_id=<?php echo $worksId; ?>"><?php echo $title; ?></a></h4>
-        <p><?php echo $author; ?></p>
-        <form method="POST">
-          <input type="hidden" name="works_id" value="<?php echo $worksId; ?>">
-          <button type="submit" class="btn">Remove</button>
-        </form>
-      </div>
-    <?php endforeach; ?>
-  </div>
-<?php endif; ?>
+ <?php else: ?>
+    <div class="grid">
+      <?php foreach ($library as $book): ?>
+        <div class="card">
+          <img class="cover" src="<?= htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
+          <h3><a href="book.php?olid=<?= htmlspecialchars($book['works_id']) ?>">
+            <?= htmlspecialchars($book['title']) ?>
+          </a></h3>
+          <p><?= htmlspecialchars($book['author']) ?></p>
+          <p><strong>ISBN:</strong> <?= htmlspecialchars($book['isbn']) ?></p>
+          <p><strong>Published:</strong> <?= htmlspecialchars($book['publish_year']) ?></p>
 
+          <form method="POST">
+            <input type="hidden" name="works_id" value="<?= htmlspecialchars($book['works_id']) ?>">
+            <button type="submit" class="btn">Remove</button>
+          </form>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 </body>
 </html>
