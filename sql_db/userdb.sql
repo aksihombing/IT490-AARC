@@ -70,6 +70,7 @@ CREATE TABLE user_library (
 );
 
 CREATE TABLE reviews (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id  INT NOT NULL,
   works_id VARCHAR(50) NOT NULL,
   rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
