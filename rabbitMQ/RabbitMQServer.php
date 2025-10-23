@@ -362,7 +362,7 @@ function doCreateEvent(array $req) {
   }
 
   $conn = db();
-  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, event_date, description) VALUES (?, ?, ?, ?)");
+  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, event_date, description) VALUES (?, ?, ?, ?, ?)");
   $stmt->bind_param("isss", $creatorUserID, $club_id, $title, $date, $desc);
   if (!$stmt->execute()) {
     return ['status' => 'fail', 'message' => $stmt->error];
