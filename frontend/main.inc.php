@@ -66,12 +66,7 @@ if (!isset($_SESSION['session_key'])):
   require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 
   $recentBooks = []; // for recent books call
-  // FOR GENERAL BROWSING
-  // https://www.php.net/manual/en/function.intval.php
-  $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // default page is 1
-  $limit = 10;
-  $query = 'adventure'; // need a basic query for less api errors
-  $browseBooks = [];
+
 
   try {
     $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
