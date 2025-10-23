@@ -221,10 +221,29 @@ class rabbitMQClient
 			$this->conn_queue->bind($exchange->getName(),$this->routing_key);
 
 			$exchange->publish($json_message,$this->routing_key,AMQP_NOPARAM,array('reply_to'=>$callback_queue->getName(),'correlation_id'=>$uid));
-      $this->response_queue[$uid] = "waiting";
-			$callback_queue->consume(array($this,'process_response'));
+      		$this->response_queue[$uid] = "waiting";
+			
+			//trying to fic the evil stupid hanging
+			while (true) {
+				try {
+					$channel->wait(null, false, 2);
+				} catch (AMQPTimeoutException $e) {
+				}
 
-			$response = $this->response_queue[$uid];
+				if (isset($this->response_queue[$uid]) && $this->response_queue[$uid] !== "waiting") {
+					$response = $this->response_queue[$uid];
+					unset($this->response_queue[$uid]);
+					break;
+				}
+
+				if (time() - $start > 10) { // 10-second timeout
+					error_log("timeout waiting for response uid=$uid");
+					$response = ['status' => 'fail', 'message' => 'timeout waiting for response'];
+					break;
+				}
+			}
+				return $response;
+
 			unset($this->response_queue[$uid]);
 			return $response;
 		}
