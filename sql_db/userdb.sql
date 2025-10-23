@@ -57,7 +57,7 @@ CREATE TABLE `events` (
   PRIMARY KEY (`eventID`),
   KEY `creatorUserID` (`creatorUserID`),
   CONSTRAINT `fk_creator_user` FOREIGN KEY (`creatorUserID`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_event_club` FOREIGN KEY (`club_id`) REFERENCES `clubs`(`club_id`) ON DELETE CASCADE;
+  CONSTRAINT `fk_event_club` FOREIGN KEY (`club_id`) REFERENCES `clubs`(`club_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `EventAttendees` (
