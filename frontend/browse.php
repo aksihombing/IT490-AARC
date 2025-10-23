@@ -9,7 +9,7 @@ require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 // https://www.php.net/manual/en/function.intval.php
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // default page is 1 -- checks for get http request param
 // index.php?content=browse&page={$_GET[page]}
-$limit = 10;
+$limit = 5;
 $query = 'adventure'; // need a basic query for less api errors, PLEASE WORK
 $browseBooks = [];
 
