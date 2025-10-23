@@ -96,6 +96,8 @@ function doLogin(array $req) {
     $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
     error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
+
+    $conn->query("DELETE FROM sessions WHERE user_id = $uid");
     
     if (password_verify($password,$dbHash)){
      // create a session key, should be secure ?
