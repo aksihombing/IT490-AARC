@@ -78,10 +78,12 @@ async function loadClubs() {
 <script>
 async function postForm(form){
   const data = new FormData(form);
+    
+  if (!data.has('user_id')) data.append('user_id', USER_ID);
+
   const res = await fetch('clubs_functions.php', {method:'POST', body:data});
   const out = document.getElementById('output');
 
-  if (!data.has('user_id')) data.append('user_id', USER_ID);
   if(!res.ok){ out.textContent = 'network error'; return; }
   
   const json = await res.json();
