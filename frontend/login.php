@@ -38,7 +38,6 @@ try {
     $_SESSION['login'] = true;
     $_SESSION['username'] = $response['username'] ?? $username;
     $_SESSION['session_key'] = $response['session_key'] ?? ''; // server/DB generates it via db_functions.php createSession() function
-    $_SESSION['user_id'] = $response['uid'] ?? 0;
 
     header("Location: index.php");
     echo json_encode("Login Success.");
