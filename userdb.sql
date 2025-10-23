@@ -80,7 +80,6 @@ CREATE TABLE `EventAttendees` (
   CONSTRAINT `fkEventAttendeeUserID` FOREIGN KEY (`userID`) REFERENCES `users` (`id`) ON DELETE CASCADE
 );
 
-
 CREATE TABLE user_library (
   user_id  INT NOT NULL,
   works_id VARCHAR(50) NOT NULL,
