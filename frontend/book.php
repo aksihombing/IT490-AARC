@@ -27,6 +27,8 @@ if ($olid == '') {
   exit;
 }
 
+
+// --------- ADD TO LIBRARY
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -50,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     }
 
+    // ------------- CREATE REVIEW
     //handling  the review submission
     if ($action === 'create_review') {
       $rating  = $_POST['rating']  ?? 0;
@@ -75,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-// loading the deatails of the book using the doBookDetails queue -REA
+// -------------- DO BOOK DETAILS
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   $response = $client->send_request([
@@ -89,18 +92,21 @@ try {
   ];
 }
 
-$book = null;
+$book = [];
 if (($response['status'] === 'success') && is_array($response)) {
-  $book = json_decode($response['body'], true);
+  //$book = json_decode($response['data'], true); //i dont think we need to decode the json if its already returned as an array of data
+  $book = $response['data'];
 }
 
+
+// ------------- LIST REVIEWS
 //fetch reviews and then list reviews
 
 $reviews=[];
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
   $resp = $client->send_request([
-    'type'     => 'library.reviews.list',
+    'type'     => 'library.review.list',
     'works_id' => $olid,
   ]);
   if ($resp['status'] === 'success') {
@@ -122,7 +128,7 @@ try {
 </head>
 
 
-body>
+<body>
   <!-- failed to collect book data -->
   <?php if (!$book || empty($book)): ?>
     <h2>Error loading book</h2>
@@ -153,7 +159,7 @@ body>
 
 
   <?php else: ?>
-    <p><?php var_dump($book)?></p> <!-- DEBUGGING -->
+    <!--<p>< php var_dump($book)? ></p>  DEBUGGING -->
     <h2 id="book-title"><?php echo htmlspecialchars($book['title']); ?></h2>
     <p id="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
 
@@ -193,7 +199,7 @@ body>
       <form id="reviewForm" method="POST">
         <input type="hidden" name="action" value="create_review">
         <label>Rating:
-          <select id="rating" required>
+          <select id="rating" name="rating" required>
             <option value="">Select...</option>
             <option>1</option>
             <option>2</option>
@@ -204,7 +210,7 @@ body>
         </label>
         <br>
         <label>Review:</label><br>
-        <textarea id="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
+        <textarea id="comment" name="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
         <br>
         <button class="btn" type="submit">Submit</button>
       </form>
@@ -220,7 +226,7 @@ body>
           <div class="card">
             <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
              — <?= (int)($review['rating'] ?? 0) ?>/5  
-            <p><?= htmlspecialchars($review['comment'] ?? ''); ?></p>
+            <p><?= htmlspecialchars($review['body'] ?? ''); ?></p>
             <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
           </div>
         <?php endforeach; ?>
