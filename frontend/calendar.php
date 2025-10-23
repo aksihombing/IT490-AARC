@@ -1,6 +1,6 @@
 <?php
 
-// angela's bookClub.php reworked so it works with rmq?!!! pleae work
+// angela's bookClub.php reworked so it works with rmq and db
 session_start();
 if (!isset($_SESSION['login'])) {
     header("Location: /frontend/login.php");
@@ -17,7 +17,7 @@ if (!isset($_SESSION['login'])) {
   <link rel="stylesheet" href="/themes/scheduler_8.css">
 </head>
 <body>
-
+<a href="bookClub.php" style="text-decoration:none; color:#333;">Back to My Clubs</a>
 
 <h2>Book Club Meeting Calendar</h2>
 
