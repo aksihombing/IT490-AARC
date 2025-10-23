@@ -101,7 +101,7 @@ $reviews=[];
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
   $resp = $client->send_request([
-    'type'     => 'library.reviews.list',
+    'type'     => 'library.review.list',
     'works_id' => $olid,
     
   ]);
@@ -194,7 +194,7 @@ try {
       <form id="reviewForm" method="POST">
         <input type="hidden" name="action" value="create_review">
         <label>Rating:
-          <select id="rating" required>
+          <select id="rating" name="rating" required>
             <option value="">Select...</option>
             <option>1</option>
             <option>2</option>
@@ -205,7 +205,7 @@ try {
         </label>
         <br>
         <label>Review:</label><br>
-        <textarea id="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
+        <textarea id="comment" name="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
         <br>
         <button class="btn" type="submit">Submit</button>
       </form>
@@ -221,7 +221,7 @@ try {
           <div class="card">
             <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
              — <?= (int)($review['rating'] ?? 0) ?>/5  
-            <p><?= htmlspecialchars($review['comment'] ?? ''); ?></p>
+            <p><?= htmlspecialchars($review['body'] ?? ''); ?></p>
             <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
           </div>
         <?php endforeach; ?>
