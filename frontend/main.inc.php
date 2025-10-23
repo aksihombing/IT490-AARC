@@ -65,22 +65,7 @@ if (!isset($_SESSION['session_key'])):
   // to load pre-loaded book data from cache db
   require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 
-  $recentBooks = [];
-  //$popularBooks = []; // scrapped
-
-  try {
-    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
-
-    // Recent books
-    $recentResponse = $client->send_request(['type' => 'recent_books']);
-    if ($recentResponse['status'] === 'success') {
-      $recentBooks = $recentResponse['data'];
-    }
-
-  } catch (Exception $e) {
-    echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
-  }
-
+  $recentBooks = []; // for recent books call
   // FOR GENERAL BROWSING
   // https://www.php.net/manual/en/function.intval.php
   $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // default page is 1
@@ -88,13 +73,21 @@ if (!isset($_SESSION['session_key'])):
   $query = 'adventure'; // need a basic query for less api errors
   $browseBooks = [];
 
-
   try {
     $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
 
     // Recent books
+    $recentResponse = $client->send_request(['type' => 'recent_books']);
+
+    if ($recentResponse['status'] === 'success') {
+      $recentBooks = $recentResponse['data'];
+    }
+
+
+
+     // browse books
     $browseResponse = $client->send_request([
-      'type' => 'recent_books',
+      'type' => 'book_search',
       'query' => $query,
       'limit' => $limit,
       'page' => $page
@@ -105,7 +98,7 @@ if (!isset($_SESSION['session_key'])):
     }
 
   } catch (Exception $e) {
-    echo "<p style='color:red;'>Error loading browsing books: " . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
   }
 
 
@@ -169,9 +162,13 @@ if (!isset($_SESSION['session_key'])):
             <li>
               <?php $olid = urlencode($book['olid']); ?>
               <a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>">
+
+              <br><br>
                 <?php if (!empty($book['cover_url'])): ?>
                   <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
                 <?php endif; ?>
+
+
                 <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
                 by <?php echo htmlspecialchars($book['author']); ?>
               </a>
