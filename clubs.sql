@@ -11,5 +11,5 @@ CREATE TABLE `club_members` (
   `club_id` INT(11) NULL,
   `user_id` INT(11) NULL,
   PRIMARY KEY (`member_id`),
-  MULTIPLE KEY (`club_id`)
+    KEY (`club_id`)
 );
