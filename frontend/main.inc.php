@@ -78,20 +78,6 @@ if (!isset($_SESSION['session_key'])):
       $recentBooks = $recentResponse['data'];
     }
 
-
-
-     // browse books request
-    $browseResponse = $client->send_request([
-      'type' => 'book_search',
-      'query' => $query,
-      'limit' => $limit,
-      'page' => $page
-    ]);
-
-    if ($browseResponse['status'] === 'success') {
-      $browseBooks = $browseResponse['data'];
-    }
-
   } catch (Exception $e) {
     echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
   }
