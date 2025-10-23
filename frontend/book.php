@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-session_start();
+//session_start();
 /*
 PULLED CHIZZYS CODE
 edited by Rea
@@ -8,14 +8,14 @@ edited by Rea
 // url format -> /index.php?content=book&olid={OLID}
 */
 
-// idk if this is necessary
+// idk if this is necessar
 //if (!isset($_SESSION['session_key'])) { header("Location: index.php"); exit; }
 
 /*
 FOR FRONTEND FOR EASIER COPY AND PASTING LINKS
 
 <a href="index.php?content=book&olid=<?php echo $olid; ?>">
-$olid = urlencode($book['olid']);
+$olid = urlencode($book['olid'])
 */
 
 
@@ -27,6 +27,8 @@ if ($olid == '') {
   exit;
 }
 
+
+// --------- ADD TO LIBRARY
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -38,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'type'    => 'library.personal.add',
         'user_id' => $_SESSION['uid'],
         'works_id' => $olid,
-        
       ]);
 
       
@@ -51,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     }
 
+    // ------------- CREATE REVIEW
     //handling  the review submission
     if ($action === 'create_review') {
       $rating  = $_POST['rating']  ?? 0;
@@ -76,12 +78,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-// loading the deatails of the book using the doBookDetails queue -REA
+// -------------- DO BOOK DETAILS
 try {
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   $response = $client->send_request([
     'type' => 'book_details',
-    'works_id' => $olid,
+    'works_id' => $olid
   ]);
 } catch (Exception $e) {
   $response = [
@@ -90,11 +92,14 @@ try {
   ];
 }
 
-$book = null;
+$book = [];
 if (($response['status'] === 'success') && is_array($response)) {
-  $book = json_decode($response['body'], true);
+  //$book = json_decode($response['data'], true); //i dont think we need to decode the json if its already returned as an array of data
+  $book = $response['data'];
 }
 
+
+// ------------- LIST REVIEWS
 //fetch reviews and then list reviews
 
 $reviews=[];
@@ -103,7 +108,6 @@ try {
   $resp = $client->send_request([
     'type'     => 'library.review.list',
     'works_id' => $olid,
-    
   ]);
   if ($resp['status'] === 'success') {
     $reviews = $resp['items'];
@@ -126,7 +130,7 @@ try {
 
 <body>
   <!-- failed to collect book data -->
-  <?php if (!$book): ?>
+  <?php if (!$book || empty($book)): ?>
     <h2>Error loading book</h2>
     <p>No details available.</p>
 
@@ -154,9 +158,10 @@ try {
   -->
 
 
-  <? else: ?>
-    <h2 id="book-title"><?php echo htmlspecialchars($book['title'] ?? 'Unknown Title'); ?></h2>
-    <p id="book-author"><?php echo htmlspecialchars($book['author'] ?? 'Unknown Author'); ?></p>
+  <?php else: ?>
+    <!--<p>< php var_dump($book)? ></p>  DEBUGGING -->
+    <h2 id="book-title"><?php echo htmlspecialchars($book['title']); ?></h2>
+    <p id="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
 
     <div class="book-info">
       <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
@@ -169,9 +174,9 @@ try {
         <p><strong>First Published: </strong> <?php echo htmlspecialchars($book['publish_year']); ?> </p>
 
         <?php // FOR SUBJECTS, comma separated
-          $subjects = json_decode($book['subjects'] ?? '[]', true);
+          $subjects = json_decode($books['subjects'] ?? '[]', true);
 
-          echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>"; 
+          echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>";
           ?>
 
         <!--
