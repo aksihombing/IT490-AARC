@@ -351,6 +351,7 @@ function doInviteMember(array $req) {
 // ---- feature 3: create club event ----- 
 
 function doCreateEvent(array $req) {
+  $creatorUserID = $req['user_id'];
   $club_id = $req['club_id'] ?? 0;
   $title = $req['title'] ?? '';
   $date = $req['event_date'] ?? null;
@@ -361,7 +362,7 @@ function doCreateEvent(array $req) {
   }
 
   $conn = db();
-  $stmt = $conn->prepare("INSERT INTO events (club_id, title, event_date, description) VALUES (?, ?, ?, ?)");
+  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, event_date, description) VALUES (?, ?, ?, ?)");
   $stmt->bind_param("isss", $club_id, $title, $date, $desc);
   if (!$stmt->execute()) {
     return ['status' => 'fail', 'message' => $stmt->error];
