@@ -11,8 +11,7 @@ CREATE TABLE IF NOT EXISTS library_cache (
   title VARCHAR(255) NOT NULL,
   subtitle VARCHAR(255) DEFAULT NULL,
   author VARCHAR(255) DEFAULT 'Unknown Author',
-  isbn VARCHAR(50) DEFAULT NULL, -- from /works/olid/edition.json
-  -- publisher VARCHAR(255) DEFAULT NULL,--> removed bc this depends on the edition
+  isbn VARCHAR(50) DEFAULT NULL, 
   book_desc TEXT DEFAULT NULL,
 
   /* ints */
@@ -21,8 +20,6 @@ CREATE TABLE IF NOT EXISTS library_cache (
   ratings_count INT DEFAULT NULL,
 
   /* subject/genre */
-  -- these should be JSON_ENCODE(data) when INSERTING values
-  -- use JSON_DECODE(data) when reading it from the frontend
   subjects JSON DEFAULT NULL,
   person_key JSON DEFAULT NULL,
   place_key JSON DEFAULT NULL,
