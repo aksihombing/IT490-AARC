@@ -1,3 +1,13 @@
+DROP TABLE IF EXISTS `EventAttendees`;
+DROP TABLE IF EXISTS `reviews`;
+DROP TABLE IF EXISTS `user_library`;
+DROP TABLE IF EXISTS `club_events`;
+DROP TABLE IF EXISTS `club_members`;
+DROP TABLE IF EXISTS `events`;
+DROP TABLE IF EXISTS `clubs`;
+DROP TABLE IF EXISTS `sessions`;
+DROP TABLE IF EXISTS `users`;
+
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `emailAddress` varchar(250) NOT NULL,
