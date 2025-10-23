@@ -18,14 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $request = [
                 'type' => 'book_search',
                 'searchType' => $searchType,
-                'query' => $query
-                // FOR WHEN WE ADD PAGE AND LIMIT PARAMS
-                /*
+                'query' => $query,
                 'limit' => 10,
                 'page' => 1
-                */
-                
-                
             ];
 
             $response = $client->send_request($request);

@@ -29,18 +29,6 @@ if ($olid == '') {
 
 
 // --------- ADD TO LIBRARY
-
-
-// validate OLID request
-$olid = $_GET['olid'];
-if ($olid == '') {
-  http_response_code(400);
-  echo "<p>ERROR: Missing OLID in request.</p>";
-  exit;
-}
-
-
-// --------- ADD TO LIBRARY
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
