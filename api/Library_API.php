@@ -66,16 +66,19 @@ function doBookSearch(array $req)
 
 
   // FEATURE PROPOSAL : page, offset, and limit parameters
+  $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] :10; // default limit is 10
+  $page = isset($req['page']) ? intval($req['page']) :1; // default page starts at 1
+  $offset = ($page - 1) * $limit; // (page number - 1) * number of results per page
 
 
 
   // CACHE CHECK ----------------------------------
   $mysqli = db();
 
-  echo "Checking cache for: type={$type}, query='{$query}'\n"; //debugging
+  echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n"; //debugging
 
-  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT 10"); // might need to change limit ? idk
-  $check_cache->bind_param("ss", $type, $query);
+  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT ?"); // might need to change limit ? idk
+  $check_cache->bind_param("ssi", $type, $query, $limit);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
 
@@ -100,7 +103,7 @@ function doBookSearch(array $req)
   // for search.json!!!  ----------------------
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
-  $searchurl = "{$base}?q={$encodedQuery}&limit=10";
+  $searchurl = "{$base}?q={$encodedQuery}&limit={$limit}&offset={$offset}";
   // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
 
   $search_response = curl_get($searchurl);
@@ -270,7 +273,15 @@ function doBookSearch(array $req)
     echo "Cache MISS (fetched + saved) for {$type} = {$query}\n";
   } // END FOREACH BOOK
 
-  return ['status' => 'success', 'data' => $searchbookresults];
+  return ['status' => 'success', 
+  'data' => $searchbookresults,
+  'pagination'=> [
+    'limit' => $limit,
+    'page'=> $page,
+    'offset'=> $offset,
+  ]
+
+];
 }
 
 
