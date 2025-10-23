@@ -233,7 +233,7 @@ function doBookSearch(array $req)
     // binding params for such a big table... nightmare fuel for anyone who craves efficiency
 
     $insertToTable->bind_param(
-      "sssisssssidisssss",
+      "ssissssssidisssss",
       $type, // string
       $query, // string
       $page, // int
