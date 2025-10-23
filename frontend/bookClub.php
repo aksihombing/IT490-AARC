@@ -16,6 +16,8 @@
 </section>
 
 <script>
+const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
+
 async function loadClubs() {
   const res = await fetch('clubs_functions.php', {
     method: 'POST',
@@ -78,7 +80,10 @@ async function postForm(form){
   const data = new FormData(form);
   const res = await fetch('clubs_functions.php', {method:'POST', body:data});
   const out = document.getElementById('output');
+
+  if (!data.has('user_id')) data.append('user_id', USER_ID);
   if(!res.ok){ out.textContent = 'network error'; return; }
+  
   const json = await res.json();
   out.textContent = json.message || json.status;
 
