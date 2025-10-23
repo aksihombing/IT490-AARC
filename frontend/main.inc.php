@@ -76,7 +76,7 @@ if (!isset($_SESSION['session_key'])):
   try {
     $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
 
-    // Recent books
+    // Recent books request
     $recentResponse = $client->send_request(['type' => 'recent_books']);
 
     if ($recentResponse['status'] === 'success') {
@@ -85,7 +85,7 @@ if (!isset($_SESSION['session_key'])):
 
 
 
-     // browse books
+     // browse books request
     $browseResponse = $client->send_request([
       'type' => 'book_search',
       'query' => $query,
@@ -118,7 +118,6 @@ if (!isset($_SESSION['session_key'])):
       <?php if (!empty($recentBooks)): ?>
         <ul>
           <?php foreach ($recentBooks as $book):
-            // THIS IS SUBJECT TO CHANGE DEPENDING ON CHIZZY'S STRUCTURE
             $olid = urlencode($book['olid']);
             ?>
             <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
@@ -156,6 +155,7 @@ if (!isset($_SESSION['session_key'])):
 
     <section id="browse-section">
       <h3>Browse Books</h3>
+      <!-- Browse results; SHOULD use the same structure as search.php and recent_books but isnt working ?? -->
       <?php if (!empty($browseBooks)): ?>
         <ul>
           <?php foreach ($browseBooks as $book): ?>
@@ -186,7 +186,7 @@ if (!isset($_SESSION['session_key'])):
         </div>
       <?php else: ?>
         <p>No books found for this category.</p>
-      <?php endif; ?>
+      <?php endif; ?> <!-- end if(!empty$browseBooks) -->
     </section>
 
     <br>

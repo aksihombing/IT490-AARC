@@ -64,7 +64,6 @@ function doBookSearch(array $req)
     return ['status' => 'fail', 'message' => 'missing query'];
 
 
-
   // FEATURE PROPOSAL : page, offset, and limit parameters
   $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] :10; // default limit is 10
   $page = isset($req['page']) ? intval($req['page']) :1; // default page starts at 1
@@ -103,8 +102,8 @@ function doBookSearch(array $req)
   // for search.json!!!  ----------------------
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
-  $searchurl = "{$base}?q={$encodedQuery}&limit={$limit}&offset={$offset}";
-  // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
+  $searchurl = "{$base}?q={$encodedQuery}&limit={$limit}&page={$page}";
+  
 
   $search_response = curl_get($searchurl);
   $curl_data = json_decode($search_response, true); // true is for the associative arrays. if false, it returns the json objects into objects. make sure to decode the response from the api before upserting/ inserting it back into the db
@@ -275,12 +274,9 @@ function doBookSearch(array $req)
 
   return ['status' => 'success', 
   'data' => $searchbookresults,
-  'pagination'=> [
-    'limit' => $limit,
-    'page'=> $page,
-    'offset'=> $offset,
-  ]
-
+  'limit' => $limit,
+  'page'=> $page,
+  'offset'=> $offset, // calculates and sends offset back to frontend; not sure how it fully works tho
 ];
 }
 

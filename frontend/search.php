@@ -21,12 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'query' => $query,
                 'limit' => 10,
                 'page' => 1
-                // FOR WHEN WE ADD PAGE AND LIMIT PARAMS
-                /*
-                'limit' => 10,
-                'page' => 1
-                */
-                
             ];
 
             $response = $client->send_request($request);
