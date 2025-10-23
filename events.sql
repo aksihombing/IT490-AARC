@@ -10,8 +10,4 @@ CREATE TABLE `events` (
   PRIMARY KEY (`eventID`),
   KEY `creatorUserID` (`creatorUserID`),
   CONSTRAINT `fk_creator_user` FOREIGN KEY (`creatorUserID`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
-
-// ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;//
+);
