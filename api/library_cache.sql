@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS library_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
   search_type ENUM('title', 'author') NOT NULL, /* maybe i dont need this in the cache.*/
   query VARCHAR(255) NOT NULL,
+  pageNum INT NULL;
 
   /* basics -- may need more depending on what info we need for the website ? */
   olid VARCHAR(50) DEFAULT NULL,

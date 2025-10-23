@@ -76,8 +76,8 @@ function doBookSearch(array $req)
 
   echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n"; //debugging
 
-  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT ?"); // might need to change limit ? idk
-  $check_cache->bind_param("ssi", $type, $query, $limit);
+  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND pageNum=? AND expires_at > NOW() LIMIT ?"); // might need to change limit ? idk
+  $check_cache->bind_param("ssii", $type, $query, $limit);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
 
@@ -115,11 +115,11 @@ function doBookSearch(array $req)
   // $insertToTable will be repeatedly called from the loop
   $insertToTable = $mysqli->prepare("
     INSERT INTO library_cache (
-      search_type, query, olid, title, subtitle, author, isbn,
+      search_type, query, pageNum, olid, title, subtitle, author, isbn,
       book_desc, publish_year, ratings_average, ratings_count,
       subjects, person_key, place_key, time_key, cover_url
     )
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       title=VALUES(title),
       subtitle=VALUES(subtitle),
@@ -236,6 +236,7 @@ function doBookSearch(array $req)
       "ssssssssidisssss",
       $type, // string
       $query, // string
+      $page,
       $olid, // string
       $title, // string
       $subtitle, // string
@@ -255,6 +256,7 @@ function doBookSearch(array $req)
     $insertToTable->execute();
 
     $searchbookresults[] = [ // this gets returns to the webserver
+      'page' => $page,
       'olid' => $olid,
       'title' => $title,
       'subtitle' => $subtitle,
