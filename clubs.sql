@@ -13,6 +13,7 @@ CREATE TABLE `club_members` (
   PRIMARY KEY (`member_id`),
     KEY (`club_id`)
 );
+<<<<<<< HEAD
 
 CREATE TABLE `club_events` (
   `event_id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -22,3 +23,5 @@ CREATE TABLE `club_events` (
   `description` TEXT NULL,
   PRIMARY KEY (`event_id`),
 );
+=======
+>>>>>>> b1c0b2319f1a2a7c80b026880b4de1687c0362a5
