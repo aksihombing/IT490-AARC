@@ -9,6 +9,9 @@ CREATE TABLE `events` (
   `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
   PRIMARY KEY (`eventID`),
   KEY `creatorUserID` (`creatorUserID`),
-  -- Renamed the constraint for clarity:
   CONSTRAINT `fk_creator_user` FOREIGN KEY (`creatorUserID`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+
+// ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;//
