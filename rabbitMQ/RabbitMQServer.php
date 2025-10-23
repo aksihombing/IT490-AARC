@@ -361,7 +361,7 @@ function doCreateEvent(array $req) {
   }
 
   $conn = db();
-  $stmt = $conn->prepare("INSERT INTO club_events (club_id, title, event_date, description) VALUES (?, ?, ?, ?)");
+  $stmt = $conn->prepare("INSERT INTO events (club_id, title, event_date, description) VALUES (?, ?, ?, ?)");
   $stmt->bind_param("isss", $club_id, $title, $date, $desc);
   if (!$stmt->execute()) {
     return ['status' => 'fail', 'message' => $stmt->error];
@@ -378,7 +378,7 @@ function doListEvents(array $req) {
   if (!$club_id) return ['status' => 'fail', 'message' => 'missing club_id'];
 
   $conn = db();
-  $stmt = $conn->prepare("SELECT event_id, title, event_date, description FROM club_events WHERE club_id=? ORDER BY event_date ASC");
+  $stmt = $conn->prepare("SELECT event_id, title, event_date, description FROM events WHERE club_id=? ORDER BY event_date ASC");
   $stmt->bind_param("i", $club_id);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -399,7 +399,7 @@ function doCancelEvent(array $req) {
   if (!$event_id) return ['status' => 'fail', 'message' => 'missing event_id'];
 
   $conn = db();
-  $stmt = $conn->prepare("DELETE FROM club_events WHERE event_id=?");
+  $stmt = $conn->prepare("DELETE FROM events WHERE event_id=?");
   $stmt->bind_param("i", $event_id);
   if (!$stmt->execute()) {
     return ['status' => 'fail', 'message' => $stmt->error];
