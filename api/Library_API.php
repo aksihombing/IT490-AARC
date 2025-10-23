@@ -77,7 +77,7 @@ function doBookSearch(array $req)
   echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n"; //debugging
 
   $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND pageNum=? AND expires_at > NOW() LIMIT ?"); // might need to change limit ? idk
-  $check_cache->bind_param("ssii", $type, $query, $limit);
+  $check_cache->bind_param("ssii", $type, $query, $page, $limit);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
 
@@ -233,10 +233,10 @@ function doBookSearch(array $req)
     // binding params for such a big table... nightmare fuel for anyone who craves efficiency
 
     $insertToTable->bind_param(
-      "ssssssssidisssss",
+      "sssisssssidisssss",
       $type, // string
       $query, // string
-      $page,
+      $page, // int
       $olid, // string
       $title, // string
       $subtitle, // string
