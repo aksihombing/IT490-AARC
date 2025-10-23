@@ -40,7 +40,7 @@ CREATE TABLE `club_events` (
   `title` VARCHAR(100) NULL,
   `event_date` DATE NULL,
   `description` TEXT NULL,
-  PRIMARY KEY (`event_id`),
+  PRIMARY KEY (`event_id`)
 );
 
 CREATE TABLE `events` (
