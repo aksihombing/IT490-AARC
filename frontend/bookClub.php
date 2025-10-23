@@ -65,6 +65,7 @@ async function loadClubs() {
     <label>Title:</label><input name="title" required><br>
     <label>Date:</label><input type="date" name="event_date" required><br>
     <label>Description:</label><textarea name="description"></textarea><br>
+    <input type="hidden" name="user_id" value="<?= $_SESSION['user_id'] ?? 1 ?>">
     <input type="hidden" name="action" value="event_create">
     <button type="submit">Create Event</button>
   </form>
