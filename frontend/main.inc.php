@@ -84,7 +84,7 @@ if (!isset($_SESSION['session_key'])):
   // FOR GENERAL BROWSING
   // https://www.php.net/manual/en/function.intval.php
   $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // default page is 1
-  $limit - 10;
+  $limit = 10;
   $query = 'adventure'; // need a basic query for less api errors
   $browseBooks = [];
 
@@ -162,7 +162,7 @@ if (!isset($_SESSION['session_key'])):
     <br> <br>
 
     <section id="browse-section">
-      <h3>Browse Adventure Books</h3>
+      <h3>Browse Books</h3>
       <?php if (!empty($browseBooks)): ?>
         <ul>
           <?php foreach ($browseBooks as $book): ?>
