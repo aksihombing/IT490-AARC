@@ -111,7 +111,7 @@ try {
   $listReviewsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
   $resp = $listReviewsClient->send_request([
     'type' => 'library.reviews.list',
-    'works_id' => $olid,
+    'works_id' => $olid
   ]);
   if ($resp['status'] === 'success' && is_array($resp['status'])) {
     $reviews = $resp['items'];
