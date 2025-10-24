@@ -117,7 +117,10 @@ try {
     $reviews = $resp['items'];
   }
 } catch (Exception $e) {
-
+  $resp = [
+    'status' => 'error',
+    'message' => 'Unable to connect to ListReviews' . $e->getMessage()
+  ];
 }
 
 ?>

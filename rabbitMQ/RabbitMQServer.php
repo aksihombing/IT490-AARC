@@ -15,15 +15,16 @@ require_once __DIR__ . '/get_host_info.inc';
 
 
 // connects to the local sql database
-function db() {
-  $host = 'localhost'; 
-  $user = 'userAdmin'; 
+function db()
+{
+  $host = 'localhost';
+  $user = 'userAdmin';
   $pass = 'aarc490';
-  $name = 'userdb'; 
+  $name = 'userdb';
 
   $mysqli = new mysqli($host, $user, $pass, $name);
   if ($mysqli->connect_errno) {
-    throw new RuntimeException("DB connect failed: ".$mysqli->connect_error);
+    throw new RuntimeException("DB connect failed: " . $mysqli->connect_error);
   }
   return $mysqli;
 }
@@ -32,45 +33,47 @@ function db() {
 // request handlers
 
 // --- AUTHENTICATION ---
-function doRegister(array $req) {
+function doRegister(array $req)
+{
   $email = $req['email'] ?? '';
   $username = $req['username'] ?? '';
   $hash = $req['password'] ?? '';
 
-// validate entered fields
-  if ($email==='' || $username==='' || $hash==='') {
-    return ['status'=>'fail','message'=>'missing fields'];
+  // validate entered fields
+  if ($email === '' || $username === '' || $hash === '') {
+    return ['status' => 'fail', 'message' => 'missing fields'];
   }
 
   $conn = db();
 
-// see if user already exists in db
+  // see if user already exists in db
   $stmt = $conn->prepare("SELECT id FROM users WHERE username=? OR emailAddress=?");
   $stmt->bind_param("ss", $username, $email);
   $stmt->execute();
   $stmt->store_result();
 
   if ($stmt->num_rows > 0) {
-    return ['status'=>'fail','message'=>'user or email exists'];
+    return ['status' => 'fail', 'message' => 'user or email exists'];
   }
   $stmt->close();
 
-// inserts new user into database
+  // inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
   $stmt->bind_param("sss", $username, $email, $hash);
   if (!$stmt->execute()) {
-    return ['status'=>'fail','message'=>'db insert failed'];
+    return ['status' => 'fail', 'message' => 'db insert failed'];
   }
 
-  return ['status'=>'success'];
+  return ['status' => 'success'];
 }
 
-function doLogin(array $req) {
+function doLogin(array $req)
+{
   $username = $req['username'] ?? '';
   $password = $req['password'] ?? '';
 
- if ($username==='' || $password==='') {
-    return ['status'=>'fail','message'=>'missing fields'];
+  if ($username === '' || $password === '') {
+    return ['status' => 'fail', 'message' => 'missing fields'];
   }
   $conn = db();
 
@@ -78,65 +81,67 @@ function doLogin(array $req) {
   $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
 
   if (!$stmt) {
-        error_log("doLogin preparing SELECT failed: " . $conn->error);
-        return ['status'=>'fail','message'=>'server error'];
-    }
-  
+    error_log("doLogin preparing SELECT failed: " . $conn->error);
+    return ['status' => 'fail', 'message' => 'server error'];
+  }
+
   $stmt->bind_param("s", $username);
 
   if (!$stmt->execute()) {
-        error_log("doLogin execute SELECT failed: " . $stmt->error);
-        return ['status'=>'fail','message'=>'server error'];
-    }
-  
+    error_log("doLogin execute SELECT failed: " . $stmt->error);
+    return ['status' => 'fail', 'message' => 'server error'];
+  }
+
   $stmt->store_result();
 
-  if ($stmt->num_rows === 1) { 
+  if ($stmt->num_rows === 1) {
     // checks if theres a row in the db with from the query result
-    $stmt->bind_result($uid,$dbUser,$dbHash);
+    $stmt->bind_result($uid, $dbUser, $dbHash);
     $stmt->fetch();
     error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
 
     $conn->query("DELETE FROM sessions WHERE user_id = $uid");
-    
-    if (password_verify($password,$dbHash)){
-     // create a session key, should be secure ?
+
+    if (password_verify($password, $dbHash)) {
+      // create a session key, should be secure ?
       $session = bin2hex(random_bytes(32));
       $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
       error_log("doLogin password ok, generating session: key={$session}, expires={$exp}");
 
       // stores the session in the db. change variable name in case it caused problems
       $stmt2 = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?, ?, ?)");
-            if (!$stmt2) {
-                error_log("doLogin preparing insert into sessions failed: " . $conn->error);
-            } else {
-                $stmt2->bind_param("iss", $uid, $session, $exp);
-                if (!$stmt2->execute()) {
-                    error_log("doLogin execute insert into session failed: " . $stmt2->error);
-                } else {
-                    error_log("doLogin Session inserted for uid={$uid}, session_key={$session}");
-                }
-            }
-
-            return [
-                'status' => 'success',
-                'uid' => $uid,
-                'username' => $dbUser,
-                'session_key' => $session
-            ];
+      if (!$stmt2) {
+        error_log("doLogin preparing insert into sessions failed: " . $conn->error);
+      } else {
+        $stmt2->bind_param("iss", $uid, $session, $exp);
+        if (!$stmt2->execute()) {
+          error_log("doLogin execute insert into session failed: " . $stmt2->error);
         } else {
-            error_log("doLogin invalid password for user {$username}");
-            return ['status'=>'fail', 'message'=>'invalid password'];
+          error_log("doLogin Session inserted for uid={$uid}, session_key={$session}");
         }
+      }
+
+      return [
+        'status' => 'success',
+        'uid' => $uid,
+        'username' => $dbUser,
+        'session_key' => $session
+      ];
     } else {
-        error_log("doLogin user not found: {$username}");
-        return ['status'=>'fail', 'message'=>'user not found'];
+      error_log("doLogin invalid password for user {$username}");
+      return ['status' => 'fail', 'message' => 'invalid password'];
     }
+  } else {
+    error_log("doLogin user not found: {$username}");
+    return ['status' => 'fail', 'message' => 'user not found'];
+  }
 }
 
-function doValidate(array $req) {
+function doValidate(array $req)
+{
   $sid = $req['session_key'] ?? '';
-  if ($sid==='') return ['status'=>'fail','message'=>'missing session'];
+  if ($sid === '')
+    return ['status' => 'fail', 'message' => 'missing session'];
 
   $conn = db();
   $stmt = $conn->prepare("
@@ -147,55 +152,64 @@ function doValidate(array $req) {
   ");
   $stmt->bind_param("s", $sid);
   $stmt->execute();
-  $stmt->bind_result($uid,$uname,$email,$exp);
+  $stmt->bind_result($uid, $uname, $email, $exp);
 
-  if (!$stmt->fetch()) return ['status'=>'fail','message'=>'not found'];
+  if (!$stmt->fetch())
+    return ['status' => 'fail', 'message' => 'not found'];
   if ($exp && strtotime($exp) < time()) {
     // session is expired so deletes
     $del = $conn->prepare("DELETE FROM sessions WHERE session_key=?");
-    $del->bind_param("s",$sid);
+    $del->bind_param("s", $sid);
     $del->execute();
-    return ['status'=>'fail','message'=>'expired'];
+    return ['status' => 'fail', 'message' => 'expired'];
   }
 
-  return ['status'=>'success','user'=>['id'=>$uid,'username'=>$uname,'email'=>$email]];
+  return ['status' => 'success', 'user' => ['id' => $uid, 'username' => $uname, 'email' => $email]];
 }
 
-function doLogout(array $req) {
+function doLogout(array $req)
+{
   $sid = $req['session_key'] ?? '';
-  if ($sid==='') return ['status'=>'fail','message'=>'missing session'];
+  if ($sid === '')
+    return ['status' => 'fail', 'message' => 'missing session'];
 
   $conn = db();
   $stmt = $conn->prepare("DELETE FROM sessions WHERE session_key=?");
-  $stmt->bind_param("s",$sid);
+  $stmt->bind_param("s", $sid);
   $stmt->execute();
-  return ['status'=>'success'];
+  return ['status' => 'success'];
 }
 
 // --- MIDTERM GROUP DELIVERABLES (WEBSITE FEATURES) ---
 
 // CHIZZY'S FUNCTIONS
 //removes a book from user's library
-function doLibraryRemove(array $req) {
-  $uid  = (int)($req['user_id'] ?? 0);
+function doLibraryRemove(array $req)
+{
+  $uid = (int) ($req['user_id'] ?? 0);
   $work = $req['works_id'] ?? '';
-  if (!$uid || $work === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
+  if (!$uid || $work === '')
+    return ['status' => 'fail', 'message' => 'missing user_id or works_id'];
 
   $conn = db();
   $stmt = $conn->prepare("DELETE FROM user_library WHERE user_id=? AND works_id=? LIMIT 1");
-  if (!$stmt) return ['status'=>'fail','message'=>'prep failed'];
+  if (!$stmt)
+    return ['status' => 'fail', 'message' => 'prep failed'];
   $stmt->bind_param("is", $uid, $work);
-  if (!$stmt->execute()) return ['status'=>'fail','message'=>'execute failed'];
+  if (!$stmt->execute())
+    return ['status' => 'fail', 'message' => 'execute failed'];
 
   return ($stmt->affected_rows > 0)
-    ? ['status'=>'success']
-    : ['status'=>'fail','message'=>'not found'];
+    ? ['status' => 'success']
+    : ['status' => 'fail', 'message' => 'not found'];
 }
 
 //gets all the reviews for a specific book
-function doReviewsList(array $req) {
+function doReviewsList(array $req)
+{
   $works_id = trim($req['works_id'] ?? '');
-  if ($works_id === '') return ['status'=>'fail','message'=>'missing works_id'];
+  if ($works_id === '')
+    return ['status' => 'fail', 'message' => 'missing works_id'];
 
   $conn = db();
 
@@ -212,22 +226,24 @@ function doReviewsList(array $req) {
   $res = $stmt->get_result();
 
   $items = [];
-  while ($row = $res->fetch_assoc()) $items[] = $row;
+  while ($row = $res->fetch_assoc())
+    $items[] = $row;
 
   return [
     'status' => 'success',
-    'items'  => $items
+    'items' => $items
   ];
 }
 
-function doReviewsCreate(array $req) {
-  $user_id  = (int)($req['user_id'] ?? 0);
+function doReviewsCreate(array $req)
+{
+  $user_id = (int) ($req['user_id'] ?? 0);
   $works_id = trim($req['works_id'] ?? '');
-  $rating   = (int)($req['rating'] ?? 0);
-  $body     = trim($req['body'] ?? ($req['comment'] ?? ''));
+  $rating = (int) ($req['rating'] ?? 0);
+  $body = trim($req['body'] ?? ($req['comment'] ?? ''));
 
   if ($user_id <= 0 || $works_id === '' || $rating < 1 || $rating > 5) {
-    return ['status'=>'fail','message'=>'missing or invalid fields'];
+    return ['status' => 'fail', 'message' => 'missing or invalid fields'];
   }
 
   $conn = db();
@@ -240,13 +256,22 @@ function doReviewsCreate(array $req) {
   $stmt->bind_param("isis", $user_id, $works_id, $rating, $body);
   $ok = $stmt->execute();
 
-  return $ok
-    ? ['status'=>'success','message'=>'review saved']
-    : ['status'=>'fail','message'=>'database error'];
+  if (!$ok) {
+    return
+      [
+        'status' => 'fail',
+        'message' => 'database error: ' . $stmt->error
+      ];
+  }
+
+  else {
+    return ['status'=>'success','message'=>'review saved'];
+  }
 }
 
-function doLibraryList(array $req) {
-  $user_id = (int)($req['user_id'] ?? 0);
+function doLibraryList(array $req)
+{
+  $user_id = (int) ($req['user_id'] ?? 0);
   if ($user_id <= 0) {
     return ['status' => 'fail', 'message' => 'missing user_id'];
   }
@@ -274,31 +299,36 @@ function doLibraryList(array $req) {
 
   return [
     'status' => 'success',
-    'items'  => $items
+    'items' => $items
   ];
 }
 
 // adds a book to user's library, forgot to add this function earlier
-function doLibraryAdd(array $req) {
-  $uid  = (int)($req['user_id'] ?? 0);
+function doLibraryAdd(array $req)
+{
+  $uid = (int) ($req['user_id'] ?? 0);
   $works_id = trim($req['works_id'] ?? '');
-  if ($uid <= 0 || $works_id === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
+  if ($uid <= 0 || $works_id === '')
+    return ['status' => 'fail', 'message' => 'missing user_id or works_id'];
 
   $conn = db();
   $stmt = $conn->prepare("INSERT IGNORE INTO user_library (user_id, works_id) VALUES (?, ?)");
-  if (!$stmt) return ['status'=>'fail','message'=>'prep failed'];
+  if (!$stmt)
+    return ['status' => 'fail', 'message' => 'prep failed'];
   $stmt->bind_param("is", $uid, $works_id);
-  if (!$stmt->execute()) return ['status'=>'fail','message'=>'execute failed'];
+  if (!$stmt->execute())
+    return ['status' => 'fail', 'message' => 'execute failed'];
 
   // INSERT IGNORE → if already there, affected_rows==0; still count as success
-  return ['status'=>'success', 'message'=> ($stmt->affected_rows ? 'added' : 'already-in-library')];
+  return ['status' => 'success', 'message' => ($stmt->affected_rows ? 'added' : 'already-in-library')];
 }
 
 
 // AIDA'S FUNCTIONS -- club features
 
 // ---- feature 1: create club ----- 
-function doCreateClub(array $req) {
+function doCreateClub(array $req)
+{
   $owner_id = $req['user_id'] ?? 0;
   $name = $req['club_name'] ?? '';
   $desc = $req['description'] ?? '';
@@ -320,7 +350,8 @@ function doCreateClub(array $req) {
 
 // ---- feature 2: invite member to club ----- 
 
-function doInviteMember(array $req) {
+function doInviteMember(array $req)
+{
   $club_id = $req['club_id'] ?? 0;
   $user_id = $req['user_id'] ?? 0;
 
@@ -352,7 +383,8 @@ function doInviteMember(array $req) {
 
 // ---- feature 3: create club event ----- 
 
-function doCreateEvent(array $req) {
+function doCreateEvent(array $req)
+{
   $creatorUserID = $req['user_id'] ?? 0;
   $club_id = $req['club_id'] ?? 0;
   $title = $req['title'] ?? '';
@@ -376,9 +408,11 @@ function doCreateEvent(array $req) {
 
 // ---- feature 4: list club events ----- 
 
-function doListEvents(array $req) {
+function doListEvents(array $req)
+{
   $club_id = $req['club_id'] ?? 0;
-  if (!$club_id) return ['status' => 'fail', 'message' => 'missing club_id'];
+  if (!$club_id)
+    return ['status' => 'fail', 'message' => 'missing club_id'];
 
   $conn = db();
   $stmt = $conn->prepare("SELECT event_id, title, event_date, description FROM events WHERE club_id=? ORDER BY event_date ASC");
@@ -397,9 +431,11 @@ function doListEvents(array $req) {
 
 // ---- feature 5: cancel club event ----- 
 
-function doCancelEvent(array $req) {
+function doCancelEvent(array $req)
+{
   $event_id = $req['event_id'] ?? 0;
-  if (!$event_id) return ['status' => 'fail', 'message' => 'missing event_id'];
+  if (!$event_id)
+    return ['status' => 'fail', 'message' => 'missing event_id'];
 
   $conn = db();
   $stmt = $conn->prepare("DELETE FROM events WHERE event_id=?");
@@ -412,9 +448,11 @@ function doCancelEvent(array $req) {
 }
 
 // ---- feature 6: list clubs -----
-function doList(array $req) {
+function doList(array $req)
+{
   $user_id = $req['user_id'] ?? 0;
-  if (!$user_id) return ['status' => 'fail', 'message' => 'missing user_id'];
+  if (!$user_id)
+    return ['status' => 'fail', 'message' => 'missing user_id'];
 
   $conn = db();
   // user is owner or member of club
@@ -443,32 +481,49 @@ function doList(array $req) {
 // --- REQUEST PROCESSOR ---
 
 // decides which function to run
-function requestProcessor($req) {
+function requestProcessor($req)
+{
   echo "Received request:\n";
-    var_dump($req);
-    flush();
-  
+  var_dump($req);
+  flush();
+
   if (!isset($req['type'])) {
-    return ['status'=>'fail','message'=>'no type'];
+    return ['status' => 'fail', 'message' => 'no type'];
   }
 
   switch ($req['type']) {
-    case 'register': return doRegister($req);
-    case 'login':    return doLogin($req);
-    case 'validate': return doValidate($req);
-    case 'logout':   return doLogout($req);
-    case 'library.personal.remove': return doLibraryRemove($req);
-    case 'library.review.list':   return doReviewsList($req);
-    case 'library.review.create': return doReviewsCreate($req);
-    case 'library.personal.list': return doLibraryList($req);
-    case 'library.personal.add': return doLibraryAdd($req);
-    case 'club.create': return doCreateClub($req);
-    case 'club.invite': return doInviteMember($req);
-    case 'club.list': return doList($req);
-    case 'club.events.create': return doCreateEvent($req);
-    case 'club.events.list': return doListEvents($req);
-    case 'club.events.cancel': return doCancelEvent($req);
-    default:         return ['status'=>'fail','message'=>'unknown type'];
+    case 'register':
+      return doRegister($req);
+    case 'login':
+      return doLogin($req);
+    case 'validate':
+      return doValidate($req);
+    case 'logout':
+      return doLogout($req);
+    case 'library.personal.remove':
+      return doLibraryRemove($req);
+    case 'library.review.list':
+      return doReviewsList($req);
+    case 'library.review.create':
+      return doReviewsCreate($req);
+    case 'library.personal.list':
+      return doLibraryList($req);
+    case 'library.personal.add':
+      return doLibraryAdd($req);
+    case 'club.create':
+      return doCreateClub($req);
+    case 'club.invite':
+      return doInviteMember($req);
+    case 'club.list':
+      return doList($req);
+    case 'club.events.create':
+      return doCreateEvent($req);
+    case 'club.events.list':
+      return doListEvents($req);
+    case 'club.events.cancel':
+      return doCancelEvent($req);
+    default:
+      return ['status' => 'fail', 'message' => 'unknown type'];
   }
 }
 
@@ -482,31 +537,41 @@ $which = $argv[1] ?? 'all';
 $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
-    echo "Auth server starting for ALL queues...\n";
-    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
-      'AuthLogout', 'LibraryPersonal', 'LibraryRemove', 
-      'CreateReviews','ListReviews','LibraryAdd','ClubProcessor'];
+  echo "Auth server starting for ALL queues...\n";
+  $sections = [
+    'AuthRegister',
+    'AuthLogin',
+    'AuthValidate',
+    'AuthLogout',
+    'LibraryPersonal',
+    'LibraryRemove',
+    'CreateReviews',
+    'ListReviews',
+    'LibraryAdd',
+    'ClubProcessor'
+  ];
 
-    foreach ($sections as $section) {
-        $pid = pcntl_fork(); // process control fork; creats child process 
-        if ($pid == -1) {
-            die("Failed to fork for {$section}\n");
-        } elseif ($pid === 0) {
-            // child process
-            echo "Listening on {$section}\n";
-            $server = new rabbitMQServer($iniPath, $section);
-            $server->process_requests('requestProcessor');
-            exit(0);
-        }
+  foreach ($sections as $section) {
+    $pid = pcntl_fork(); // process control fork; creats child process 
+    if ($pid == -1) {
+      die("Failed to fork for {$section}\n");
+    } elseif ($pid === 0) {
+      // child process
+      echo "Listening on {$section}\n";
+      $server = new rabbitMQServer($iniPath, $section);
+      $server->process_requests('requestProcessor');
+      exit(0);
     }
+  }
 
-    // parent waits for all children
-    while (pcntl_wait($status) > 0) {}
+  // parent waits for all children
+  while (pcntl_wait($status) > 0) {
+  }
 } else {
-    echo "Auth server starting for queue section: {$which}\n";
-    $server = new rabbitMQServer($iniPath, $which);
-    echo "Connecting to queue: {$which}\n";
-    flush();
-    $server->process_requests('requestProcessor');
-    echo "Auth server stopped for {$which}\n";
+  echo "Auth server starting for queue section: {$which}\n";
+  $server = new rabbitMQServer($iniPath, $which);
+  echo "Connecting to queue: {$which}\n";
+  flush();
+  $server->process_requests('requestProcessor');
+  echo "Auth server stopped for {$which}\n";
 }
