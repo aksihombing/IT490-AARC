@@ -113,8 +113,11 @@ try {
     'type' => 'library.reviews.list',
     'works_id' => $olid,
   ]);
-  if ($resp['status'] === 'success') {
+  if ($resp['status'] === 'success' && is_array($resp['status'])) {
     $reviews = $resp['items'];
+  }
+  else {
+    $error = "Failed to load reviews: " . ($resp['message'] ?? 'Unknown error');
   }
 } catch (Exception $e) {
   $resp = [
