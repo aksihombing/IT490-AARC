@@ -98,7 +98,7 @@ async function loadClubs() {
       const li = document.createElement('li');
       let inviteLinkHTML = '';
       //modified existing login here for club list to include the link I Hope
-      if (c.is_owner) {
+      if (c.owner_id == USER_ID) {
         inviteLinkHTML = `<button onclick="generateInvite(${c.club_id})">Generate Invite Link</button>`;
       }
 
