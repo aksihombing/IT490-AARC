@@ -31,9 +31,12 @@ if ($olid == '') {
 // --------- ADD TO LIBRARY
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // POST functions are used for add_to_library and create_review
   try {
     $action = $_POST['action'] ?? '';
 
+
+    // ADD TO LIBRARY (POST)
     if ($action === 'add_to_library') {
       $addLibraryClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
       $addLibraryClient->send_request([
@@ -42,9 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'works_id' => $olid,
       ]);
 
-
-
-
       header("Location: index.php?content=book&olid=" . urlencode($olid));
       exit;// should we reedirect after to show it works?
 
@@ -52,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     }
 
-    // ------------- CREATE REVIEW
+    // ------------- CREATE REVIEW (POST)
     //handling  the review submission
     if ($action === 'create_review') {
       $rating = $_POST['rating'] ?? 0;
-      $comment = $_POST['comment'] ?? '';
+      $body = $_POST['body'] ?? '';
 
       $createReviewClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
       $createReviewClient->send_request([
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'user_id' => $_SESSION['uid'],
         'works_id' => $olid,
         'rating' => $rating,
-        'comment' => $comment,
+        'body' => $body,
       ]);
 
       header("Location: index.php?content=book&olid=" . urlencode($olid));
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-
+// both book_details and ListReviews are run when the page is loaded -- doesnt rely on any other http request methods
 
 // -------------- DO BOOK DETAILS
 try {
@@ -210,7 +210,7 @@ try {
         </label>
         <br>
         <label>Review:</label><br>
-        <textarea id="comment" rows="3" name="comment" placeholder="Write your thoughts here..."></textarea>
+        <textarea id="body" rows="3" name="body" placeholder="Write your thoughts here..."></textarea>
         <br>
         <button class="btn" type="submit">Submit</button>
       </form>
