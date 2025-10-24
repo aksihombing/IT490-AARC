@@ -3,7 +3,7 @@
 // angela's bookClub.php reworked so it works with rmq and db
 session_start();
 if (!isset($_SESSION['login'])) {
-    header("Location: /frontend/login.php");
+    header("Location: login.php");
     exit;
 }
 ?>
