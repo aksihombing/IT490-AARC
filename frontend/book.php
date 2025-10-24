@@ -28,7 +28,7 @@ if ($olid == '') {
 }
 
 // check uid
-$userId = $_SESSION['uid']; 
+$userId = $_SESSION['user_id']; 
 
 
 // --------- ADD TO LIBRARY
