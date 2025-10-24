@@ -11,7 +11,6 @@
 
 <section id="myClubs">
   <h3>My Clubs</h3>
-  <button onclick="loadClubs()">Refresh List</button>
   <ul id="clubList"></ul>
 </section>
 
@@ -76,6 +75,10 @@ async function loadClubs() {
 <div id="output" style="margin-top:1rem;color:#333;"></div>
 
 <script>
+const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
+
+document.addEventListener("DOMContentLoaded", loadClubs); // should auto-load clubs list when page loads
+
 async function postForm(form){
   const data = new FormData(form);
     
@@ -88,6 +91,11 @@ async function postForm(form){
   
   const json = await res.json();
   out.textContent = json.message || json.status;
+
+  // refresh clubs automatically after forms submitted
+  if (['create', 'invite'].includes(data.get('action'))) {
+    await loadClubs();
+  }
 
   form.reset();
 }
