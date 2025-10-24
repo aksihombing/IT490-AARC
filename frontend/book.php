@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-session_start();
+
 /*
 PULLED CHIZZYS CODE
 edited by Rea
@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create_review') {
       $rating  = $_POST['rating']  ?? 0;
       $comment = $_POST['comment'] ?? '';
+      $body = $_POST['body'] ?? '';
 
       $createReviewClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
       $createReviewClient->send_request([
@@ -65,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'works_id' => $olid,
         'rating'   => $rating,
         'comment'  => $comment,
+        'body'     => $body
       ]);
 
       header("Location: index.php?content=book&olid=" . urlencode($olid));
@@ -210,7 +212,7 @@ try {
         </label>
         <br>
         <label>Review:</label><br>
-        <textarea id="comment" name="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
+        <textarea id="body" name="body" rows="3" placeholder="Write your thoughts here..."></textarea>
         <br>
         <button class="btn" type="submit">Submit</button>
       </form>
@@ -224,10 +226,11 @@ try {
       <?php else: ?>
         <?php foreach ($reviews as $review): ?>
           <div class="card">
-            <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
-             — <?= (int)($review['rating'] ?? 0) ?>/5  
-            <p><?= htmlspecialchars($review['body'] ?? ''); ?></p>
-            <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
+           <p>
+              <strong>  <?php htmlspecialchars($review['username'] ?? 'User'); ?> </strong>
+              — <?php (int) ($review['rating'] ?? 0) ?>/5</p>
+            <p> <?php htmlspecialchars($review['body'] ?? ''); ?></p>
+            <small> <?php htmlspecialchars($review['created_at'] ?? ''); ?> </small>
           </div>
         <?php endforeach; ?>
       <?php endif; ?>
