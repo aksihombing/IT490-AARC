@@ -27,6 +27,9 @@ if ($olid == '') {
   exit;
 }
 
+// check uid
+$userId = $_SESSION['uid']; 
+
 
 // --------- ADD TO LIBRARY
 $error = ''; // error catching
@@ -42,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $addLibraryClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
       $addLibraryClient->send_request([
         'type' => 'library.personal.add',
-        'user_id' => $_SESSION['uid'],
+        'user_id' => $userId,
         'works_id' => $olid,
       ]);
 
@@ -62,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $createReviewClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
       $createReviewClient->send_request([
         'type' => 'library.review.create',
-        'user_id' => $_SESSION['uid'],
+        'user_id' => $userId,
         'works_id' => $olid,
         'rating' => $rating,
         'body' => $body,
