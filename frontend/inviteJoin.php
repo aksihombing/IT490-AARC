@@ -20,7 +20,7 @@ $client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini', 'ClubProcessor');
 $res = $client->send_request(['type'=>'club.join_link','hash'=>$hash,'user_id'=>$user_id]);
 
 if ($res['status']==='success') {
-  echo "<p>you’ve successfully joined the book club!</p><a href=/frontend/index.php?content=bookClub'>go back</a>";
+  echo "<p>you’ve successfully joined the book club!</p><a href=/frontend/index.php?content=bookClub'>Back to Book Clubs</a>";
 } else {
   echo "<p>failed to join club: ".$res['message'].". please try again</p>";
 }
