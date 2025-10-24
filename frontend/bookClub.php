@@ -15,30 +15,6 @@
   <ul id="clubList"></ul>
 </section>
 
-<script>
-const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
-
-async function loadClubs() {
-  const res = await fetch('clubs_functions.php', {
-    method: 'POST',
-    body: new URLSearchParams({ action: 'list', user_id: '<?= $_SESSION['user_id'] ?? 1 ?>' })
-  });
-  const json = await res.json();
-  const list = document.getElementById('clubList');
-  list.innerHTML = '';
-  if (!json.clubs || json.clubs.length === 0) {
-    list.innerHTML = '<li>No clubs found.</li>';
-    return;
-  }
-  json.clubs.forEach(c => {
-    const li = document.createElement('li');
-    li.innerHTML = `<strong>${c.name}</strong> — ${c.description || 'No description'} 
-                    (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>)`;
-    list.appendChild(li);
-  });
-}
-</script>
-
 <section id="createClub">
   <h3>Create Club</h3>
   <form id="formCreate">
