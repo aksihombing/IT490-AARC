@@ -111,7 +111,7 @@ try {
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
           <form method="POST">
-            <input type="hidden" name="olid" value="<?php echo htmlspecialchars($book['olid']) ?>">
+            <input type="hidden" name="works_id" value="<?php echo htmlspecialchars($book['works_id']) ?>">
             <button type="submit" class="btn">Remove</button>
           </form>
         </div>
