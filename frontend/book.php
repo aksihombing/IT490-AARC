@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-//session_start();
+
 /*
 PULLED CHIZZYS CODE
 edited by Rea
@@ -34,20 +34,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'add_to_library'){
+    if ($action === 'add_to_library') {
       $addLibraryClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
       $addLibraryClient->send_request([
-        'type'    => 'library.personal.add',
+        'type' => 'library.personal.add',
         'user_id' => $_SESSION['uid'],
         'works_id' => $olid,
       ]);
 
-      
-    
+
+
 
       header("Location: index.php?content=book&olid=" . urlencode($olid));
       exit;// should we reedirect after to show it works?
-      
+
       echo "<p>Book added to your library!</p>";
 
     }
@@ -55,16 +55,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ------------- CREATE REVIEW
     //handling  the review submission
     if ($action === 'create_review') {
-      $rating  = $_POST['rating']  ?? 0;
+      $rating = $_POST['rating'] ?? 0;
       $comment = $_POST['comment'] ?? '';
 
       $createReviewClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
       $createReviewClient->send_request([
-        'type'     => 'library.review.create',
-        'user_id'  => $_SESSION['uid'],
+        'type' => 'library.review.create',
+        'user_id' => $_SESSION['uid'],
         'works_id' => $olid,
-        'rating'   => $rating,
-        'comment'  => $comment,
+        'rating' => $rating,
+        'comment' => $comment,
       ]);
 
       header("Location: index.php?content=book&olid=" . urlencode($olid));
@@ -102,17 +102,17 @@ if (($response['status'] === 'success') && is_array($response)) {
 // ------------- LIST REVIEWS
 //fetch reviews and then list reviews
 
-$reviews=[];
+$reviews = [];
 try {
   $listReviewsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
   $resp = $listReviewsClient->send_request([
-    'type'     => 'library.reviews.list',
+    'type' => 'library.reviews.list',
     'works_id' => $olid,
   ]);
   if ($resp['status'] === 'success') {
     $reviews = $resp['items'];
   }
-  } catch (Exception $e) {
+} catch (Exception $e) {
 
 }
 
@@ -167,7 +167,7 @@ try {
       <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
 
       <div id="book-data">
-        <p><strong>Rating</strong> <?php echo htmlspecialchars($book['rating_average']); ?> </p>
+        <p><strong>Rating</strong> <?php echo htmlspecialchars($book['ratings_average']); ?> </p>
         <br>
         <p><strong>ISBN: </strong> <?php echo htmlspecialchars($book['isbn']); ?> </p>
         <p><strong>Description: </strong> <?php echo htmlspecialchars($book['book_desc']); ?> </p>
@@ -189,9 +189,9 @@ try {
     </div>
 
     <form method="POST" style="margin-top:12px;">
-    <input type="hidden" name="action" value="add_to_library">            
-    <button class="btn" type="submit">Add to My Library</button>         
-  </form>
+      <input type="hidden" name="action" value="add_to_library">
+      <button class="btn" type="submit">Add to My Library</button>
+    </form>
 
     <!-- CHIZZY -->
     <section>
@@ -199,7 +199,7 @@ try {
       <form id="reviewForm" method="POST">
         <input type="hidden" name="action" value="create_review">
         <label>Rating:
-          <select id="rating" required>
+          <select id="rating" name="rating" required>
             <option value="">Select...</option>
             <option>1</option>
             <option>2</option>
@@ -210,7 +210,7 @@ try {
         </label>
         <br>
         <label>Review:</label><br>
-        <textarea id="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
+        <textarea id="comment" rows="3" name="comment" placeholder="Write your thoughts here..."></textarea>
         <br>
         <button class="btn" type="submit">Submit</button>
       </form>
@@ -224,14 +224,15 @@ try {
       <?php else: ?>
         <?php foreach ($reviews as $review): ?>
           <div class="card">
-            <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
-             — <?= (int)($review['rating'] ?? 0) ?>/5  
-            <p><?= htmlspecialchars($review['comment'] ?? ''); ?></p>
-            <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
+            <p>
+              <strong>  <?php htmlspecialchars($review['username'] ?? 'User'); ?> </strong>
+              — <?php (int) ($review['rating'] ?? 0) ?>/5</p>
+            <p> <?php htmlspecialchars($review['body'] ?? ''); ?></p>
+            <small> <?php htmlspecialchars($review['created_at'] ?? ''); ?> </small>
           </div>
         <?php endforeach; ?>
       <?php endif; ?>
-        </div>
+      </div>
     </section>
     <!-- CHIZZY, END -->
   <?php endif; ?>
