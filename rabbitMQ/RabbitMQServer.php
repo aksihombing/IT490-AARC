@@ -216,7 +216,7 @@ function doReviewsList(array $req)
   $conn = db();
 
   $stmt = $conn->prepare("
-    SELECT r.id, r.user_id, u.username, r.rating, r.body, r.created_at
+    SELECT r.user_id, u.username, r.rating, r.body, r.created_at
     FROM reviews r
     JOIN users u ON u.id = r.user_id
     WHERE r.works_id = ?
