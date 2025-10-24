@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode($res);
     } catch (Exception $e) {
         echo json_encode(['status'=>'fail','message'=>$e->getMessage()]);
-    }S
+    }
     exit;
 }
 ?>
