@@ -51,7 +51,7 @@ if ($resp['status'] === 'success') {
 try {
   $detailsclient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   foreach ($library as &$book) {
-    $olid = $book['olid'] ?? '';
+    $olid = $book['works_id'] ?? '';
     if (!$olid) continue; // ask if this should 
 
     try {
@@ -59,6 +59,8 @@ try {
         'type' => 'book_details',
         'olid' => $olid 
       ]);
+
+       echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
 
       if ($details['status'] === 'success') {
         $bookDetails = $details['items'] ?? $details['data'] ?? [];
@@ -112,7 +114,7 @@ try {
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
           <form method="POST">
-            <input type="hidden" name="olid" value="<?php echo htmlspecialchars($book['olid']) ?>">
+            <input type="hidden" name="olid" value="<?php echo htmlspecialchars($book['works_id']) ?>">
             <button type="submit" class="btn">Remove</button>
           </form>
         </div>
