@@ -17,7 +17,7 @@ if (!isset($_SESSION['login'])) {
   <link rel="stylesheet" href="/themes/scheduler_8.css">
 </head>
 <body>
-<a href='/frontend/index.php?content=bookClub'>Back to Book Clubs</a>
+<a href='index.php?content=bookClub'>Back to Book Clubs</a>
 
 <h2>Book Club Meeting Calendar</h2>
 
