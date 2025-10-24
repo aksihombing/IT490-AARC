@@ -194,7 +194,7 @@ function doReviewsList(array $req)
     JOIN users u ON u.id = r.user_id
     WHERE r.works_id = ?
     ORDER BY r.created_at DESC
-    LIMIT 200
+    LIMIT 20
   ");
   $stmt->bind_param("s", $works_id);
   $stmt->execute();
@@ -272,7 +272,7 @@ function doLibraryList(array $req) {
     FROM user_library
     WHERE user_id = ?
     ORDER BY added_at DESC
-    LIMIT 200
+    LIMIT 10
   ");
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
