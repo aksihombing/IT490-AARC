@@ -174,7 +174,7 @@ try {
         <p><strong>First Published: </strong> <?php echo htmlspecialchars($book['publish_year']); ?> </p>
 
         <?php // FOR SUBJECTS, comma separated
-          $subjects = json_decode($books['subjects'] ?? '[]', true);
+          $subjects = json_decode($book['subjects'] ?? '[]', true);
 
           echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>";
           ?>
