@@ -4,7 +4,7 @@
 /* 
 UPDATE recentBooks VIA CRONTAB (updates 9:00):
 
-* 9 * * * /usr/bin/php /home/rea-sihombing/updateRecentBooks.php > /dev/null 2>&1
+* /5 * * * * /usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/updateRecentBooks.php >> /var/log/updateRecentBooks.log
 
 
 

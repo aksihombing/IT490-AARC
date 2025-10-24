@@ -35,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add_to_library'){
-      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
-      $client->send_request([
+      $addLibraryClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+      $addLibraryClient->send_request([
         'type'    => 'library.personal.add',
         'user_id' => $_SESSION['uid'],
         'works_id' => $olid,
@@ -58,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $rating  = $_POST['rating']  ?? 0;
       $comment = $_POST['comment'] ?? '';
 
-      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
-      $client->send_request([
+      $createReviewClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
+      $createReviewClient->send_request([
         'type'     => 'library.review.create',
         'user_id'  => $_SESSION['uid'],
         'works_id' => $olid,
@@ -80,8 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // -------------- DO BOOK DETAILS
 try {
-  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
-  $response = $client->send_request([
+  $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+  $response = $bookDetailsClient->send_request([
     'type' => 'book_details',
     'olid' => $olid
   ]);
@@ -104,9 +104,15 @@ if (($response['status'] === 'success') && is_array($response)) {
 
 $reviews=[];
 try {
+<<<<<<< HEAD
   $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
   $resp = $client->send_request([
     'type'     => 'library.review.list',
+=======
+  $listReviewsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
+  $resp = $listReviewsClient->send_request([
+    'type'     => 'library.reviews.list',
+>>>>>>> 1dd7ec6d59d3ec1b6c747e8aa2e6166baaad0976
     'works_id' => $olid,
   ]);
   if ($resp['status'] === 'success') {

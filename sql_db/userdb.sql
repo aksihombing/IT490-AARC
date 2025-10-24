@@ -30,32 +30,24 @@ CREATE TABLE `sessions` (
 
 CREATE TABLE `clubs` (
   `club_id` INT(11) NOT NULL AUTO_INCREMENT,
-  `owner_id` INT(11) NULL,
-  `name` VARCHAR(100) NULL,
+  `owner_id` INT(11) NOT NULL,
+  `name` VARCHAR(100) NOT NULL,
   `description` TEXT NULL,
   PRIMARY KEY (`club_id`)
 );
 
 CREATE TABLE `club_members` (
   `member_id` INT(11) NOT NULL AUTO_INCREMENT,
-  `club_id` INT(11) NULL,
-  `user_id` INT(11) NULL,
+  `club_id` INT(11) NOT NULL,
+  `user_id` INT(11) NOT NULL,
   PRIMARY KEY (`member_id`),
     KEY (`club_id`)
-);
-
-CREATE TABLE `club_events` (
-  `event_id` INT(11) NOT NULL AUTO_INCREMENT,
-  `club_id` INT(11) NULL,
-  `title` VARCHAR(100) NULL,
-  `event_date` DATE NULL,
-  `description` TEXT NULL,
-  PRIMARY KEY (`event_id`)
 );
 
 CREATE TABLE `events` (
   `eventID` INT(11) NOT NULL AUTO_INCREMENT,
   `creatorUserID` INT(11) NOT NULL,
+  `club_id` INT NULL,
   `title` VARCHAR(255) NOT NULL,
   `description` TEXT NULL,
   `location` VARCHAR(255) NULL,
@@ -64,7 +56,8 @@ CREATE TABLE `events` (
   `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
   PRIMARY KEY (`eventID`),
   KEY `creatorUserID` (`creatorUserID`),
-  CONSTRAINT `fk_creator_user` FOREIGN KEY (`creatorUserID`) REFERENCES `users` (`id`)
+  CONSTRAINT `fk_creator_user` FOREIGN KEY (`creatorUserID`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_event_club` FOREIGN KEY (`club_id`) REFERENCES `clubs`(`club_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `EventAttendees` (
@@ -97,3 +90,4 @@ CREATE TABLE reviews (
   UNIQUE KEY (user_id, works_id),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
