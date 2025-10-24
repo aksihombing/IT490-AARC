@@ -38,6 +38,7 @@ try {
     'user_id' => $userId,
     
   ]);
+    echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
 if ($resp['status'] === 'success') {
     $library = $resp['items'];
   } else {
