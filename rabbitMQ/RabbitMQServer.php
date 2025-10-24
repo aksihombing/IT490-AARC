@@ -246,6 +246,13 @@ function doReviewsCreate(array $req)
     return ['status' => 'fail', 'message' => 'missing or invalid fields'];
   }
 
+  // DEBUGGING
+  echo "Received doReviewsCreate -----";
+  echo "user_id: " . $user_id ;
+  echo "works_id: " . $works_id;
+  echo "rating: " . $rating;
+  echo "body: " . $body;
+
   $conn = db();
 
   $stmt = $conn->prepare("
