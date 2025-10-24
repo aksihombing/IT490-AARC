@@ -61,17 +61,19 @@ if (!isset($_SESSION['session_key'])):
 <?php else: ?>
 
   <?php
+  //  FOR RECENT BOOKS !! -------------
   // to load pre-loaded book data from cache db
   require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 
-  $recentBooks = [];
-  //$popularBooks = []; // scrapped
+  $recentBooks = []; // for recent books call
+
 
   try {
     $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
 
-    // Recent books
+    // Recent books request
     $recentResponse = $client->send_request(['type' => 'recent_books']);
+
     if ($recentResponse['status'] === 'success') {
       $recentBooks = $recentResponse['data'];
     }
@@ -97,7 +99,6 @@ if (!isset($_SESSION['session_key'])):
       <?php if (!empty($recentBooks)): ?>
         <ul>
           <?php foreach ($recentBooks as $book):
-            // THIS IS SUBJECT TO CHANGE DEPENDING ON CHIZZY'S STRUCTURE
             $olid = urlencode($book['olid']);
             ?>
             <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
@@ -122,15 +123,7 @@ if (!isset($_SESSION['session_key'])):
         <p>No recent releases available right now.</p>
       <?php endif; ?>
     </section>
-      <!-- 
-    // https://openlibrary.org/search.json?q=*&sort=rating%20desc&page=2 DOESNT WORK BC ITS TOO MANY RESULTS
 
-
-    FOR GENERAL BROWSING
-    https://openlibrary.org/search.json?q=adventure&limit=10&page=2
-
-    
-      -->
     <br>
     <br>
     <p><a id="logoutbutton" href="logout.php">Logout</a></p>

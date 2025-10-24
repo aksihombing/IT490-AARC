@@ -1,6 +1,6 @@
 <?php
 function db() {
-  $host = 'localhost'; // need local ip, NEED TO CHANGE
+  $host = '172.28.109.126'; // need local ip, NEED TO CHANGE
   $user = 'testUser'; // needdatabase user
   $pass = '12345'; // need database password
   $name = 'testdb'; // needdatabase name

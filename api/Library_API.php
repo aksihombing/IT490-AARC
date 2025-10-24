@@ -64,18 +64,20 @@ function doBookSearch(array $req)
     return ['status' => 'fail', 'message' => 'missing query'];
 
 
-
   // FEATURE PROPOSAL : page, offset, and limit parameters
+  $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] :10; // default limit is 10
+  $page = isset($req['page']) ? intval($req['page']) :1; // default page starts at 1
+  $offset = ($page - 1) * $limit; // (page number - 1) * number of results per page
 
 
 
   // CACHE CHECK ----------------------------------
   $mysqli = db();
 
-  echo "Checking cache for: type={$type}, query='{$query}'\n"; //debugging
+  echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n"; //debugging
 
-  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND expires_at > NOW() LIMIT 10"); // might need to change limit ? idk
-  $check_cache->bind_param("ss", $type, $query);
+  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND pageNum=? AND expires_at > NOW() LIMIT ?"); // might need to change limit ? idk
+  $check_cache->bind_param("ssii", $type, $query, $page, $limit);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
 
@@ -100,8 +102,8 @@ function doBookSearch(array $req)
   // for search.json!!!  ----------------------
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
-  $searchurl = "{$base}?q={$encodedQuery}&limit=10";
-  // debating on whether the query type should be stored? ill leave it for now, but SUBJECT TO CHANGE !
+  $searchurl = "{$base}?q={$encodedQuery}&limit={$limit}&page={$page}";
+  
 
   $search_response = curl_get($searchurl);
   $curl_data = json_decode($search_response, true); // true is for the associative arrays. if false, it returns the json objects into objects. make sure to decode the response from the api before upserting/ inserting it back into the db
@@ -113,11 +115,11 @@ function doBookSearch(array $req)
   // $insertToTable will be repeatedly called from the loop
   $insertToTable = $mysqli->prepare("
     INSERT INTO library_cache (
-      search_type, query, olid, title, subtitle, author, isbn,
+      search_type, query, pageNum, olid, title, subtitle, author, isbn,
       book_desc, publish_year, ratings_average, ratings_count,
       subjects, person_key, place_key, time_key, cover_url
     )
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON DUPLICATE KEY UPDATE
       title=VALUES(title),
       subtitle=VALUES(subtitle),
@@ -231,9 +233,10 @@ function doBookSearch(array $req)
     // binding params for such a big table... nightmare fuel for anyone who craves efficiency
 
     $insertToTable->bind_param(
-      "ssssssssidisssss",
+      "ssissssssidisssss",
       $type, // string
       $query, // string
+      $page, // int
       $olid, // string
       $title, // string
       $subtitle, // string
@@ -253,6 +256,7 @@ function doBookSearch(array $req)
     $insertToTable->execute();
 
     $searchbookresults[] = [ // this gets returns to the webserver
+      'page' => $page,
       'olid' => $olid,
       'title' => $title,
       'subtitle' => $subtitle,
@@ -267,10 +271,15 @@ function doBookSearch(array $req)
     ];
 
 
-    echo "Cache MISS (fetched + saved) for {$type}={$query}\n";
+    echo "Cache MISS (fetched + saved) for {$type} = {$query}\n";
   } // END FOREACH BOOK
 
-  return ['status' => 'success', 'data' => $searchbookresults];
+  return ['status' => 'success', 
+  'data' => $searchbookresults,
+  'limit' => $limit,
+  'page'=> $page,
+  'offset'=> $offset, // calculates and sends offset back to frontend; not sure how it fully works tho
+];
 }
 
 
@@ -404,21 +413,8 @@ function doBookDetails(array $req)
   }
 
 
-  // data from /works/{OLID}/ratings.json ----------------------
-
-  $ratings_average = null;
-  $ratings_count = null;
-  $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
-  $ratings_json = curl_get($ratings_url);
-  if ($ratings_json) {
-    $ratings_data = json_decode($ratings_json, true);
-    $ratings_average = $ratings_data['summary']['average'] ?? null;
-    $ratings_count = $ratings_data['summary']['count'] ?? null;
-  }
-
-
   // returning results
-  $bookDetailsResults = [ // this gets returns to the webserver
+  $bookDetailsResults= [ // this gets returns to the webserver
     'olid' => $olid,
     'title' => $title,
     'subtitle' => $subtitle,

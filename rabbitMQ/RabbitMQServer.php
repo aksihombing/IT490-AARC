@@ -96,6 +96,8 @@ function doLogin(array $req) {
     $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
     error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
+
+    $conn->query("DELETE FROM sessions WHERE user_id = $uid");
     
     if (password_verify($password,$dbHash)){
      // create a session key, should be secure ?
@@ -351,6 +353,7 @@ function doInviteMember(array $req) {
 // ---- feature 3: create club event ----- 
 
 function doCreateEvent(array $req) {
+  $creatorUserID = $req['user_id'] ?? 0;
   $club_id = $req['club_id'] ?? 0;
   $title = $req['title'] ?? '';
   $date = $req['event_date'] ?? null;
@@ -361,8 +364,8 @@ function doCreateEvent(array $req) {
   }
 
   $conn = db();
-  $stmt = $conn->prepare("INSERT INTO club_events (club_id, title, event_date, description) VALUES (?, ?, ?, ?)");
-  $stmt->bind_param("isss", $club_id, $title, $date, $desc);
+  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, event_date, description) VALUES (?, ?, ?, ?, ?)");
+  $stmt->bind_param("iisss", $creatorUserID, $club_id, $title, $date, $desc);
   if (!$stmt->execute()) {
     return ['status' => 'fail', 'message' => $stmt->error];
   }
@@ -378,7 +381,7 @@ function doListEvents(array $req) {
   if (!$club_id) return ['status' => 'fail', 'message' => 'missing club_id'];
 
   $conn = db();
-  $stmt = $conn->prepare("SELECT event_id, title, event_date, description FROM club_events WHERE club_id=? ORDER BY event_date ASC");
+  $stmt = $conn->prepare("SELECT event_id, title, event_date, description FROM events WHERE club_id=? ORDER BY event_date ASC");
   $stmt->bind_param("i", $club_id);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -399,7 +402,7 @@ function doCancelEvent(array $req) {
   if (!$event_id) return ['status' => 'fail', 'message' => 'missing event_id'];
 
   $conn = db();
-  $stmt = $conn->prepare("DELETE FROM club_events WHERE event_id=?");
+  $stmt = $conn->prepare("DELETE FROM events WHERE event_id=?");
   $stmt->bind_param("i", $event_id);
   if (!$stmt->execute()) {
     return ['status' => 'fail', 'message' => $stmt->error];
@@ -481,9 +484,8 @@ $iniPath = __DIR__ . "/host.ini";
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
     $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
-      'AuthLogout', 'LibrarySearch', 'LibraryDetails', 
-      'LibraryCollect', 'LibraryPersonal', 'LibraryRemove', 
-      'CreateReviews','ListReviews','LibraryAdd'];
+      'AuthLogout', 'LibraryPersonal', 'LibraryRemove', 
+      'CreateReviews','ListReviews','LibraryAdd','ClubProcessor'];
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
