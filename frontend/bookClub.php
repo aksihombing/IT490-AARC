@@ -56,6 +56,24 @@ const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
 
 document.addEventListener("DOMContentLoaded", loadClubs); // should auto-load clubs list when page loads
 
+// invite generation function
+async function generateInvite(clubId) {
+  const res = await fetch('clubs_functions.php', {
+    method: 'POST',
+    body: new URLSearchParams({ 
+      action: 'invite_link', 
+      club_id: clubId, 
+      user_id: USER_ID })
+  });
+  const json = await res.json();
+  if (json.status === 'success' && json.link) {
+    alert(`Invite link: ${json.link}`);
+  } else {
+    alert(`Failed to generate invite link: ${json.message || 'unknown error'}`);
+  }
+}
+
+// club list loading function
 async function loadClubs() {
   const list = document.getElementById('clubList');
 
@@ -78,16 +96,20 @@ async function loadClubs() {
     list.innerHTML = '';
     json.clubs.forEach(c => {
       const li = document.createElement('li');
-      li.innerHTML = `
-        <strong>${c.name}</strong> — ${c.description || 'No description'}
-        (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>)
-      `;
-      list.appendChild(li);
+      let inviteLinkHTML = '';
+      //modified existing login here for club list to include the link I Hope
+      if (c.is_owner) {
+        inviteLinkHTML = `<button onclick="generateInvite(${c.club_id})">Generate Invite Link</button>`;
+      }
+
+      li.innerHTML = `<strong>${c.name}</strong> — ${c.description || 'No club description'} 
+        (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>) ${inviteLinkHTML}`;
     });
   } catch (err) {
     list.innerHTML = `<li>error loading clubs: ${err.message}</li>`;
   }
 }
+
 
 async function postForm(form){
   const data = new FormData(form);
