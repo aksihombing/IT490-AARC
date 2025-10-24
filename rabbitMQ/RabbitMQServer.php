@@ -452,7 +452,7 @@ function doInviteLink(array $req) {
     return ['status' => 'fail', 'message' => 'cant generate link:'.$stmt->error];
   }
 
-  $link = "http://172.28.108.126/frontend/inviteJoin.php?invite=$hash"; //only works for my test web vm need to change for chizi's
+  $link = "http://172.28.117.155/frontend/inviteJoin.php?invite=$hash"; //only works for my test web vm need to change for chizi's file path
   return ['status'=>'success','link'=>$link];
 }
 
