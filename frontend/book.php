@@ -110,7 +110,7 @@ $reviews = [];
 try {
   $listReviewsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
   $resp = $listReviewsClient->send_request([
-    'type' => 'library.reviews.list',
+    'type' => 'library.review.list',
     'works_id' => $olid
   ]);
   echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
