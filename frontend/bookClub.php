@@ -26,6 +26,7 @@
   </form>
 </section>
 
+<!--
 <section id="inviteMember">
   <h3>Invite Member</h3>
   <form id="formInvite">
@@ -35,6 +36,7 @@
     <button type="submit">Invite</button>
   </form>
 </section>
+-->
 
 <section id="events">
   <h3>Schedule Event</h3>
@@ -135,7 +137,7 @@ async function postForm(form){
 }
 
 document.getElementById('formCreate').onsubmit = e => {e.preventDefault();postForm(e.target);}
-document.getElementById('formInvite').onsubmit = e => {e.preventDefault();postForm(e.target);}
+// document.getElementById('formInvite').onsubmit = e => {e.preventDefault();postForm(e.target);}
 document.getElementById('formEvent').onsubmit = e => {e.preventDefault();postForm(e.target);}
 </script>
 
