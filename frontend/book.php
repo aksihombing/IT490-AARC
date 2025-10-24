@@ -115,6 +115,7 @@ try {
   ]);
   if ($resp['status'] === 'success' && is_array($resp['status'])) {
     $reviews = $resp['items'];
+    var_dump( $reviews );
   }
   else {
     $error = "Failed to load reviews: " . ($resp['message'] ?? 'Unknown error');
