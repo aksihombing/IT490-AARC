@@ -211,6 +211,8 @@ function doReviewsList(array $req)
   if ($works_id === '')
     return ['status' => 'fail', 'message' => 'missing works_id'];
 
+
+
   $conn = db();
 
   $stmt = $conn->prepare("
@@ -244,7 +246,6 @@ function doReviewsList(array $req)
 function doReviewsCreate(array $req)
 {
   $user_id = (int) ($req['user_id'] ?? 0);
-  $username = trim($req['username'] ?? 0);
   $works_id = trim($req['works_id'] ?? '');
   $rating = (int) ($req['rating'] ?? 0);
   $body = trim($req['body'] ?? ($req['comment'] ?? ''));
@@ -264,11 +265,11 @@ function doReviewsCreate(array $req)
   $conn = db();
 
   $stmt = $conn->prepare("
-    INSERT INTO reviews (user_id, username, works_id, rating, body)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO reviews (user_id, works_id, rating, body)
+    VALUES (?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE rating=VALUES(rating), body=VALUES(body), created_at=NOW()
   ");
-  $stmt->bind_param("issis", $user_id, $username, $works_id, $rating, $body);
+  $stmt->bind_param("isis", $user_id, $works_id, $rating, $body);
   $ok = $stmt->execute();
 
   if (!$ok) {

@@ -29,7 +29,7 @@ if ($olid == '') {
 
 // check uid and username
 $userId = $_SESSION['user_id'];
-$username = $_SESSION['username'];
+//$username = $_SESSION['username'];
 
 // --------- ADD TO LIBRARY
 $error = ''; // error catching
@@ -66,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $createReviewClient->send_request([
         'type' => 'library.review.create',
         'user_id' => $userId,
-        'username'=> $username,
         'works_id' => $olid,
         'rating' => $rating,
         'body' => $body,
