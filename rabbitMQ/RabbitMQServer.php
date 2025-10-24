@@ -308,6 +308,28 @@ function doLibraryAdd(array $req) {
 }
 
 
+//removes a book from user's library
+function doLibraryRemove(array $req)
+{
+  $uid = (int) ($req['user_id'] ?? 0);
+  $work = $req['works_id'] ?? '';
+  if (!$uid || $work === '')
+    return ['status' => 'fail', 'message' => 'missing user_id or works_id'];
+
+  $conn = db();
+  $stmt = $conn->prepare("DELETE FROM user_library WHERE user_id=? AND works_id=? LIMIT 1");
+  if (!$stmt)
+    return ['status' => 'fail', 'message' => 'prep failed'];
+  $stmt->bind_param("is", $uid, $work);
+  if (!$stmt->execute())
+    return ['status' => 'fail', 'message' => 'execute failed'];
+
+  return ($stmt->affected_rows > 0)
+    ? ['status' => 'success']
+    : ['status' => 'fail', 'message' => 'not found'];
+}
+
+
 // AIDA'S FUNCTIONS -- club features
 
 // ---- feature 1: create club ----- 
