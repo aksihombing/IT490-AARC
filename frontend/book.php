@@ -29,7 +29,8 @@ if ($olid == '') {
 
 
 // --------- ADD TO LIBRARY
-$error = '';
+$error = ''; // error catching
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // POST functions are used for add_to_library and create_review
   try {
