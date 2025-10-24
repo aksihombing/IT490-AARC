@@ -1,9 +1,3 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-?>
-
 <!doctype html>
 
 <html>
@@ -85,6 +79,39 @@ async function loadClubs() {
 const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
 
 document.addEventListener("DOMContentLoaded", loadClubs); // should auto-load clubs list when page loads
+
+async function loadClubs() {
+  const list = document.getElementById('clubList');
+
+  try {
+    const res = await fetch('clubs_functions.php', {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'list',
+        user_id: USER_ID
+      })
+    });
+
+    const json = await res.json();
+
+    if (!json.clubs || json.clubs.length === 0) {
+      list.innerHTML = '<li>no clubs found</li>';
+      return;
+    }
+
+    list.innerHTML = '';
+    json.clubs.forEach(c => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <strong>${c.name}</strong> — ${c.description || 'No description'}
+        (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>)
+      `;
+      list.appendChild(li);
+    });
+  } catch (err) {
+    list.innerHTML = `<li>error loading clubs: ${err.message}</li>`;
+  }
+}
 
 async function postForm(form){
   const data = new FormData(form);
