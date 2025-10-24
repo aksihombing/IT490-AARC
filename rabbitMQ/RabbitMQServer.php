@@ -456,6 +456,9 @@ function doInviteLink(array $req) {
   return ['status'=>'success','link'=>$link];
 }
 
+// ---- feature 8: generate  invite link -----
+
+
 // --- REQUEST PROCESSOR ---
 
 // decides which function to run
@@ -484,6 +487,7 @@ function requestProcessor($req) {
     case 'club.events.create': return doCreateEvent($req);
     case 'club.events.list': return doListEvents($req);
     case 'club.events.cancel': return doCancelEvent($req);
+    case 'club.invite_link': return doInviteLink($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
