@@ -113,6 +113,7 @@ try {
     'type' => 'library.reviews.list',
     'works_id' => $olid
   ]);
+  echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
   if ($resp['status'] === 'success' && is_array($resp['items'])) {
     $reviews = $resp['items'];
   }
