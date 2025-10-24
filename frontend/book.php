@@ -235,7 +235,7 @@ try {
           <?php foreach ($reviews as $review): ?>
             <div class="card"> <!-- card div -->
               <p>
-                <strong> <?php echo htmlspecialchars($review['username'] ?? 'User'); ?> </strong>
+                <strong> <?php echo htmlspecialchars($review['username'] ?? 'Anonymous'); ?> </strong>
                 — <?php echo (int) ($review['rating'] ?? 0) ?>/5
               </p>
               <p> <?php echo htmlspecialchars($review['body'] ?? ''); ?></p>

@@ -237,8 +237,7 @@ function doReviewsList(array $req)
     ];
   }
 
-  // DEBUGGING
-  error_log("Reviews fetched: " . print_r($allReviews, true));
+  var_dump( $allReviews );
 
   return [
     'status' => 'success',
