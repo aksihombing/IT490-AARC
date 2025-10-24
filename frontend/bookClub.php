@@ -104,6 +104,8 @@ async function loadClubs() {
 
       li.innerHTML = `<strong>${c.name}</strong> — ${c.description || 'No club description'} 
         (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>) ${inviteLinkHTML}`;
+        
+      list.appendChild(li); 
     });
   } catch (err) {
     list.innerHTML = `<li>error loading clubs: ${err.message}</li>`;
