@@ -103,7 +103,7 @@ try {
       <?php foreach ($library as $book): ?>
         <div class="card">
           <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
-          <h3><a href="book.php?olid=<?php echo htmlspecialchars($book['olid']) ?>">
+          <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>">
             <?php echo htmlspecialchars($book['title']) ?>
           </a></h3>
           <p><?php echo htmlspecialchars($book['author']) ?></p>
