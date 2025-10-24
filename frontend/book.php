@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-session_start();
+
 /*
 PULLED CHIZZYS CODE
 edited by Rea
