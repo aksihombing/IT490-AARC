@@ -223,15 +223,21 @@ function doReviewsList(array $req)
   ");
   $stmt->bind_param("s", $works_id);
   $stmt->execute();
-  $res = $stmt->get_result();
+  $reviewResults = $stmt->get_result();
 
-  $items = [];
-  while ($row = $res->fetch_assoc())
-    $items[] = $row;
+  $allReviews = [];
+  while ($oneReview = $reviewResults->fetch_assoc()){// gets each row returned from query; only returns what is needed
+    $allReviews[] = [
+      'username' => $oneReview["username"],
+      'rating' => (int)$oneReview["rating"],
+      'body' => $oneReview["body"],
+      'created_at' => $oneReview['created_at']
+    ];
+  }
 
   return [
     'status' => 'success',
-    'items' => $items
+    'items' => $allReviews
   ];
 }
 
@@ -247,12 +253,13 @@ function doReviewsCreate(array $req)
   }
 
   // DEBUGGING
-  echo "Received doReviewsCreate -----";
-  echo "user_id: " . $user_id ;
-  echo "works_id: " . $works_id;
-  echo "rating: " . $rating;
-  echo "body: " . $body;
-
+  /*
+  echo "Received doReviewsCreate -----". "\n";
+  echo "user_id: " . $user_id . "\n";
+  echo "works_id: " . $works_id. "\n";
+  echo "rating: " . $rating. "\n";
+  echo "body: " . $body. "\n";
+*/
   $conn = db();
 
   $stmt = $conn->prepare("
@@ -269,10 +276,8 @@ function doReviewsCreate(array $req)
         'status' => 'fail',
         'message' => 'database error: ' . $stmt->error
       ];
-  }
-
-  else {
-    return ['status'=>'success','message'=>'review saved'];
+  } else {
+    return ['status' => 'success', 'message' => 'review saved'];
   }
 }
 
