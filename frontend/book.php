@@ -225,10 +225,10 @@ try {
         <?php foreach ($reviews as $review): ?>
           <div class="card">
             <p>
-              <strong>  <?php htmlspecialchars($review['username'] ?? 'User'); ?> </strong>
+              <strong>  <?php echo htmlspecialchars($review['username'] ?? 'User'); ?> </strong>
               — <?php (int) ($review['rating'] ?? 0) ?>/5</p>
-            <p> <?php htmlspecialchars($review['body'] ?? ''); ?></p>
-            <small> <?php htmlspecialchars($review['created_at'] ?? ''); ?> </small>
+            <p> <?php echo htmlspecialchars($review['body'] ?? ''); ?></p>
+            <small> <?php echo htmlspecialchars($review['created_at'] ?? ''); ?> </small>
           </div>
         <?php endforeach; ?>
       <?php endif; ?>
