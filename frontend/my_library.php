@@ -7,7 +7,7 @@ session_start();
 require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 
 
-$userId = $_SESSION['uid'];// getting the user id from the session
+$userId = $_SESSION['user_id'];// getting the user id from the session
 $error = '';
 $library = [];
 
@@ -50,13 +50,13 @@ if ($resp['status'] === 'success') {
 try {
   $detailsclient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
   foreach ($library as &$book) {
-    $olid = $book['works_id'] ?? '';
-    if (!$olid) continue;
+    $olid = $book['olid'] ?? '';
+    if (!$olid) continue; // ask if this should 
 
     try {
       $details = $detailsclient->send_request([
         'type' => 'book_details',
-        'olid' => $olid
+        'olid' => $olid 
       ]);
 
       if ($details['status'] === 'success') {
@@ -102,16 +102,16 @@ try {
     <div class="grid">
       <?php foreach ($library as $book): ?>
         <div class="card">
-          <img class="cover" src="<?= htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
-          <h3><a href="book.php?olid=<?= htmlspecialchars($book['works_id']) ?>">
-            <?= htmlspecialchars($book['title']) ?>
+          <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
+          <h3><a href="book.php?olid=<?php echo htmlspecialchars($book['olid']) ?>">
+            <?php echo htmlspecialchars($book['title']) ?>
           </a></h3>
-          <p><?= htmlspecialchars($book['author']) ?></p>
-          <p><strong>ISBN:</strong> <?= htmlspecialchars($book['isbn']) ?></p>
-          <p><strong>Published:</strong> <?= htmlspecialchars($book['publish_year']) ?></p>
+          <p><?php echo htmlspecialchars($book['author']) ?></p>
+          <p><strong>ISBN:</strong> <?php echo htmlspecialchars($book['isbn']) ?></p>
+          <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
           <form method="POST">
-            <input type="hidden" name="works_id" value="<?= htmlspecialchars($book['works_id']) ?>">
+            <input type="hidden" name="olid" value="<?php echo htmlspecialchars($book['olid']) ?>">
             <button type="submit" class="btn">Remove</button>
           </form>
         </div>
