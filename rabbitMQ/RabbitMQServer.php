@@ -237,8 +237,6 @@ function doReviewsList(array $req)
     ];
   }
 
-  var_dump( $allReviews );
-
   return [
     'status' => 'success',
     'items' => $allReviews
