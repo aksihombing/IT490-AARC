@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-//session_start();
+session_start();
 /*
 PULLED CHIZZYS CODE
 edited by Rea
@@ -106,7 +106,7 @@ $reviews=[];
 try {
   $listReviewsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
   $resp = $listReviewsClient->send_request([
-    'type'     => 'library.reviews.list',
+    'type'     => 'library.review.list',
     'works_id' => $olid,
   ]);
   if ($resp['status'] === 'success') {
@@ -167,14 +167,14 @@ try {
       <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
 
       <div id="book-data">
-        <p><strong>Rating</strong> <?php echo htmlspecialchars($book['rating_average']); ?> </p>
+        <p><strong>Rating</strong> <?php echo htmlspecialchars($book['ratings_average']); ?> </p>
         <br>
         <p><strong>ISBN: </strong> <?php echo htmlspecialchars($book['isbn']); ?> </p>
         <p><strong>Description: </strong> <?php echo htmlspecialchars($book['book_desc']); ?> </p>
         <p><strong>First Published: </strong> <?php echo htmlspecialchars($book['publish_year']); ?> </p>
 
         <?php // FOR SUBJECTS, comma separated
-          $subjects = json_decode($books['subjects'] ?? '[]', true);
+          $subjects = json_decode($book['subjects'] ?? '[]', true);
 
           echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>";
           ?>
