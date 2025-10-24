@@ -11,7 +11,7 @@ if (!isset($_SESSION['login'])) {
 $user_id = $_SESSION['user_id'] ?? 0;
 $hash = $_GET['invite'] ?? '';
 
-if (!hash){
+if (!$hash){
     echo "invalid invite link";
     exit;
 }
