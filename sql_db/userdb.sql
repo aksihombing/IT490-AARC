@@ -83,6 +83,7 @@ CREATE TABLE user_library (
 
 CREATE TABLE reviews (
   user_id  INT NOT NULL,
+  username VARCHAR(50) NOT NULL,
   works_id VARCHAR(50) NOT NULL,
   rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
   body TEXT,
