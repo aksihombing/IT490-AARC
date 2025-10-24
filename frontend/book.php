@@ -167,7 +167,7 @@ try {
       <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
 
       <div id="book-data">
-        <p><strong>Rating</strong> <?php echo htmlspecialchars($book['ratings_average']); ?> </p>
+        <p><strong>Average Rating</strong> <?php echo htmlspecialchars($book['ratings_average']); ?> </p>
         <br>
         <p><strong>ISBN: </strong> <?php echo htmlspecialchars($book['isbn']); ?> </p>
         <p><strong>Description: </strong> <?php echo htmlspecialchars($book['book_desc']); ?> </p>

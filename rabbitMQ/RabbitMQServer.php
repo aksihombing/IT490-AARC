@@ -281,13 +281,13 @@ function doLibraryList(array $req) {
 // adds a book to user's library, forgot to add this function earlier
 function doLibraryAdd(array $req) {
   $uid  = (int)($req['user_id'] ?? 0);
-  $work = trim($req['works_id'] ?? '');
-  if ($uid <= 0 || $work === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
+  $works_id = trim($req['works_id'] ?? '');
+  if ($uid <= 0 || $works_id === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
 
   $conn = db();
   $stmt = $conn->prepare("INSERT IGNORE INTO user_library (user_id, works_id) VALUES (?, ?)");
   if (!$stmt) return ['status'=>'fail','message'=>'prep failed'];
-  $stmt->bind_param("is", $uid, $work);
+  $stmt->bind_param("is", $uid, $works_id);
   if (!$stmt->execute()) return ['status'=>'fail','message'=>'execute failed'];
 
   // INSERT IGNORE → if already there, affected_rows==0; still count as success
