@@ -456,7 +456,26 @@ function doInviteLink(array $req) {
   return ['status'=>'success','link'=>$link];
 }
 
-// ---- feature 8: generate  invite link -----
+// ---- feature 8: invite link join -----
+function doInviteJoin(array $req) {$hash = $req['hash'] ?? '';
+  $user_id = $req['user_id'] ?? 0;
+  $hash = $req['hash'] ?? '';
+  if ($hash === '' || !$user_id) return ['status'=>'fail','message'=>'missing data'];
+    
+  $conn = db();
+  $stmt = $conn->prepare("SELECT club_id FROM club_invites WHERE hash=? LIMIT 1");
+  $stmt->bind_param("s", $hash);
+  $stmt->execute();
+  $stmt->bind_result($club_id);
+  if (!$stmt->fetch()) return ['status'=>'fail','message'=>'invalid or expired link'];
+  $stmt->close();
+
+  $join = $conn->prepare("INSERT INTO club_members(club_id,user_id) VALUES (?,?)");
+  $join->bind_param("ii", $club_id, $user_id);
+  if (!$join->execute()) return ['status'=>'fail','message'=>$join->error];
+
+  return ['status'=>'success','message'=>'joined club successfully'];
+}
 
 
 // --- REQUEST PROCESSOR ---
@@ -488,6 +507,7 @@ function requestProcessor($req) {
     case 'club.events.list': return doListEvents($req);
     case 'club.events.cancel': return doCancelEvent($req);
     case 'club.invite_link': return doInviteLink($req);
+    case 'club.join_link' : return doInviteJoin($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
