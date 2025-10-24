@@ -14,7 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       'event_create'  => 'club.events.create',
       'event_cancel'  => 'club.events.cancel',
       'list'          => 'club.list',       
-      'events.list'   => 'club.events.list' 
+      'events.list'   => 'club.events.list',
+      'invite_link'   => 'club.invite_link'
     ];
 
     if (!isset($map[$type])) {
@@ -30,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode($res);
     } catch (Exception $e) {
         echo json_encode(['status'=>'fail','message'=>$e->getMessage()]);
-    }
+    }S
     exit;
 }
 ?>
