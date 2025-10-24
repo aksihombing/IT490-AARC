@@ -423,8 +423,7 @@ function doList(array $req) {
     FROM clubs c
     LEFT JOIN club_members m ON c.club_id = m.club_id
     WHERE c.owner_id = ? OR m.user_id = ?
-    ORDER BY c.name ASC
-  ");
+    ORDER BY c.name ASC");
   $stmt->bind_param("ii", $user_id, $user_id);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -439,6 +438,23 @@ function doList(array $req) {
   return ['status' => 'success', 'clubs' => $clubs];
 }
 
+// ---- feature 7: generate  invite link -----
+function doInviteLink(array $req) {
+  $club_id = $req['club_id'] ??0;
+  if (!$club_id) return ['status'=> 'fail', 'message' => 'missing user_id'];
+
+  $conn = db();
+  $hash = bin2hex(random_bytes(16));
+  
+  $stmt = $conn->prepare("INSERT INTO club_invites(club_id,hash) VALUES (?,?)");
+  $stmt->bind_param("is", $club_id, $hash);
+  if (!$stmt->execute()) {
+    return ['status' => 'fail', 'message' => 'cant generate link:'.$stmt->error];
+  }
+
+  $link = "http://172.28.108.126/frontend/join.php?invite=$hash"; //only works for my test web vm need to change for chizi's
+  return ['status'=>'success','link'=>$link];
+}
 
 // --- REQUEST PROCESSOR ---
 
