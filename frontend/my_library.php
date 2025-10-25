@@ -3,7 +3,13 @@
 // If not, send them back to login page.
 // FROM CHIZZY
 // edited by Rea
-session_start();
+
+// DEBUGGING
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+
+//session_start();
 require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 
 
