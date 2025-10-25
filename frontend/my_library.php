@@ -9,7 +9,7 @@ require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 
 $userId = $_SESSION['user_id'];// getting the user id from the session
 $error = '';
-$books = [];
+$library = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -49,23 +49,28 @@ try {
 }
 
 try {
+
   $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
-  $response = $bookDetailsClient->send_request([
-    'type' => 'book_details',
-    'olid' => $olid
-  ]);
+  foreach ($library as $i => $row) {
+
+    $response = $bookDetailsClient->send_request([
+      'type' => 'book_details',
+      'olid' => $row['works_id']
+    ]);
+
+    if(($response['status'] ?? '' === 'success')) {
+      $library[$i]['title'] = $response['data']['title'];
+      $library[$i]['author'] = $response['data']['author'];
+      $library[$i]['isbn'] = $response['data']['isbn'];
+      $library[$i]['publish_year'] = $response['data']['publish_year'];
+      $library[$i]['cover_url'] = $response['data']['cover_url'];
+    } 
+  }
 } catch (Exception $e) {
-  $response = [
-    'status' => 'error',
-    'message' => 'Unable to connect to LibraryDetails' . $e->getMessage()
-  ];
+  $error = "Error fetching book details: " . $e->getMessage();
 }
 
 
-if (($response['status'] === 'success') && is_array($response)) {
-  //$book = json_decode($response['data'], true); //i dont think we need to decode the json if its already returned as an array of data
-  $book = $response['data'];
-}
 ?>
 
 
@@ -86,24 +91,24 @@ if (($response['status'] === 'success') && is_array($response)) {
   <!-- Page heading -->
   <h2>My Library</h2>
 
-  <?php if (empty($books)): ?>
+  <?php if (empty($library)): ?>
     <p>You haven’t added any books yet.</p>
     <p><a href="index.php?content=search" class="btn">Go to Search Page →</a></p>
   <?php else: ?>
     <div class="grid">
-
-      <?php foreach ($books as $book): ?>
-        <div class="card">
+      <?php foreach ($library as $book): ?>
+           <?php $worksId = htmlspecialchars($book['works_id'] ?? ''); ?>
+           <div class=card>
           <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
-          <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>">
-          <h2><strong>Title:</strong><?php echo htmlspecialchars($book['title']) ?> </h2>
+          <h3><a href="index.php?content=book&olid=<?php echo $worksId; ?>">
+          <strong>Title:</strong><?php echo htmlspecialchars($book['title']) ?> 
             </a></h3>
           <p><strong>Author:</strong> <?php echo htmlspecialchars($book['author']) ?></p>
           <p><strong>ISBN:</strong> <?php echo htmlspecialchars($book['isbn']) ?></p>
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
           <form method="POST">
-            <input type="hidden" name="olid" value="<?php echo htmlspecialchars($olid) ?>">
+            <input type="hidden" name="works_id" value="<?php echo $worksId; ?>">
             <button type="submit" class="btn">Remove</button>
           </form>
         </div>
