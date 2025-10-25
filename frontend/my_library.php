@@ -9,7 +9,7 @@ require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 
 $userId = $_SESSION['user_id'];// getting the user id from the session
 $error = '';
-$library = [];
+$libraryOlidList = []; // for all olids in the library
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -77,6 +77,10 @@ function getPersonalLibBookDetails($plib_olid)
 
 
 // RUNS WHEN THE PAGE LOADS !! ------------
+
+// libraryOlidList -> all olids from the personal library
+// libraryBooks -> book details for all olids
+
 try {
   $bookListClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
   $resp = $bookListClient->send_request([
@@ -86,7 +90,7 @@ try {
   ]);
   echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
   if ($resp['status'] === 'success') {
-    $library = $resp['items'];
+    $libraryOlidList = $resp['items'];
   } else {
     $error = $resp['message'] ?? 'Unknown error from server.';
   }
@@ -97,8 +101,8 @@ try {
 // after the library is loaded ..
 $libraryBooks = [];
 
-if (!empty($library)){
-  foreach ($library as $singleBook){
+if (!empty($libraryOlidList)){
+  foreach ($libraryOlidList as $singleBook){
     $olid = $singleBook['works_id'] ?? $singleBook; // works_id call is from Personal Library List call
 
     $details = getPersonalLibBookDetails($olid);
@@ -131,7 +135,7 @@ if (!empty($library)){
   <!-- Page heading -->
   <h2>My Library</h2>
 
-  <?php if (empty($library)): ?>
+  <?php if (empty($libraryOlidList)): ?>
     <p>You haven’t added any books yet.</p>
     <p><a href="index.php?content=search" class="btn">Go to Search Page →</a></p>
   <?php else: ?>
