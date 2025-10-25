@@ -8,8 +8,7 @@ require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 
 
 $userId = $_SESSION['user_id'];// getting the user id from the session
-$error = '';
-$libraryOlidList = []; // for all olids in the library
+$error = ''; // idk if we need this
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -32,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-function getPersonalLibBookDetails($plib_olid)
+function getPLibDetails($plib_olid)
 {
   try {
     $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
@@ -52,26 +51,7 @@ function getPersonalLibBookDetails($plib_olid)
         'cover_url' => $plib_bookdata['cover_url'] ?? 'default-cover.png', // fallback if missing
         'publish_year' => $plib_bookdata['publish_year'] ?? 'Unknown'
       ];
-      //$plib_book = $response['data'];
-      //return $plib_book; // return the array of details
-      /*
-       $bookDetailsResults= [ // this gets returns to the webserver
-      'olid' => $olid,
-      'title' => $title,
-      'subtitle' => $subtitle,
-      'author' => $author,
-      'isbn' => $isbn,
-      'book_desc' => $book_desc,
-      'publish_year' => $publish_year,
-      'ratings_average' => $ratings_average,
-      'ratings_count' => $ratings_count,
-      'subjects' => $subjects,
-      'person_key' => $person_key,
-      'place_key' => $place_key,
-      'time_key' => $time_key,
-      'cover_url' => $cover_url
-    ];
-      */
+
     } else {
       return null;
     }
@@ -86,6 +66,8 @@ function getPersonalLibBookDetails($plib_olid)
 
 // libraryOlidList -> all olids from the personal library
 // libraryBooks -> book details for all olids
+
+$libraryOlidList = []; // for all olids in the library
 
 try {
   $bookListClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
@@ -111,10 +93,10 @@ if (!empty($libraryOlidList)) {
   foreach ($libraryOlidList as $singleBook) {
     $olid = $singleBook['works_id'] ?? $singleBook; // works_id call is from Personal Library List call
 
-    $details = getPersonalLibBookDetails($olid);
+    $details = getPLibDetails($olid);
     if ($details) {
       $libraryBooks[] = $details; // adds book details in an array per olid
-      //echo "<p>getPersonalLib foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
+      //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
     }
   }
 }
