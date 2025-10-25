@@ -66,7 +66,14 @@ class rabbitMQServer
 			$exchange = new AMQPExchange($channel);
 			$exchange->setName($this->exchange);
 			$exchange->setType($this->exchange_type);
-			$replykey = $this->routing_key . ".response";
+
+			$replyTo = $msg->getReplyTo(); //check if reply_to is given with a fallback just in case
+			if (!empty($reply_to)){
+				$replykey = $replyTo;
+			}
+			else {
+				$replykey = $this->routing_key . ".response";
+			}
 
 
 				$exchange->publish(
@@ -176,7 +183,14 @@ class rabbitMQClient
 		  echo  "unknown uid\n";
 		  return true;
 		}
-    $this->conn_queue->ack($response->getDeliveryTag());
+
+		if (isset($this->callback_queue)){ // sends ack to callback queue instead of connection queue !
+			$this->callback_queue->ack($response->getDeliveryTag());
+		}
+
+    	// $this->conn_queue->ack($response->getDeliveryTag());
+
+
 		$body = $response->getBody();
 		$payload = json_decode($body, true);
 		if (!(isset($payload)))
@@ -194,12 +208,12 @@ class rabbitMQClient
 		$json_message = json_encode($message);
 		try
 		{
-      $params = array();
-      $params['host'] = $this->BROKER_HOST;
-      $params['port'] = $this->BROKER_PORT;
-      $params['login'] = $this->USER;
-      $params['password'] = $this->PASSWORD;
-      $params['vhost'] = $this->VHOST;
+			$params = array();
+			$params['host'] = $this->BROKER_HOST;
+			$params['port'] = $this->BROKER_PORT;
+			$params['login'] = $this->USER;
+			$params['password'] = $this->PASSWORD;
+			$params['vhost'] = $this->VHOST;
 
 			$conn = new AMQPConnection($params);
 			$conn->connect();
@@ -207,13 +221,19 @@ class rabbitMQClient
 			$channel = new AMQPChannel($conn);
 
 			$exchange = new AMQPExchange($channel);
-      $exchange->setName($this->exchange);
-      $exchange->setType($this->exchange_type);
 
-      $callback_queue = new AMQPQueue($channel);
-      $callback_queue->setName($this->queue."_response");
-	  $callback_queue->setFlags(AMQP_AUTODELETE);  //removing queue when done, hopefully solves queue issue 
-      $callback_queue->declareQueue();  //actually declaring queue now? wasnt declaring earlier
+
+			$exchange->setName($this->exchange);
+			$exchange->setType($this->exchange_type);
+
+			// creating unique callback queue name
+
+			$callback_queue = new AMQPQueue($channel);
+			$callback_queue->setName($this->queue."_response");
+			$callback_queue->setFlags(AMQP_AUTODELETE);  //removing queue when done, hopefully solves queue issue 
+			$callback_queue->declareQueue();  //actually declaring queue now? wasnt declaring earlier
+
+
 			$callback_queue->bind($exchange->getName(),$this->routing_key.".response");
 
 			$this->conn_queue = new AMQPQueue($channel);
