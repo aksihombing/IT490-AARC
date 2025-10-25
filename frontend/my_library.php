@@ -42,7 +42,7 @@ function getPersonalLibBookDetails($plib_olid)
       'olid' => $plib_olid
     ]);
 
-    if (($response['status'] === 'success') && is_array($response['data'])) {
+    if (($response['status'] === 'success') && isset($response['data']) && is_array($response['data'])) { // checks success, if data is set, and if data is array
       $plib_bookdata = $response['data'];
       return [
         'olid' => $plib_olid,
@@ -72,12 +72,10 @@ function getPersonalLibBookDetails($plib_olid)
       'cover_url' => $cover_url
     ];
       */
-    }
-    else{
+    } else {
       return null;
     }
-  } 
-  catch (Exception $e) {
+  } catch (Exception $e) {
     return null; // idk what to return here
   }
 }
@@ -96,7 +94,7 @@ try {
     'user_id' => $userId,
 
   ]);
-  echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
+  //echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
   if ($resp['status'] === 'success') {
     $libraryOlidList = $resp['items'];
   } else {
@@ -109,14 +107,14 @@ try {
 // after the library is loaded ..
 $libraryBooks = [];
 
-if (!empty($libraryOlidList)){
-  foreach ($libraryOlidList as $singleBook){
+if (!empty($libraryOlidList)) {
+  foreach ($libraryOlidList as $singleBook) {
     $olid = $singleBook['works_id'] ?? $singleBook; // works_id call is from Personal Library List call
 
     $details = getPersonalLibBookDetails($olid);
-    if ($details){
+    if ($details) {
       $libraryBooks[] = $details; // adds book details in an array per olid
-      echo "<p>getPersonalLib foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
+      //echo "<p>getPersonalLib foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
     }
   }
 }
@@ -152,11 +150,15 @@ if (!empty($libraryOlidList)){
       <?php foreach ($libraryBooks as $book): ?>
         <div class="card">
           <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
+
           <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($book['olid']); ?>">
               <?php echo htmlspecialchars($book['title']) ?>
             </a></h3>
+
           <p><?php echo htmlspecialchars($book['author']) ?></p>
+
           <p><strong>ISBN:</strong> <?php echo htmlspecialchars($book['isbn']) ?></p>
+
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
           <form method="POST">
