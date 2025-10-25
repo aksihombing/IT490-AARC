@@ -97,7 +97,7 @@ $libraryBooks = [];
 
 if (!empty($libraryOlidList)) {
   foreach ($libraryOlidList as $singleBook) {
-    $olid = $singleBook['works_id'] ?? $singleBook; // works_id call is from Personal Library List call
+    $olid = $singleBook['olid'] ??  $singleBook['works_id'] ??$singleBook; // it actually should be olid i think
 
     $details = getPLibDetails($olid);
     if ($details) {
