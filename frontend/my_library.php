@@ -31,9 +31,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 }
 
+
+function getPersonalLibBookDetails($plib_olid)
+{
+  try {
+    $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+
+    $response = $bookDetailsClient->send_request([
+      'type' => 'book_details',
+      'olid' => $plib_olid
+    ]);
+
+    if (($response['status'] === 'success') && is_array($response)) {
+
+      $plib_book = $response['data'];
+      return $plib_book; // return the array of details
+      /*
+       $bookDetailsResults= [ // this gets returns to the webserver
+      'olid' => $olid,
+      'title' => $title,
+      'subtitle' => $subtitle,
+      'author' => $author,
+      'isbn' => $isbn,
+      'book_desc' => $book_desc,
+      'publish_year' => $publish_year,
+      'ratings_average' => $ratings_average,
+      'ratings_count' => $ratings_count,
+      'subjects' => $subjects,
+      'person_key' => $person_key,
+      'place_key' => $place_key,
+      'time_key' => $time_key,
+      'cover_url' => $cover_url
+    ];
+      */
+    }
+    else{
+      return null;
+    }
+  } 
+  catch (Exception $e) {
+    return null; // idk what to return here
+  }
+}
+
+
+
+// RUNS WHEN THE PAGE LOADS !! ------------
 try {
-  $listclient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
-  $resp = $listclient->send_request([
+  $bookListClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+  $resp = $bookListClient->send_request([
     'type' => 'library.personal.list',
     'user_id' => $userId,
 
@@ -48,39 +94,23 @@ try {
   $error = "Error connecting to library service: " . $e->getMessage();
 }
 
-try {
-  $detailsclient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
-  foreach ($library as $book) {
-    $olid = $book['works_id'] ?? '';
-    if (!$olid)
-      continue; // ask if this should 
+// after the library is loaded ..
+$libraryBooks = [];
 
-    try {
-      $details = $detailsclient->send_request([
-        'type' => 'book_details',
-        'olid' => $olid
-      ]);
+if (!empty($library)){
+  foreach ($library as $singleBook){
+    $olid = $singleBook['works_id'] ?? $singleBook; // works_id call is from Personal Library List call
 
-      echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
-
-      if ($details['status'] === 'success') {
-        $bookDetails = $details['items'] ?? $details['data'] ?? [];
-
-
-        $book['title'] = $bookDetails['title'] ?? 'Unknown Title';
-        $book['author'] = $bookDetails['author'] ?? 'Unknown Author';
-        $book['cover_url'] = $bookDetails['cover_url'] ?? '';
-        $book['publish_year'] = $bookDetails['publish_year'] ?? 'Unknown Year';
-        $book['isbn'] = $bookDetails['isbn'] ?? 'N/A';
-      }
-    } catch (Exception $e) {
-      error_log("Error getting details: " . $e->getMessage());
+    $details = getPersonalLibBookDetails($olid);
+    if ($details){
+      $libraryBooks[] = $details; // adds book details in an array per olid
+      echo "<p>getPersonalLib foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
     }
   }
-
-} catch (Exception $e) {
-  $error = "Error connecting to LibraryDetails: " . $e->getMessage();
 }
+
+
+
 ?>
 
 
@@ -107,7 +137,7 @@ try {
   <?php else: ?>
     <div class="grid">
 
-      <?php foreach ($library as $book): ?>
+      <?php foreach ($libraryBooks as $book): ?>
         <div class="card">
           <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
           <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>">
