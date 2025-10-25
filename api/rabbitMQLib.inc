@@ -66,14 +66,7 @@ class rabbitMQServer
 			$exchange = new AMQPExchange($channel);
 			$exchange->setName($this->exchange);
 			$exchange->setType($this->exchange_type);
-
-			$replyTo = $msg->getReplyTo(); //check if reply_to is given with a fallback just in case
-			if (!empty($replyTo)){
-				$replykey = $replyTo;
-			}
-			else {
-				$replykey = $this->routing_key . ".response";
-			}
+			$replykey = $this->routing_key . ".response";
 
 
 				$exchange->publish(
@@ -151,10 +144,6 @@ class rabbitMQClient
 	private $response_queue = array();
 	private $exchange_type = "topic";
 
-	// idk if this is needed but i was getting errors
-	private $conn_queue;
-    private $callback_queue;
-
 	function __construct($machine, $server = "rabbitMQ")
 	{
 		$this->machine = getHostInfo(array($machine));
@@ -187,14 +176,7 @@ class rabbitMQClient
 		  echo  "unknown uid\n";
 		  return true;
 		}
-
-		if (isset($this->callback_queue)){ // sends ack to callback queue instead of connection queue !
-			$this->callback_queue->ack($response->getDeliveryTag());
-		}
-
-    	// $this->conn_queue->ack($response->getDeliveryTag());
-
-
+    $this->conn_queue->ack($response->getDeliveryTag());
 		$body = $response->getBody();
 		$payload = json_decode($body, true);
 		if (!(isset($payload)))
@@ -212,12 +194,12 @@ class rabbitMQClient
 		$json_message = json_encode($message);
 		try
 		{
-			$params = array();
-			$params['host'] = $this->BROKER_HOST;
-			$params['port'] = $this->BROKER_PORT;
-			$params['login'] = $this->USER;
-			$params['password'] = $this->PASSWORD;
-			$params['vhost'] = $this->VHOST;
+      $params = array();
+      $params['host'] = $this->BROKER_HOST;
+      $params['port'] = $this->BROKER_PORT;
+      $params['login'] = $this->USER;
+      $params['password'] = $this->PASSWORD;
+      $params['vhost'] = $this->VHOST;
 
 			$conn = new AMQPConnection($params);
 			$conn->connect();
@@ -225,21 +207,14 @@ class rabbitMQClient
 			$channel = new AMQPChannel($conn);
 
 			$exchange = new AMQPExchange($channel);
+      $exchange->setName($this->exchange);
+      $exchange->setType($this->exchange_type);
 
-
-			$exchange->setName($this->exchange);
-			$exchange->setType($this->exchange_type);
-
-			// creating unique callback queue name
-
-			$this->callback_queue = new AMQPQueue($channel);
-			$this->callback_queue->setName($this->queue."_response");
-			$this->callback_queue->setFlags(AMQP_AUTODELETE);  //removing queue when done, hopefully solves queue issue 
-			$this->callback_queue->declareQueue();  //actually declaring queue now? wasnt declaring earlier
-
-
+      $callback_queue = new AMQPQueue($channel);
+      $callback_queue->setName($this->queue."_response");
+	  $callback_queue->setFlags(AMQP_AUTODELETE);  //removing queue when done, hopefully solves queue issue 
+      $callback_queue->declareQueue();  //actually declaring queue now? wasnt declaring earlier
 			$callback_queue->bind($exchange->getName(),$this->routing_key.".response");
-			$this->callback_queue = $callback_queue;
 
 			$this->conn_queue = new AMQPQueue($channel);
 			$this->conn_queue->setName($this->queue);
@@ -247,11 +222,7 @@ class rabbitMQClient
 
 			$exchange->publish($json_message,$this->routing_key,AMQP_NOPARAM,array('reply_to'=>$callback_queue->getName(),'correlation_id'=>$uid));
       $this->response_queue[$uid] = "waiting";
-			//$callback_queue->consume(array($this,'process_response'));
-			while ($this->response_queue[$uid] == "waiting"){ // waiting response
-				$callback_queue->consume(array($this,'process_response'));
-			}
-
+			$callback_queue->consume(array($this,'process_response'));
 
 			$response = $this->response_queue[$uid];
 			unset($this->response_queue[$uid]);
@@ -299,4 +270,3 @@ class rabbitMQClient
 	}
 }
 ?>
-
