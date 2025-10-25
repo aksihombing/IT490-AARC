@@ -232,10 +232,10 @@ class rabbitMQClient
 
 			// creating unique callback queue name
 
-			$callback_queue = new AMQPQueue($channel);
-			$callback_queue->setName($this->queue."_response");
-			$callback_queue->setFlags(AMQP_AUTODELETE);  //removing queue when done, hopefully solves queue issue 
-			$callback_queue->declareQueue();  //actually declaring queue now? wasnt declaring earlier
+			$this->callback_queue = new AMQPQueue($channel);
+			$this->callback_queue->setName($this->queue."_response");
+			$this->callback_queue->setFlags(AMQP_AUTODELETE);  //removing queue when done, hopefully solves queue issue 
+			$this->callback_queue->declareQueue();  //actually declaring queue now? wasnt declaring earlier
 
 
 			$callback_queue->bind($exchange->getName(),$this->routing_key.".response");
@@ -247,7 +247,11 @@ class rabbitMQClient
 
 			$exchange->publish($json_message,$this->routing_key,AMQP_NOPARAM,array('reply_to'=>$callback_queue->getName(),'correlation_id'=>$uid));
       $this->response_queue[$uid] = "waiting";
-			$callback_queue->consume(array($this,'process_response'));
+			//$callback_queue->consume(array($this,'process_response'));
+			while ($this->response_queue[$uid] == "waiting"){ // waiting response
+				$callback_queue->consume(array($this,'process_response'));
+			}
+
 
 			$response = $this->response_queue[$uid];
 			unset($this->response_queue[$uid]);
