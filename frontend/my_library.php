@@ -42,10 +42,18 @@ function getPersonalLibBookDetails($plib_olid)
       'olid' => $plib_olid
     ]);
 
-    if (($response['status'] === 'success') && is_array($response)) {
-
-      $plib_book = $response['data'];
-      return $plib_book; // return the array of details
+    if (($response['status'] === 'success') && is_array($response['data'])) {
+      $plib_bookdata = $response['data'];
+      return [
+        'olid' => $plib_olid,
+        'title' => $plib_bookdata['title'] ?? 'Unknown Title',
+        'author' => $plib_bookdata['author'] ?? 'Unknown Author',
+        'isbn' => $plib_bookdata['isbn'] ?? 'N/A',
+        'cover_url' => $plib_bookdata['cover_url'] ?? 'default-cover.png', // fallback if missing
+        'publish_year' => $plib_bookdata['publish_year'] ?? 'Unknown'
+      ];
+      //$plib_book = $response['data'];
+      //return $plib_book; // return the array of details
       /*
        $bookDetailsResults= [ // this gets returns to the webserver
       'olid' => $olid,
@@ -144,7 +152,7 @@ if (!empty($libraryOlidList)){
       <?php foreach ($libraryBooks as $book): ?>
         <div class="card">
           <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
-          <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>">
+          <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($book['olid']); ?>">
               <?php echo htmlspecialchars($book['title']) ?>
             </a></h3>
           <p><?php echo htmlspecialchars($book['author']) ?></p>
@@ -152,7 +160,7 @@ if (!empty($libraryOlidList)){
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
           <form method="POST">
-            <input type="hidden" name="olid" value="<?php echo htmlspecialchars($olid) ?>">
+            <input type="hidden" name="works_id" value="<?php echo htmlspecialchars($book['olid']) ?>">
             <button type="submit" class="btn">Remove</button>
           </form>
         </div>
