@@ -1,54 +1,14 @@
 <?php
-function db() {
-  $host = '172.28.172.114'; // need local ip, NEED TO CHANGE
-  $user = 'saas_user'; // needdatabase user
-  $pass = 'p@ssw0rd'; // need database password
-  $name = 'userdb.sql'; // needdatabase name
+require_once __DIR__.'/../rabbitMQ/rabbitMQLib.inc';
+session_start(); $_SESSION['user_id'] = 12; // temp
 
-  $mysqli = new mysqli($host, $user, $pass, $name);
-  if ($mysqli->connect_errno) {
-    throw new RuntimeException("DB connect failed: ".$mysqli->connect_error);
-  }
-  return $mysqli;
-}
+$olid1 = 'OL86318W';
+$olid2 = 'OL86701W';
 
-function doReviewsCreate(array $req) {
-  $user_id  = (int)($req['user_id'] ?? 0);
-  $works_id = trim($req['works_id'] ?? '');
-  $rating   = (int)($req['rating'] ?? 0);
-  $body     = trim($req['body'] ?? ($req['comment'] ?? ''));
+$client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini','LibraryPersonal');
 
-  if ($user_id <= 0 || $works_id === '' || $rating < 1 || $rating > 5) {
-    return ['status'=>'fail','message'=>'missing or invalid fields'];
-  }
+error_log("→ add $olid1");
+var_dump($client->send_request(['type'=>'library.personal.add','user_id'=>$_SESSION['user_id'],'works_id'=>$olid1]));
 
-  $conn = db();
-
-  $stmt = $conn->prepare("
-    INSERT INTO reviews (user_id, works_id, rating, body)
-    VALUES (?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE rating=VALUES(rating), body=VALUES(body), created_at=NOW()
-  ");
-  $stmt->bind_param("isis", $user_id, $works_id, $rating, $body);
-  $ok = $stmt->execute();
-
-  return $ok
-    ? ['status'=>'success','message'=>'review saved']
-    : ['status'=>'fail','message'=>'database error'];
-}
-
-
-
-$testData = [
-    'user_id' => 12,
-    'works_id' => 'OL82548W',
-    'rating' => 4,
-    'body' => 'Great book!'
-];
-
-$result = doReviewsCreate($testData);
-
-
-echo "Create Review for user :\n";
-print_r($result);
-?>
+error_log("→ add $olid2");
+var_dump($client->send_request(['type'=>'library.personal.add','user_id'=>$_SESSION['user_id'],'works_id'=>$olid2]));
