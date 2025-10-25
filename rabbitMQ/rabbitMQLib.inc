@@ -151,6 +151,10 @@ class rabbitMQClient
 	private $response_queue = array();
 	private $exchange_type = "topic";
 
+	// idk if this is needed but i was getting errors
+	private $conn_queue;
+    private $callback_queue;
+
 	function __construct($machine, $server = "rabbitMQ")
 	{
 		$this->machine = getHostInfo(array($machine));
@@ -235,6 +239,7 @@ class rabbitMQClient
 
 
 			$callback_queue->bind($exchange->getName(),$this->routing_key.".response");
+			$this->callback_queue = $callback_queue;
 
 			$this->conn_queue = new AMQPQueue($channel);
 			$this->conn_queue->setName($this->queue);
