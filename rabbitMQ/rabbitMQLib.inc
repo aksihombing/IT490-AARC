@@ -68,7 +68,7 @@ class rabbitMQServer
 			$exchange->setType($this->exchange_type);
 
 			$replyTo = $msg->getReplyTo(); //check if reply_to is given with a fallback just in case
-			if (!empty($reply_to)){
+			if (!empty($replyTo)){
 				$replykey = $replyTo;
 			}
 			else {
