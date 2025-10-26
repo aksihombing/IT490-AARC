@@ -408,41 +408,7 @@ function doCreateEvent(array $req) {
   return ['status' => 'success', 'event_id' => $conn->insert_id];
 }
 
-// Adding a new line of code in hopes to fix calander issue, exact same as before except adding $calander_ready_events like in the open source
 
-// ---- feature 4: list club events (Updated for Calendar) ----- 
-
-function doListEvents(array $req) {
-  $club_id = $req['club_id'] ?? 0;
-  if (!$club_id) return ['status' => 'fail', 'message' => 'missing club_id'];
-
-  $conn = db();
-  
-  $stmt = $conn->prepare("SELECT eventID, title, event_date, description FROM events WHERE club_id=? ORDER BY event_date ASC");
-  $stmt->bind_param("i", $club_id);
-  $stmt->execute();
-  $result = $stmt->get_result();
-
-  $calendar_ready_events = [];
-  while ($db_event_row = $result->fetch_assoc()) {
-    
-    $calculated_end_time = date('Y-m-d H:i:s', strtotime($db_event_row['event_date']) + 3600); 
-
-    $calendar_ready_events[] = [
-      'id'    => $db_event_row['eventID'],
-      'text'  => $db_event_row['title'],
-      'start' => $db_event_row['event_date'],
-      'end'   => $calculated_end_time,
-      'description' => $db_event_row['description']
-    ];
-  }
-  
-  return ['status' => 'success', 'events' => $calendar_ready_events];
-}
-
-// end of attempt 2 of feature 4 
-
-/* commenting out incase i mess something up 
 // ---- feature 4: list club events ----- 
 
 function doListEvents(array $req) {
@@ -462,7 +428,7 @@ function doListEvents(array $req) {
 
   return ['status' => 'success', 'events' => $events];
 }
-*/
+
 
 // ---- feature 5: cancel club event ----- 
 
