@@ -3,7 +3,7 @@
 // angela's bookClub.php reworked so it works with rmq and db
 session_start();
 if (!isset($_SESSION['login'])) {
-    header("Location: /frontend/login.php");
+    header("Location: login.php");
     exit;
 }
 ?>
@@ -12,12 +12,12 @@ if (!isset($_SESSION['login'])) {
 <head>
   <meta charset="utf-8">
   <title>Book Club Calendar</title>
-  <link rel="stylesheet" href="/css/baseStyle.css">
+  <link rel="stylesheet" href="baseStyle.css">
   <script src="/daypilot-html5/js/daypilot/daypilot-all.min.js"></script>
   <link rel="stylesheet" href="/themes/scheduler_8.css">
 </head>
 <body>
-<a href="bookClub.php" style="text-decoration:none; color:#333;">Back to My Clubs</a>
+<!-- <a href='/frontend/index.php?content=bookClub'>Back to Book Clubs</a> -->
 
 <h2>Book Club Meeting Calendar</h2>
 
@@ -31,7 +31,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const clubId = urlParams.get("club_id") || 1;
 
 async function loadEvents() {
-  const res = await fetch(`events_api.php?action=list&club_id=${clubId}`);
+  const res = await fetch(`events_functions.php?action=list&club_id=${clubId}`);
   const data = await res.json();
   dp.events.list = data.events || [];
   dp.update();
