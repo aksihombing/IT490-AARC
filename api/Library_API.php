@@ -9,6 +9,17 @@
 
 // HUGE WORK IN PROGRESS !!!
 
+// NEED TO UPDATE:
+// doBookSearch only actually needs to cache and return OLID, Title, Author, Publish_Year, cover_url, and isbn because we don't really DISPLAY the other information. We can run it through doBookDetails, now that I'm thinking about it.
+// I also realized it probably wouldve been better to make a singular function to select data PER endpoint
+/* 
+/works/olid.json    
+/works/olid/editions.json   
+/search.json   
+/works/olid/rations.json    
+/subjects.json
+*/
+
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
@@ -65,8 +76,8 @@ function doBookSearch(array $req)
 
 
   // FEATURE PROPOSAL : page, offset, and limit parameters
-  $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] :10; // default limit is 10
-  $page = isset($req['page']) ? intval($req['page']) :1; // default page starts at 1
+  $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] : 10; // default limit is 10
+  $page = isset($req['page']) ? intval($req['page']) : 1; // default page starts at 1
   $offset = ($page - 1) * $limit; // (page number - 1) * number of results per page
 
 
@@ -103,7 +114,7 @@ function doBookSearch(array $req)
   $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
   $searchurl = "{$base}?q={$encodedQuery}&limit={$limit}&page={$page}";
-  
+
 
   $search_response = curl_get($searchurl);
   $curl_data = json_decode($search_response, true); // true is for the associative arrays. if false, it returns the json objects into objects. make sure to decode the response from the api before upserting/ inserting it back into the db
@@ -274,12 +285,13 @@ function doBookSearch(array $req)
     echo "Cache MISS (fetched + saved) for {$type} = {$query}\n";
   } // END FOREACH BOOK
 
-  return ['status' => 'success', 
-  'data' => $searchbookresults,
-  'limit' => $limit,
-  'page'=> $page,
-  'offset'=> $offset, // calculates and sends offset back to frontend; not sure how it fully works tho
-];
+  return [
+    'status' => 'success',
+    'data' => $searchbookresults,
+    'limit' => $limit,
+    'page' => $page,
+    'offset' => $offset, // calculates and sends offset back to frontend; not sure how it fully works tho
+  ];
 }
 
 
@@ -414,7 +426,7 @@ function doBookDetails(array $req)
 
 
   // returning results
-  $bookDetailsResults= [ // this gets returns to the webserver
+  $bookDetailsResults = [ // this gets returns to the webserver
     'olid' => $olid,
     'title' => $title,
     'subtitle' => $subtitle,
@@ -443,6 +455,91 @@ function doBookDetails(array $req)
 } // end doBookDetails
 
 
+function doBookRecommend(array $req)
+{  // 1 to 1 book recommendation for the sake of speed
+  // content-based filtering --> uses subjects to recommend a book
+  // https://openlibrary.org/dev/docs/api/subjects
+
+  // reuse doBookDetails/doBookSearch
+
+  // read olid of one book
+  $olid = $req['olid'] ?? $req['works_id'] ?? ''; // check for olid or works_id
+  if ($olid === '')
+    return ['status' => 'fail', 'message' => 'missing olid for query'];
+
+  // find subjects[]
+  // data from /works/{OLID}.json ----------------------
+
+  $work_url = "https://openlibrary.org/works/{$olid}.json";
+  $work_json = curl_get($work_url);
+  if (!$work_json) { // fail catching jusssstt in case
+    return ['status' => 'fail', 'message' => 'failed to fetch work'];
+  }
+  $work_data = json_decode($work_json, true); // decode to read all data
+  $allSubjects = array_slice($work_data['subjects'] ?? [], 0, 20); // get all subjects returned, limit to first 20 subjects
+  shuffle($allSubjects); // easier to select a random selection of two subjects to search with
+
+
+  // randomly select 2 subjects within the first 20 subjects
+  $subject1 = $allSubjects[0]; // will get entered into subjects/{subject1}.json, PRIMARY SEARCH
+  $subject2 = array_slice($allSubjects, 1, 5); //skip first array item (which is used as the primary search), use next 5 subjects as a fallback in case there isnt a match with any one of them
+
+
+  // subjects/{subject}.json search query
+  // search results for another book in "works" that has a "subject" item equal to $random_subjects[1] --> Only recommend first match
+  $encodedSubject1= urlencode($subject1);
+  $subjectUrl = "https://openlibrary.org/search.json?subject={$encodedSubject1}&limit=20";
+  $search_json = curl_get($subjectUrl);
+  $search_data = json_decode($search_json, true);
+  $docs = $search_data["docs"] ?? [];
+  
+  $recommendedBook = null;
+
+
+  // return recommended book's olid --> maybe return 
+ foreach ($docs as $oneBook) {
+
+    $rec_work_id = $oneBook['key'] ?? ''; // key: XXX is there the works_id is
+    if (!$rec_work_id) continue; // if work id not found, keep going
+
+    // formatted like "key" : "/works/OLxxxxxW", we only want the OLxxxxxW
+    $rec_olid = str_replace('/works/', '', $rec_work_id);
+    if ($rec_olid === $olid) continue; // skip if its the same book
+
+    // require 2nd subject match also
+    //https://www.php.net/manual/en/function.array-intersect.php
+    $docSubjects = $oneBook['subject'] ?? [];
+    $matchedSubject = array_intersect($docSubjects, $subject2);
+    if (empty($matchedSubject)) continue; // goes to next iteration until match found
+
+    // should only reach this area if a return is found
+    $recommendedBook = [
+      'olid'     => $rec_olid,
+      'title'        => $oneBook['title'] ?? 'Unknown',
+      'author'       => $oneBook['author_name'][0] ?? 'Unknown',
+      'publish_year' => $oneBook['first_publish_year'] ?? null,
+      'cover_url'    => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
+        ? "https://covers.openlibrary.org/b/id/".$oneBook['cover_id']."-L.jpg"
+        : null,
+      //'matched_subjects' => [$subject1, $subject2] // not really needed to be returned
+    ];
+    break;
+  }
+
+  if (!$recommendedBook) {
+    return ['status' => 'fail', 'message' => 'no recommendation found'];
+  }
+
+  return [
+    'status' => 'success',
+    'recommended_book' => $recommendedBook
+  ];
+
+
+}
+
+
+
 
 
 // ---------------- SERVER ----------------
@@ -467,6 +564,9 @@ function requestProcessor($req)
 
     case 'book_details':
       return doBookDetails($req); // does not store into api cache, calls the details in-the-moment from the api
+
+    case 'book_recommend':
+      return doBookRecommend($req);
 
     case 'book_collect':
       return doBookCollect($req); // not sure if needed
