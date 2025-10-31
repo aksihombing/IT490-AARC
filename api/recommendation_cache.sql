@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS olid_cache;
+DROP TABLE IF EXISTS recommendation_cache;
 
-CREATE TABLE IF NOT EXISTS olid_cache (
+CREATE TABLE IF NOT EXISTS recommendation_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
   /* basics -- may need more depending on what info we need for the website ? */
   olid VARCHAR(50) DEFAULT NULL,
@@ -13,16 +13,13 @@ CREATE TABLE IF NOT EXISTS olid_cache (
 
   /* ints */
   publish_year INT DEFAULT NULL,
-  ratings_average DECIMAL(3,2) DEFAULT NULL,
-  ratings_count INT DEFAULT NULL,
+
 
   /* subject/genre */
   -- these should be JSON_ENCODE(data) when INSERTING values
   -- use JSON_DECODE(data) when reading it from the frontend
   subjects JSON DEFAULT NULL,
-  person_key JSON DEFAULT NULL,
-  place_key JSON DEFAULT NULL,
-  time_key JSON DEFAULT NULL,
+
 
   cover_url TEXT DEFAULT NULL,
 
