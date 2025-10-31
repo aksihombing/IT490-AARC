@@ -117,7 +117,7 @@ function doBookRecommend(array $req)
 }
 
 // running the results
-header('Content-Type : application/json');
+header('Content-Type: application/json');
 $testResult = doBookRecommend(['olid' => 'OL82548W']);
-return json_encode($testResult, JSON_PRETTY_PRINT);
+echo json_encode($testResult, JSON_PRETTY_PRINT);
 ?>
