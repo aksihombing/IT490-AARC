@@ -51,7 +51,8 @@ function doBookRecommend(array $req)
 
 
     // $allSubjects = array_map('strtolower', array_slice($work_data['subject'] ?? [], 0, 20));// get all subjects returned, limit to first 20 subjects and makes sure its all lowercase
-    $allSubjects_raw = array_map('strtolower', array_slice($work_data['subject'] ?? [], 0, 50)); // grab nearly all subjects
+    $allSubjects_raw = array_map('strtolower', array_slice($work_data['subjects'] ?? [], 0, 50)); // grab nearly all subjects
+    // NOTE : /works/ uses PLURAL 'subjects' ....
     $filteredSubjects = []; // filtered subjects, 1-word
 
     foreach ($allSubjects_raw as $filtering_subject) {
