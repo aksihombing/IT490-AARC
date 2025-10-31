@@ -89,13 +89,13 @@ function doBookRecommend(array $req)
     $subjectUrl = "https://openlibrary.org/subjects/{$encodedSubject1}.json?limit=50";
     $subject_json = curl_get($subjectUrl);
     $subject_data = json_decode($subject_json, true);
-    $docs = $subject_data["docs"] ?? [];
+    $works = $subject_data["works"] ?? [];
 
     $recommendedBook = null;
 
 
     // return recommended book's olid --> maybe return 
-    foreach ($docs as $oneBook) {
+    foreach ($works as $oneBook) {
 
         $rec_work_id = $oneBook['key'] ?? ''; // key: XXX is there the works_id is
         if (!$rec_work_id)
