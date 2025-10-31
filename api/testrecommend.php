@@ -57,7 +57,8 @@ function doBookRecommend(array $req)
   echo "Primary subject: {$subject1}\n"; // DEBUGGING
 
   $subject2 = array_slice($allSubjects, 1, 20); //skip first array item (which is used as the primary search), use next 20 subjects as a fallback in case there isnt a match with any one of them
-  echo "Second subject options: {$subject2}\n"; // DEBUGGING
+  echo "Second subject options: \n"; // DEBUGGING
+  var_dump( $subject2 );
 
   // subjects/{subject}.json search query
   // search results for another book in "works" that has a "subject" item equal to $random_subjects[1] --> Only recommend first match
