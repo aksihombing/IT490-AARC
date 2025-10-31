@@ -53,14 +53,17 @@ function doBookRecommend(array $req)
 
   // randomly select 2 subjects within the first 20 subjects
   $subject1 = $allSubjects[0]; // will get entered into subjects/{subject1}.json, PRIMARY SEARCH
-  $subject2 = array_slice($allSubjects, 1, 20); //skip first array item (which is used as the primary search), use next 20 subjects as a fallback in case there isnt a match with any one of them
 
+  echo "Primary subject: {$subject1}\n"; // DEBUGGING
+
+  $subject2 = array_slice($allSubjects, 1, 20); //skip first array item (which is used as the primary search), use next 20 subjects as a fallback in case there isnt a match with any one of them
+  echo "Second subject options: {$subject2}\n"; // DEBUGGING
 
   // subjects/{subject}.json search query
   // search results for another book in "works" that has a "subject" item equal to $random_subjects[1] --> Only recommend first match
   $encodedSubject1 = urlencode($subject1);
   //$subjectUrl = "https://openlibrary.org/search.json?subject={$encodedSubject1}&limit=40";
-  $subjectUrl = "https://openlibrary.org/subjects/{$encodedSubject1}.json?limit=40";
+  $subjectUrl = "https://openlibrary.org/subjects/{$encodedSubject1}.json?limit=50";
   $subject_json = curl_get($subjectUrl);
   $subject_data = json_decode($subject_json, true);
   $docs = $subject_data["docs"] ?? [];
@@ -85,6 +88,8 @@ function doBookRecommend(array $req)
     // fallback : strtolower subjects to make sure matching fails arent due to case sensitivity
     // https://www.php.net/manual/en/function.array-map.php --> used array mapping bc subject is an array
     $docSubjects = array_map('strtolower', $oneBook['subjects'] ?? []);
+
+    echo "strtolower docSubjects: {$docSubjects}\n"; 
     //https://www.php.net/manual/en/function.array-intersect.php
     $matchedSubject = array_intersect($docSubjects, $subject2);
     if (empty($matchedSubject))
