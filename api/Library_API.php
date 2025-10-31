@@ -455,6 +455,8 @@ function doBookDetails(array $req)
 } // end doBookDetails
 
 
+
+
 function doBookRecommend(array $req)
 {  // 1 to 1 book recommendation for the sake of speed
   // content-based filtering --> uses subjects to recommend a book
@@ -476,51 +478,56 @@ function doBookRecommend(array $req)
     return ['status' => 'fail', 'message' => 'failed to fetch work'];
   }
   $work_data = json_decode($work_json, true); // decode to read all data
-  $allSubjects = array_slice($work_data['subjects'] ?? [], 0, 20); // get all subjects returned, limit to first 20 subjects
+  $allSubjects = array_map('strtolower', array_slice($work_data['subjects'] ?? [], 0, 20));// get all subjects returned, limit to first 20 subjects and makes sure its all lowercase
   shuffle($allSubjects); // easier to select a random selection of two subjects to search with
-
 
   // randomly select 2 subjects within the first 20 subjects
   $subject1 = $allSubjects[0]; // will get entered into subjects/{subject1}.json, PRIMARY SEARCH
-  $subject2 = array_slice($allSubjects, 1, 5); //skip first array item (which is used as the primary search), use next 5 subjects as a fallback in case there isnt a match with any one of them
+  $subject2 = array_slice($allSubjects, 1, 20); //skip first array item (which is used as the primary search), use next 20 subjects as a fallback in case there isnt a match with any one of them
 
 
   // subjects/{subject}.json search query
   // search results for another book in "works" that has a "subject" item equal to $random_subjects[1] --> Only recommend first match
-  $encodedSubject1= urlencode($subject1);
+  $encodedSubject1 = urlencode($subject1);
   //$subjectUrl = "https://openlibrary.org/search.json?subject={$encodedSubject1}&limit=40";
   $subjectUrl = "https://openlibrary.org/subjects/{$encodedSubject1}.json?limit=40";
   $subject_json = curl_get($subjectUrl);
   $subject_data = json_decode($subject_json, true);
   $docs = $subject_data["docs"] ?? [];
-  
+
   $recommendedBook = null;
 
 
   // return recommended book's olid --> maybe return 
- foreach ($docs as $oneBook) {
+  foreach ($docs as $oneBook) {
 
     $rec_work_id = $oneBook['key'] ?? ''; // key: XXX is there the works_id is
-    if (!$rec_work_id) continue; // if work id not found, keep going
+    if (!$rec_work_id)
+      continue; // if work id not found, keep going
 
     // formatted like "key" : "/works/OLxxxxxW", we only want the OLxxxxxW
     $rec_olid = str_replace('/works/', '', $rec_work_id);
-    if ($rec_olid === $olid) continue; // skip if its the same book
+    if ($rec_olid === $olid)
+      continue; // skip if its the same book
 
     // require 2nd subject match also
+
+    // fallback : strtolower subjects to make sure matching fails arent due to case sensitivity
+    // https://www.php.net/manual/en/function.array-map.php --> used array mapping bc subject is an array
+    $docSubjects = array_map('strtolower', $oneBook['subjects'] ?? []);
     //https://www.php.net/manual/en/function.array-intersect.php
-    $docSubjects = $oneBook['subject'] ?? [];
     $matchedSubject = array_intersect($docSubjects, $subject2);
-    if (empty($matchedSubject)) continue; // goes to next iteration until match found
+    if (empty($matchedSubject))
+      continue; // goes to next iteration until match found
 
     // should only reach this area if a return is found
     $recommendedBook = [
-      'olid'     => $rec_olid,
-      'title'        => $oneBook['title'] ?? 'Unknown',
-      'author'       => $oneBook['author_name'][0] ?? 'Unknown',
+      'olid' => $rec_olid,
+      'title' => $oneBook['title'] ?? 'Unknown',
+      'author' => $oneBook['author_name'][0] ?? 'Unknown',
       'publish_year' => $oneBook['first_publish_year'] ?? null,
-      'cover_url'    => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
-        ? "https://covers.openlibrary.org/b/id/".$oneBook['cover_id']."-L.jpg"
+      'cover_url' => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
+        ? "https://covers.openlibrary.org/b/id/" . $oneBook['cover_id'] . "-L.jpg"
         : null,
       //'matched_subjects' => [$subject1, $subject2] // not really needed to be returned
     ];

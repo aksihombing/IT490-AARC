@@ -76,7 +76,7 @@ function getRecommendation($library_book)
       'olid' => $library_book
     ]);
 
-    if (($response['status'] === 'success') && isset($response['data']) && is_array($response['recommended_book'])) { // checks success, if data is set, and if data is array
+    if (($response['status'] === 'success') && isset($response['recommended_book']) && is_array($response['recommended_book'])) { // checks success, if data is set, and if data is array
       $rec_bookdata = $response['recommended_book'];
       return [
         'olid' => $rec_bookdata['olid'],
