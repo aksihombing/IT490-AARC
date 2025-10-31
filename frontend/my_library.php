@@ -76,8 +76,8 @@ function getRecommendation($library_book)
       'olid' => $library_book
     ]);
 
-    if (($response['status'] === 'success') && isset($response['data']) && is_array($response['data'])) { // checks success, if data is set, and if data is array
-      $rec_bookdata = $response['data'];
+    if (($response['status'] === 'success') && isset($response['data']) && is_array($response['recommended_book'])) { // checks success, if data is set, and if data is array
+      $rec_bookdata = $response['recommended_book'];
       return [
         'olid' => $rec_bookdata['olid'],
         'title' => $rec_bookdata['title'] ?? 'Unknown Title',
@@ -87,7 +87,8 @@ function getRecommendation($library_book)
         'publish_year' => $rec_bookdata['publish_year'] ?? 'Unknown'
       ];
       /* in Library_API.php :
-      $recommendedBook = [
+    // should only reach this area if a return is found
+    $recommendedBook = [
       'olid'     => $rec_olid,
       'title'        => $oneBook['title'] ?? 'Unknown',
       'author'       => $oneBook['author_name'][0] ?? 'Unknown',
@@ -95,7 +96,19 @@ function getRecommendation($library_book)
       'cover_url'    => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
         ? "https://covers.openlibrary.org/b/id/".$oneBook['cover_id']."-L.jpg"
         : null,
+      //'matched_subjects' => [$subject1, $subject2] // not really needed to be returned
     ];
+    break;
+  }
+
+  if (!$recommendedBook) {
+    return ['status' => 'fail', 'message' => 'no recommendation found'];
+  }
+
+  return [
+    'status' => 'success',
+    'recommended_book' => $recommendedBook
+  ];
       */
     } else {
       return null; // if theres no books in library ?
