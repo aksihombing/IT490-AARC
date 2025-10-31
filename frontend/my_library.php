@@ -249,7 +249,9 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
           </div> <!-- end card -->
 
         <?php endforeach; ?> <!-- end display each book -->
-      <?php endif; ?> <!-- end if(!empty($recommendedBooks)) -->
+        <?php else: ?>
+          <p>No recommendations found.</p>
+      <?php endif; ?> <!-- end else -->
 
     </div> <!-- end grid -->
   <?php endif; ?> <!-- end else -->
