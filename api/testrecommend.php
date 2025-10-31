@@ -50,8 +50,8 @@ function doBookRecommend(array $req)
     $work_data = json_decode($work_json, true); // decode to read all data
 
 
-    // $allSubjects = array_map('strtolower', array_slice($work_data['subjects'] ?? [], 0, 20));// get all subjects returned, limit to first 20 subjects and makes sure its all lowercase
-    $allSubjects_raw = array_map('strtolower', array_slice($work_data['subjects'] ?? [], 0, 50)); // grab nearly all subjects
+    // $allSubjects = array_map('strtolower', array_slice($work_data['subject'] ?? [], 0, 20));// get all subjects returned, limit to first 20 subjects and makes sure its all lowercase
+    $allSubjects_raw = array_map('strtolower', array_slice($work_data['subject'] ?? [], 0, 50)); // grab nearly all subjects
     $filteredSubjects = []; // filtered subjects, 1-word
 
     foreach ($allSubjects_raw as $filtering_subject) {
@@ -62,7 +62,7 @@ function doBookRecommend(array $req)
         // regex for php </3
         if (!preg_match('/^[a-z\-]+$/', $filtering_subject))
             continue; // one-word subjects, allowing for hyphenated subjects also
-            // exclude anything with accented characters (beyond ascii char code 122)
+        // exclude anything with accented characters (beyond ascii char code 122)
 
         $filteredSubjects[] = $filtering_subject; // add good, single word subject to array
     }
@@ -110,7 +110,7 @@ function doBookRecommend(array $req)
 
         // fallback : strtolower subjects to make sure matching fails arent due to case sensitivity
         // https://www.php.net/manual/en/function.array-map.php --> used array mapping bc subject is an array
-        $docSubjects = array_map('strtolower', $oneBook['subjects'] ?? []);
+        $docSubjects = array_map('strtolower', $oneBook['subject'] ?? []);
 
         echo "strtolower docSubjects:";
         print_r($docSubjects); // DEBUGGING
