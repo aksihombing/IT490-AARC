@@ -224,7 +224,9 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
       <?php endforeach; ?> <!-- end display each book -->
 
 
-
+        <br>
+        <br>
+        <br>
 
       <!-- FOR EACH RECOMMENDED BOOK, same as displaying library books -->
       <h3> Recommended Books </h3>
@@ -239,7 +241,8 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
 
             <p><?php echo htmlspecialchars($r_book['author']) ?></p>
 
-            <p><strong>ISBN:</strong> <?php echo htmlspecialchars($r_book['isbn']) ?></p>
+           <!-- <p><strong>ISBN:</strong> < ? php echo htmlspecialchars($r_book['isbn']) ? ></p> -->
+            <!-- removed ISBN from showing -->
 
             <p><strong>Published:</strong> <?php echo htmlspecialchars($r_book['publish_year']) ?></p>
 
