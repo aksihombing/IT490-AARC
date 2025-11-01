@@ -94,6 +94,9 @@ function doBookRecommend(array $req)
 
     $recommendedBook = null;
 
+    // regex and trim filtering for subjects for the recommended books
+
+
 
     // return recommended book's olid --> maybe return 
     foreach ($works as $oneBook) {
@@ -111,12 +114,25 @@ function doBookRecommend(array $req)
 
         // fallback : strtolower subjects to make sure matching fails arent due to case sensitivity
         // https://www.php.net/manual/en/function.array-map.php --> used array mapping bc subject is an array
-        $docSubjects = array_map('strtolower', $oneBook['subject'] ?? []);
+        $rec_subjects_raw = array_map('strtolower', $oneBook['subject'] ?? []);
+        $rec_subjects = [];
+        foreach ($rec_subjects_raw as $r_subject) {
+            $r_subject = trim($r_subject);
 
-        echo "strtolower docSubjects:";
-        print_r($docSubjects); // DEBUGGING
+            // regex for php </3 -- same as previous filtering
+            if (!preg_match('/^[a-z\-]+$/', $r_subject))
+                continue; 
+
+            $rec_subjects[] = $r_subject; // add good, single word subject to array
+        }
+
+        echo "filtered rec_subjects:";
+        print_r($rec_subjects); // DEBUGGING
         //https://www.php.net/manual/en/function.array-intersect.php
-        $matchedSubject = array_intersect($docSubjects, $subject2);
+
+
+        $matchedSubject = array_intersect($rec_subjects, $subject2);
+        echo "found matched subject" . $matchedSubject[0] ."\n"; // DEBUGGING
         if (empty($matchedSubject))
             continue; // goes to next iteration until match found
 
