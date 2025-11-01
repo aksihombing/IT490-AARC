@@ -245,11 +245,6 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
             <!-- removed ISBN from showing -->
 
             <p><strong>Published:</strong> <?php echo htmlspecialchars($r_book['publish_year']) ?></p>
-
-            <form method="POST">
-              <input type="hidden" name="works_id" value="<?php echo htmlspecialchars($r_book['olid']) ?>">
-              <button type="submit" class="btn">Remove</button>
-            </form>
           </div> <!-- end card -->
 
         <?php endforeach; ?> <!-- end display each book -->
