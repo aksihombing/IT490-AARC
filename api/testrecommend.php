@@ -86,8 +86,7 @@ function doBookRecommend(array $req)
     // subjects/{subject}.json search query
     // search results for another book in "works" that has a "subject" item equal to $random_subjects[1] --> Only recommend first match
     $encodedSubject1 = urlencode($subject1);
-    //$subjectUrl = "https://openlibrary.org/search.json?subject={$encodedSubject1}&limit=40";
-    $subjectUrl = "https://openlibrary.org/subjects/{$encodedSubject1}.json?limit=50";
+    $subjectUrl = "https://openlibrary.org/subjects/{$encodedSubject1}.json?sort=new&sort=rating%20desc&limit=50"; // pain
     $subject_json = curl_get($subjectUrl);
     $subject_data = json_decode($subject_json, true);
     $works = $subject_data["works"] ?? [];
