@@ -142,7 +142,7 @@ function doBookRecommend(array $req)
         $recommendedBook = [
             'olid' => $rec_olid,
             'title' => $oneBook['title'] ?? 'Unknown',
-            'author' => $oneBook['author_name'][0] ?? 'Unknown',
+            'author' => $oneBook['authors'][0]['name'] ?? 'Unknown',
             'publish_year' => $oneBook['first_publish_year'] ?? null,
             'cover_url' => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
                 ? "https://covers.openlibrary.org/b/id/" . $oneBook['cover_id'] . "-L.jpg"
