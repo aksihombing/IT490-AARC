@@ -585,7 +585,7 @@ function doBookRecommend(array $req)
         return ['status' => 'fail', 'message' => 'no recommendation found'];
     }
 
-    echo "Found match: " . $olid . " || Matched with " . $rec_olid . "with subjects: " . implode(', ', $matchedSubject) . "\n";
+    echo "Found match: " . $olid . " || Matched with " . $rec_olid . " with subjects: \n" . implode(', ', $matchedSubject) . "\n";
 
     return [
         'status' => 'success',
