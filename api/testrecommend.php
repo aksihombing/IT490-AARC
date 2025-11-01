@@ -121,7 +121,7 @@ function doBookRecommend(array $req)
 
             // regex for php </3 -- same as previous filtering
             if (!preg_match('/^[a-z\-]+$/', $r_subject))
-                continue; 
+                continue;
 
             $rec_subjects[] = $r_subject; // add good, single word subject to array
         }
@@ -132,7 +132,9 @@ function doBookRecommend(array $req)
 
 
         $matchedSubject = array_intersect($rec_subjects, $subject2);
-        echo "found matched subject" . $matchedSubject ."\n"; // DEBUGGING
+        echo "found matched subject: "; // DEBUGGING
+        print_r(array_values($matchedSubject)); // DEBUGGING
+
         if (empty($matchedSubject))
             continue; // goes to next iteration until match found
 
