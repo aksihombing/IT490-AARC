@@ -132,7 +132,7 @@ function doBookRecommend(array $req)
 
 
         $matchedSubject = array_intersect($rec_subjects, $subject2);
-        echo "found matched subject" . $matchedSubject[0] ."\n"; // DEBUGGING
+        echo "found matched subject" . $matchedSubject ."\n"; // DEBUGGING
         if (empty($matchedSubject))
             continue; // goes to next iteration until match found
 
