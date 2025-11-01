@@ -68,6 +68,7 @@ function getPLibDetails($plib_olid)
 
 function getRecommendation($library_book)
 {
+  // maybe could use a retry if fail loop or something
   try {
     $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
 
