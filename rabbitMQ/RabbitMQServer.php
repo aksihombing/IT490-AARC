@@ -175,61 +175,66 @@ function doLogout(array $req) {
 // --- MIDTERM GROUP DELIVERABLES (WEBSITE FEATURES) ---
 
 // CHIZZY'S FUNCTIONS
-//removes a book from user's library
-function doLibraryRemove(array $req) {
-  $uid  = (int)($req['user_id'] ?? 0);
-  $work = $req['works_id'] ?? '';
-  if (!$uid || $work === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
 
-  $conn = db();
-  $stmt = $conn->prepare("DELETE FROM user_library WHERE user_id=? AND works_id=? LIMIT 1");
-  if (!$stmt) return ['status'=>'fail','message'=>'prep failed'];
-  $stmt->bind_param("is", $uid, $work);
-  if (!$stmt->execute()) return ['status'=>'fail','message'=>'execute failed'];
-
-  return ($stmt->affected_rows > 0)
-    ? ['status'=>'success']
-    : ['status'=>'fail','message'=>'not found'];
-}
-
+// REVIEWS -----------------
 //gets all the reviews for a specific book
-function doReviewsList(array $req) {
+function doReviewsList(array $req)
+{
   $works_id = trim($req['works_id'] ?? '');
-  if ($works_id === '') return ['status'=>'fail','message'=>'missing works_id'];
+  if ($works_id === '')
+    return ['status' => 'fail', 'message' => 'missing works_id'];
+
+
 
   $conn = db();
 
   $stmt = $conn->prepare("
-    SELECT r.id, r.user_id, u.username, r.rating, r.body, r.created_at
+    SELECT r.user_id, u.username, r.rating, r.body, r.created_at
     FROM reviews r
     JOIN users u ON u.id = r.user_id
     WHERE r.works_id = ?
     ORDER BY r.created_at DESC
-    LIMIT 200
+    LIMIT 20
   ");
   $stmt->bind_param("s", $works_id);
   $stmt->execute();
-  $res = $stmt->get_result();
+  $reviewResults = $stmt->get_result();
 
-  $items = [];
-  while ($row = $res->fetch_assoc()) $items[] = $row;
+  $allReviews = [];
+  while ($oneReview = $reviewResults->fetch_assoc()){// gets each row returned from query; only returns what is needed
+    $allReviews[] = [
+      'username' => $oneReview["username"],
+      'rating' => (int)$oneReview["rating"],
+      'body' => $oneReview["body"],
+      'created_at' => $oneReview['created_at']
+    ];
+  }
 
   return [
     'status' => 'success',
-    'items'  => $items
+    'items' => $allReviews
   ];
 }
 
-function doReviewsCreate(array $req) {
-  $user_id  = (int)($req['user_id'] ?? 0);
+function doReviewsCreate(array $req)
+{
+  $user_id = (int) ($req['user_id'] ?? 0);
   $works_id = trim($req['works_id'] ?? '');
-  $rating   = (int)($req['rating'] ?? 0);
-  $body     = trim($req['body'] ?? ($req['comment'] ?? ''));
+  $rating = (int) ($req['rating'] ?? 0);
+  $body = trim($req['body'] ?? ($req['comment'] ?? ''));
 
   if ($user_id <= 0 || $works_id === '' || $rating < 1 || $rating > 5) {
-    return ['status'=>'fail','message'=>'missing or invalid fields'];
+    return ['status' => 'fail', 'message' => 'missing or invalid fields'];
   }
 
+  // DEBUGGING
+  /*
+  echo "Received doReviewsCreate -----". "\n";
+  echo "user_id: " . $user_id . "\n";
+  echo "works_id: " . $works_id. "\n";
+  echo "rating: " . $rating. "\n";
+  echo "body: " . $body. "\n";
+*/
   $conn = db();
 
   $stmt = $conn->prepare("
@@ -240,10 +245,18 @@ function doReviewsCreate(array $req) {
   $stmt->bind_param("isis", $user_id, $works_id, $rating, $body);
   $ok = $stmt->execute();
 
-  return $ok
-    ? ['status'=>'success','message'=>'review saved']
-    : ['status'=>'fail','message'=>'database error'];
+  if (!$ok) {
+    return
+      [
+        'status' => 'fail',
+        'message' => 'database error: ' . $stmt->error
+      ];
+  } else {
+    return ['status' => 'success', 'message' => 'review saved'];
+  }
 }
+
+// LIBRARY --------------
 
 function doLibraryList(array $req) {
   $user_id = (int)($req['user_id'] ?? 0);
@@ -259,7 +272,7 @@ function doLibraryList(array $req) {
     FROM user_library
     WHERE user_id = ?
     ORDER BY added_at DESC
-    LIMIT 200
+    LIMIT 10
   ");
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
@@ -292,6 +305,28 @@ function doLibraryAdd(array $req) {
 
   // INSERT IGNORE → if already there, affected_rows==0; still count as success
   return ['status'=>'success', 'message'=> ($stmt->affected_rows ? 'added' : 'already-in-library')];
+}
+
+
+//removes a book from user's library
+function doLibraryRemove(array $req)
+{
+  $uid = (int) ($req['user_id'] ?? 0);
+  $work = $req['works_id'] ?? '';
+  if (!$uid || $work === '')
+    return ['status' => 'fail', 'message' => 'missing user_id or works_id'];
+
+  $conn = db();
+  $stmt = $conn->prepare("DELETE FROM user_library WHERE user_id=? AND works_id=? LIMIT 1");
+  if (!$stmt)
+    return ['status' => 'fail', 'message' => 'prep failed'];
+  $stmt->bind_param("is", $uid, $work);
+  if (!$stmt->execute())
+    return ['status' => 'fail', 'message' => 'execute failed'];
+
+  return ($stmt->affected_rows > 0)
+    ? ['status' => 'success']
+    : ['status' => 'fail', 'message' => 'not found'];
 }
 
 
@@ -423,8 +458,7 @@ function doList(array $req) {
     FROM clubs c
     LEFT JOIN club_members m ON c.club_id = m.club_id
     WHERE c.owner_id = ? OR m.user_id = ?
-    ORDER BY c.name ASC
-  ");
+    ORDER BY c.name ASC");
   $stmt->bind_param("ii", $user_id, $user_id);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -437,6 +471,45 @@ function doList(array $req) {
   $conn->close();
 
   return ['status' => 'success', 'clubs' => $clubs];
+}
+
+// ---- feature 7: generate  invite link -----
+function doInviteLink(array $req) {
+  $club_id = $req['club_id'] ??0;
+  if (!$club_id) return ['status'=> 'fail', 'message' => 'missing user_id'];
+
+  $conn = db();
+  $hash = bin2hex(random_bytes(16));
+  
+  $stmt = $conn->prepare("INSERT INTO club_invites(club_id,hash) VALUES (?,?)");
+  $stmt->bind_param("is", $club_id, $hash);
+  if (!$stmt->execute()) {
+    return ['status' => 'fail', 'message' => 'cant generate link:'.$stmt->error];
+  }
+
+  $link = "http://www.aarc.com/inviteJoin.php?invite=$hash"; //only works for my test web vm need to change for chizi's file path
+  return ['status'=>'success','link'=>$link];
+}
+
+// ---- feature 8: invite link join -----
+function doInviteJoin(array $req) {$hash = $req['hash'] ?? '';
+  $user_id = $req['user_id'] ?? 0;
+  $hash = $req['hash'] ?? '';
+  if ($hash === '' || !$user_id) return ['status'=>'fail','message'=>'missing data'];
+    
+  $conn = db();
+  $stmt = $conn->prepare("SELECT club_id FROM club_invites WHERE hash=? LIMIT 1");
+  $stmt->bind_param("s", $hash);
+  $stmt->execute();
+  $stmt->bind_result($club_id);
+  if (!$stmt->fetch()) return ['status'=>'fail','message'=>'invalid or expired link'];
+  $stmt->close();
+
+  $join = $conn->prepare("INSERT INTO club_members(club_id,user_id) VALUES (?,?)");
+  $join->bind_param("ii", $club_id, $user_id);
+  if (!$join->execute()) return ['status'=>'fail','message'=>$join->error];
+
+  return ['status'=>'success','message'=>'joined club successfully'];
 }
 
 
@@ -468,6 +541,8 @@ function requestProcessor($req) {
     case 'club.events.create': return doCreateEvent($req);
     case 'club.events.list': return doListEvents($req);
     case 'club.events.cancel': return doCancelEvent($req);
+    case 'club.invite_link': return doInviteLink($req);
+    case 'club.join_link' : return doInviteJoin($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }

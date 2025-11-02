@@ -143,6 +143,7 @@ class rabbitMQClient
 	private $routing_key = '*';
 	private $response_queue = array();
 	private $exchange_type = "topic";
+	private $conn_queue;
 
 	function __construct($machine, $server = "rabbitMQ")
 	{
@@ -226,6 +227,14 @@ class rabbitMQClient
 
 			$response = $this->response_queue[$uid];
 			unset($this->response_queue[$uid]);
+
+
+			// close queues
+			$callback_queue->cancel(); // stop consume 
+			$channel->close(); 
+			$conn->disconnect();
+
+
 			return $response;
 		}
 		catch(Exception $e)
@@ -270,4 +279,3 @@ class rabbitMQClient
 	}
 }
 ?>
-
