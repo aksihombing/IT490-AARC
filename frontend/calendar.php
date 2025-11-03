@@ -1,11 +1,15 @@
 <?php
-
-// angela's bookClub.php reworked so it works with rmq and db
+// redirects to login page if no user isn't logged in 
 session_start();
 if (!isset($_SESSION['login'])) {
     header("Location: login.php");
     exit;
 }
+
+// saving logged in user id and club id for controling what club events are being viewed and who can create events
+$user_id = $_SESSION['user_id'];
+$club_id = $_GET['club_id'];
+
 ?>
 <!doctype html>
 <html>
@@ -17,9 +21,9 @@ if (!isset($_SESSION['login'])) {
   <link rel="stylesheet" href="/themes/scheduler_8.css">
 </head>
 <body>
-<!-- <a href='/frontend/index.php?content=bookClub'>Back to Book Clubs</a> -->
+<a href='/frontend/index.php?content=bookClub'>Back to Book Clubs</a>
 
-<h2>Book Club Meeting Calendar</h2>
+<h2>Book Club Event Calendar</h2>
 
 <div id="calendar"></div>
 
