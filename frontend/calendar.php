@@ -56,6 +56,7 @@ $club_id = $_GET['club_id'];
         const ownerData = await ownerVer.json();
         if (ownerData.status !== "owner") {
           alert("only the club owner can schedule events");
+        }  
 
         const title = prompt("Event Title:");
         if (!title) return;
