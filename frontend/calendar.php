@@ -61,7 +61,10 @@ $club_id = $_GET['club_id'];
         }  
 
         const title = prompt("Event Title:");
-        if (!title) return;
+        if (!title) {
+          dp.clearSelection();
+          return;
+        }
         const body = new FormData();
         body.append("action", "create");
         body.append("club_id", clubId);
@@ -77,14 +80,13 @@ $club_id = $_GET['club_id'];
         
       // event rsvp
       dp.onEventClick = async args => {
-        if (!confirm(`Cancel event "${args.e.text()}"?`)) return;
         const body = new FormData();
-        body.append("action", "event_cancel");
+        body.append("action", "rsvp");
         body.append("event_id", args.e.id());
-        const res = await fetch("clubs_functions.php", { method: "POST", body });
+        body.append("user_id", userId);
+        const res = await fetch("events_functions.php", { method: "POST", body });
         const json = await res.json();
         alert(json.message || json.status);
-        await loadEvents();
       };
 
       dp.init();
