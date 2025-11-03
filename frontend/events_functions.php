@@ -1,6 +1,5 @@
 <?php
-// events_functions 
-// going to handle displaying events, creating, and canceling club events
+// handles displaying events, creating, canceling, and rsvping to club events
 session_start();
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
 require_once(__DIR__ . '/../rabbitMQ/get_host_info.inc');
@@ -20,6 +19,7 @@ try {
   $response = [];
 
   switch ($action) {
+    // event list
     case 'list':
       $request = ['type' => 'club.events.list', 'club_id' => $club_id];
       $response = $client->send_request($request);
@@ -41,10 +41,12 @@ try {
       }
       break;
 
+    // create event  
     case 'create':
       $title = $_POST['title'] ?? '';
       $desc  = $_POST['description'] ?? '';
       $date  = $_POST['event_date'] ?? '';
+      $user_id = $_POST['user_id'];
 
       if (!$title || !$date) {
         echo json_encode(['status' => 'fail', 'message' => 'missing title or date']);
@@ -54,6 +56,7 @@ try {
       $request = [
         'type' => 'club.events.create',
         'club_id' => $club_id,
+        'user_id' => $user_id,
         'title' => $title,
         'description' => $desc,
         'event_date' => $date
@@ -62,6 +65,7 @@ try {
       echo json_encode($response);
       break;
 
+    // cancel event  
     case 'cancel':
       $event_id = $_POST['event_id'] ?? 0;
       if (!$event_id) {
@@ -73,7 +77,53 @@ try {
       $response = $client->send_request($request);
       echo json_encode($response);
       break;
-    }
+
+    // club owner check 
+    case 'check_owner':
+      $user_id = $_GET['user_id'] ?? $_POST['user_id'];
+
+      if (!$user_id) {
+        echo json_encode(['status' => 'fail', 'message' => 'missing user_id']);
+        exit;
+      }
+
+      $request = [
+        'type' => 'club.owner.check',
+        'club_id' => $club_id,
+        'user_id' => $user_id
+      ];
+      $response = $client->send_request($request);
+
+      if (($response['status'] ?? '') === 'success' && ($response['is_owner'] ?? false)) {
+        echo json_encode(['status' => 'owner']);
+      } else {
+        echo json_encode(['status' => 'not_owner']);
+      }
+      break;
+
+    // event rsvp
+    case 'rsvp':
+      $event_id = $_POST['event_id'];
+      $user_id  = $_POST['user_id'];
+
+      if (!$event_id || !$user_id) {
+        echo json_encode(['status' => 'fail', 'message' => 'missing event_id or user_id']);
+        exit;
+      }
+
+      $request = [
+        'type' => 'club.events.rsvp',
+        'event_id' => $event_id,
+        'user_id' => $user_id
+      ];
+      $response = $client->send_request($request);
+      echo json_encode($response);
+      break;
+
+    default:
+      echo json_encode(['status' => 'fail', 'message' => 'Unknown action']);
+      break;  
+    }  
   } catch (Exception $e) {
   echo json_encode(['status' => 'fail', 'message' => 'Exception: ' . $e->getMessage()]);
 }

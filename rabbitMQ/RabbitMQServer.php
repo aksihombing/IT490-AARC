@@ -512,6 +512,47 @@ function doInviteJoin(array $req) {$hash = $req['hash'] ?? '';
   return ['status'=>'success','message'=>'joined club successfully'];
 }
 
+// ---- feature 9: check club owner -----
+function doCheckOwner(array $req) {
+  $club_id = $req['club_id'] ?? 0;
+  $user_id = $req['user_id'] ?? 0;
+  if (!$club_id || !$user_id) return ['status' => 'fail', 'message' => 'missing club_id or user_id'];
+
+  $conn = db();
+  $stmt = $conn->prepare("SELECT owner_id FROM clubs WHERE club_id=? LIMIT 1");
+  $stmt->bind_param("i", $club_id);
+  $stmt->execute();
+  $stmt->bind_result($owner_id);
+  if (!$stmt->fetch()) return ['status' => 'fail', 'message' => 'club not found'];
+  $stmt->close();
+
+  return ($owner_id == $user_id)
+    ? ['status' => 'success', 'is_owner' => true]
+    : ['status' => 'success', 'is_owner' => false];
+}
+
+// ---- feature 10: event rsvp -----
+function doEventRSVP(array $req) {
+  $event_id = $req['event_id'] ?? 0;
+  $user_id  = $req['user_id'] ?? 0;
+
+  if (!$event_id || !$user_id)
+    return ['status' => 'fail', 'message' => 'missing event_id or user_id'];
+
+  $conn = db();
+  $stmt = $conn->prepare("
+    INSERT INTO EventAttendees (eventID, userID, rsvpStatus, rsvpDate)
+    VALUES (?, ?, 'Going', NOW())
+    ON DUPLICATE KEY UPDATE rsvpStatus='Going', rsvpDate=NOW()
+  ");
+  $stmt->bind_param("ii", $event_id, $user_id);
+  if (!$stmt->execute()) {
+    return ['status' => 'fail', 'message' => $stmt->error];
+  }
+
+  return ['status' => 'success', 'message' => 'rsvp successful'];
+}
+
 
 // --- REQUEST PROCESSOR ---
 
@@ -543,6 +584,8 @@ function requestProcessor($req) {
     case 'club.events.cancel': return doCancelEvent($req);
     case 'club.invite_link': return doInviteLink($req);
     case 'club.join_link' : return doInviteJoin($req);
+    case 'club.owner.check': return doCheckOwner($req);
+    case 'club.events.rsvp': return doEventRSVP($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }
