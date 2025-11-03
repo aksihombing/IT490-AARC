@@ -36,7 +36,6 @@
     <button type="submit">Invite</button>
   </form>
 </section>
--->
 
 <section id="events">
   <h3>Schedule Event</h3>
@@ -50,6 +49,7 @@
     <button type="submit">Create Event</button>
   </form>
 </section>
+-->
 
 <div id="output" style="margin-top:1rem;color:#333;"></div>
 
