@@ -74,12 +74,10 @@ function doBookSearch(array $req)
   if ($query === '')
     return ['status' => 'fail', 'message' => 'missing query'];
 
-
-  // FEATURE PROPOSAL : page, offset, and limit parameters
+  // pagination and limit features
   $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] : 10; // default limit is 10
   $page = isset($req['page']) ? intval($req['page']) : 1; // default page starts at 1
-  $offset = ($page - 1) * $limit; // (page number - 1) * number of results per page
-
+  // removed offset because its not really used
 
 
   // CACHE CHECK ----------------------------------
@@ -182,7 +180,7 @@ function doBookSearch(array $req)
       $work_data = json_decode($work_json, true); // decode to read all data
 
 
-      if (is_array($work_data['description'])) {
+      if (is_array($work_data['description'])) { // still getting a php warning idky
         $book_desc = $work_data['description']['value'];
       } // some books have an array for description
       else if (is_string($work_data['description'])) {
@@ -290,7 +288,7 @@ function doBookSearch(array $req)
     'data' => $searchbookresults,
     'limit' => $limit,
     'page' => $page,
-    'offset' => $offset, // calculates and sends offset back to frontend; not sure how it fully works tho
+    //removed offset
   ];
 }
 
