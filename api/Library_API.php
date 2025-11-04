@@ -109,9 +109,8 @@ function doBookSearch(array $req)
   // FIND DATA ON CACHE MISS ----------------------------------
 
   // for search.json!!!  ----------------------
-  $base = "https://openlibrary.org/search.json"; //base url for endpoint
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
-  $searchurl = "{$base}?q={$encodedQuery}&limit={$limit}&page={$page}";
+  $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&limit={$limit}&page={$page}"; //base url for endpoint
 
 
   $search_response = curl_get($searchurl);
