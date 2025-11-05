@@ -32,6 +32,10 @@ function curl_get(string $url)
     ]);
     $curl_response = curl_exec($curl_handle);
 
+    // error handling based on curl error number (forgot to add the links here)
+    // https://www.php.net/manual/en/function.curl-errno.php
+    // https://www.php.net/manual/en/function.curl-error.php
+    // https://stackoverflow.com/questions/3987006/how-to-catch-curl-errors-in-php 
     if (curl_errno($curl_handle)) {
         $error = curl_error($curl_handle);
         curl_close($curl_handle);
@@ -63,9 +67,9 @@ try {
 // EXAMPLE https://openlibrary.org/search.json?q=*&first_publish_year=2022&limit=10&sort=new
 
     $search_response = curl_get($searchByNew);
-    $curl_data = json_decode($search_response, true);
+    $search_data = json_decode($search_response, true);
 
-    if (empty($curl_data['docs']))
+    if (empty($search_data['docs']))
         return ['status' => 'fail', 'message' => 'no results']; // no results found
 
 
@@ -80,7 +84,7 @@ try {
 
 
 
-    foreach ($curl_data['docs'] as $book) { // FOREACH BOOK START
+    foreach ($search_data['docs'] as $book) { // FOREACH BOOK START
         // reading each doc that was returned
         $olid = str_replace('/works/', '', $book['key'] ?? null); //string --> cover_edition_key was specific to the edition of a book and not the actual OLID value in /works/
         $title = $book['title'] ?? 'Unknown title'; //string

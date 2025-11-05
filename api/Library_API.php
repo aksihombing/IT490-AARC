@@ -54,6 +54,9 @@ function curl_get(string $url)
   ]);
   $curl_response = curl_exec($curl_handle);
 
+    // error handling based on curl error number (forgot to add the links here)
+    // https://www.php.net/manual/en/function.curl-errno.php
+    // https://stackoverflow.com/questions/3987006/how-to-catch-curl-errors-in-php 
   if (curl_errno($curl_handle)) {
     $error = curl_error($curl_handle);
     curl_close($curl_handle);
