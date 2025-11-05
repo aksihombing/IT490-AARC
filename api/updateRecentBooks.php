@@ -94,8 +94,8 @@ try {
 
         $publish_year = $book['first_publish_year'] ?? null;
         // sanitize publish_year because books returned using q=*&sort=new have the year 9000+ on them for some reason.
-        if (($publish_year) > date('Y', $publish_year)) { // PLEASE GO BACK AND EDIT THIS LOL
-
+        if (($publish_year) > (int)date('Y')) { 
+            continue; // skip junk data
         }
 
         $cover_url = !empty($book['cover_i'])
