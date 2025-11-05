@@ -121,7 +121,7 @@ try {
             if (is_array($desc_check)) {
                 $book_desc = $desc_check['value'];
             } // some books have an array for description
-            else if (is_string($desc_check)) {
+            elseif (is_string($desc_check)) {
                 $book_desc = $desc_check;
             } else {
                 $book_desc = null;

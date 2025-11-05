@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS library_cache;
-
+/* https://openlibrary.org/search.json?q=harry%20potter&fields=title&limit=1 */
 CREATE TABLE IF NOT EXISTS library_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
   search_type ENUM('title', 'author') NOT NULL, /* maybe i dont need this in the cache.*/

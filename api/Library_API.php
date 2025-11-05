@@ -23,6 +23,11 @@
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
+/*
+https://openlibrary.org/search.json?q=harry%20potter&fields=key,title,author_name,first_publish_year&limit=1
+
+-- might need to change doBookSearch to this
+*/
 
 // connects to the local sql database
 /* CHANGE library_cache TO library_cache AFTER MIDTERMS */
@@ -113,8 +118,6 @@ function doBookSearch(array $req)
   // for search.json!!!  ----------------------
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
   $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&limit={$limit}&page={$page}"; 
-
-
   $search_response = curl_get($searchurl);
   $search_data = json_decode($search_response, true);
 
@@ -181,7 +184,7 @@ function doBookSearch(array $req)
       if (is_array($work_data['description'])) { // still getting a php warning idky
         $book_desc = $work_data['description']['value'];
       } 
-      else if (is_string($work_data['description'])) {
+      elseif (is_string($work_data['description'])) {
         $book_desc = $work_data['description'];
       } else {
         $book_desc = 'No book description available';
@@ -342,7 +345,7 @@ function doBookDetails(array $req)
     if (is_array($work_data['description'])) {
       $book_desc = $work_data['description']['value'];
     }
-    else if (is_string($work_data['description'])) {
+    elseif (is_string($work_data['description'])) {
       $book_desc = $work_data['description'];
     } else {
       $book_desc = "No book description available";
@@ -660,3 +663,4 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
   $server->process_requests('requestProcessor');
   echo "Auth server stopped for {$which}\n";
 }
+?>
