@@ -28,9 +28,9 @@ function curl_get(string $url)
   ]);
   $curl_response = curl_exec($curl_handle);
 
-    // error handling based on curl error number (forgot to add the links here)
-    // https://www.php.net/manual/en/function.curl-errno.php
-    // https://stackoverflow.com/questions/3987006/how-to-catch-curl-errors-in-php 
+  // error handling based on curl error number (forgot to add the links here)
+  // https://www.php.net/manual/en/function.curl-errno.php
+  // https://stackoverflow.com/questions/3987006/how-to-catch-curl-errors-in-php 
   if (curl_errno($curl_handle)) {
     $error = curl_error($curl_handle);
     curl_close($curl_handle);
@@ -56,43 +56,146 @@ function curl_get(string $url)
 
 
 
+
+
 // /works/olid.json?
 
 
 
+
+
 // /works/olid/editions.json?
+function editionsEndpoint(array $req)
+{ // need olid
+  $editions_url = "https://openlibrary.org/works/{$olid}/editions.json?limit=1"; // only get 1 of the editions isbn
+  $editions_json = curl_get($editions_url);
+
+  if ($editions_json) {
+    $editions_data = json_decode($editions_json, true);
+    $first_entry = $editions_data['entries'][0]; // gets the first entry result
+
+    if (!empty($first_entry['isbn_13'][0])) {
+      $isbn = $first_entry['isbn_13'][0];
+    } elseif (!empty($first_entry['isbn_10'][0])) {
+      $isbn = $first_entry['isbn_10'][0];
+    } else {
+      $isbn = null; // no isbn found
+    }
+  }
+}
+
 
 
 
 // /works/olid/ratings.json?
 
 
+
+
+
 // /subject.json
+function subjectEndpoint(array $req)
+{
+  $work_url = "https://openlibrary.org/works/{$olid}.json";
+  $work_json = curl_get($work_url);
+
+  $book_desc = 'No book description available';
+  $subjects = null;
+  $person_key = null;
+  $place_key = null;
+  $time_key = null;
+
+  if ($work_json) {
+    $work_data = json_decode($work_json, true); // decode to read all data
+
+
+    if (is_array($work_data['description'])) { // still getting a php warning idky
+      $book_desc = $work_data['description']['value'];
+    } elseif (is_string($work_data['description'])) {
+      $book_desc = $work_data['description'];
+    } else {
+      $book_desc = 'No book description available';
+    }
+
+    // need to encode the json because the database column is of JSON type
+    $subjects = json_encode(array_slice($work_data['subjects'] ?? [], 0, 20)); // take the first 20 subjects max
+    $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
+    $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
+    $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
+
+    // DEBUGGING
+    //var_dump($subjects);
+    //var_dump($person_key);
+    //var_dump($place_key);
+    //var_dump($time_key);
+  }
+}
+
+
 
 
 // bookCache(array $data)
+function doBookCache(array $req)
+{
+  $type = $req['searchType'] ?? 'title';
+  $query = strtolower(trim($req['query'] ?? ''));
+  if ($query === '')
+    return ['status' => 'fail', 'message' => 'missing query'];
 
+  $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] : 10;
+  $page = isset($req['page']) ? intval($req['page']) : 1;
+
+  // CACHE CHECK ----------------------------------
+  $mysqli = db();
+
+  echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n";
+
+  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND pageNum=? AND expires_at > NOW() LIMIT ?");
+  $check_cache->bind_param("ssii", $type, $query, $page, $limit);
+  $check_cache->execute();
+  $cache_result = $check_cache->get_result();
+
+  if ($cache_result->num_rows > 0) {
+    echo "Cache HIT for {$type}={$query}\n";
+    $cachedData = [];
+
+    while ($row = $cache_result->fetch_assoc()) {
+      $cachedData[] = $row;
+    }
+
+    return ['status' => 'success', 'data' => $cachedData];
+    // return cache HIT
+  }
+}
 
 // doBookSearch ()
-  // use search.json
+// use search.json
+
+
 
 
 // doBookRecommend ()
 /*// RECOMMENDATION SYSTEM
 // multiply the weight of the genre based on the books they have that of
 // i.e. if they have a lot of books with the same genre in their library, the recommendation should reflect whatever genre weights heaviest; can assign counts
-
 //1 - negative weight
 //5 - positive weight
 */
 
 
 
+
+
 // doBookDetails () 
-  // combines all endpoints for accurate info
+// combines all endpoints for accurate info
+
+
+
 
 
 // getRecentBooks ()
+
+
 
 
 
