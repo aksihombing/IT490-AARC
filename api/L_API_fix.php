@@ -1,4 +1,9 @@
 <?php
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . '/get_host_info.inc';
+
+require_once __DIR__ . '/api_endpoints.php';
+require_once __DIR__ . '/api_process.php';
 
 // database connection
 function db()
@@ -49,10 +54,6 @@ function curl_get(string $url)
 
 
 
-
-
-
-
 // ---------------- SERVER ----------------
 
 // decides which function to run
@@ -67,6 +68,8 @@ function requestProcessor($req)
   }
 
   switch ($req['type']) {
+    // [type] references api_process.php
+    // api_process.php references api_endpoints.php
     case 'book_search':
       return doBookSearch($req); // check api db cache before calling api
 

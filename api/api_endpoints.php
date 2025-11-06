@@ -24,14 +24,18 @@ function curl_get(string $url)
   return $curl_response;
 }
 
-// -------------- What needs to be broken up --------------
-// keep in separate script file for easier updating
+
 
 // /search.json?q=XYZ&fields=x,y,z&limit=1
 function searchEndpoint(array $req)
-{
+{ // search for items based on title
+  // EXAMPLE URL https://openlibrary.org/search.json?q=harry%20potter&fields=key,title,author_name,first_publish_year&limit=1
+  // searches ONE BOOK AT A TIME
+  //doBookSearch only actually needs to cache and return OLID, Title, Author, Publish_Year, cover_url, and NO ISBN because we don't really DISPLAY the other information. We can run it through doBookDetails, now that I'm thinking about it.
+
+  $title = $req['title'];
   $encodedQuery = urlencode($title); // url encodes query when its actually getting sent to the API
-  $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&limit=1";
+  $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&fields=key,title,author_name,first_publish_year,cover_i&limit=1";
 
   $search_response = curl_get($searchurl);
   $search_data = json_decode($search_response, true);
@@ -61,6 +65,7 @@ function searchEndpoint(array $req)
 // /works/olid.json?
 function worksEndpoint(array $req)
 {
+  $encodedOlid = urlencode($req['olid']);
   $work_url = "https://openlibrary.org/works/{$olid}.json";
   $work_json = curl_get($work_url);
 
@@ -94,8 +99,10 @@ function worksEndpoint(array $req)
     $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
     $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
     $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
-
   }
+  return $req[
+
+  ];
 }
 
 
@@ -104,6 +111,7 @@ function worksEndpoint(array $req)
 // /works/olid/editions.json?
 function editionsEndpoint(array $req)
 { // need olid
+  $encodedOlid = urlencode($req['olid']);
   $editions_url = "https://openlibrary.org/works/{$olid}/editions.json?limit=1"; // only get 1 of the editions isbn
   $editions_json = curl_get($editions_url);
 

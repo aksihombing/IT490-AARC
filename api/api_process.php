@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . '/get_host_info.inc';
 
 function db()
 {
@@ -46,8 +48,8 @@ function doBookCache(array $req)
 
   $type = $req['searchType'] ?? 'title';
   $query = strtolower(trim($req['query'] ?? ''));
-  if ($query === '')
-    return ['status' => 'fail', 'message' => 'missing query'];
+
+  if ($query === '') return ['status' => 'fail', 'message' => 'missing query'];
 
   $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] : 10;
   $page = isset($req['page']) ? intval($req['page']) : 1;
@@ -73,13 +75,6 @@ function doBookCache(array $req)
     return ['status' => 'success', 'data' => $cachedData];
     // return cache HIT
   }
-
-  // call search functions
-
-
-
-
-
 
 
   // cache save
@@ -108,11 +103,19 @@ function doBookCache(array $req)
   );
 
   $insertToTable->execute();
+  return 
 
 }
 
 // doBookSearch ()
 // use search.json
+function doBookSearch (array $req){
+  doBookCache($req)
+  
+
+}
+
+
 
 // Cache Tables Pre-Populated via cron
 function getRecentBooks()
@@ -154,6 +157,8 @@ function doBookRecommend(array $req)
     // content-based filtering --> uses subjects to recommend a book
     // https://openlibrary.org/dev/docs/api/subjects
 
+
+    
     // read olid of one book
     $olid = $req['olid'] ?? $req['works_id'] ?? ''; // check for olid or works_id
     if ($olid === '')

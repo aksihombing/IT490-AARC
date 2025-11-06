@@ -32,10 +32,7 @@ function curl_get(string $url)
     ]);
     $curl_response = curl_exec($curl_handle);
 
-    // error handling based on curl error number (forgot to add the links here)
-    // https://www.php.net/manual/en/function.curl-errno.php
-    // https://www.php.net/manual/en/function.curl-error.php
-    // https://stackoverflow.com/questions/3987006/how-to-catch-curl-errors-in-php 
+    // error handling based on curl error number
     if (curl_errno($curl_handle)) {
         $error = curl_error($curl_handle);
         curl_close($curl_handle);
@@ -64,7 +61,7 @@ try {
     $currentYear = date('Y');
     $searchByNew = "https://openlibrary.org/search.json?q=*&first_publish_year={$currentYear}&limit=10&sort=new"; //
 
-// EXAMPLE https://openlibrary.org/search.json?q=*&first_publish_year=2022&limit=10&sort=new
+    // EXAMPLE https://openlibrary.org/search.json?q=*&first_publish_year=2022&limit=10&sort=new
 
     $search_response = curl_get($searchByNew);
     $search_data = json_decode($search_response, true);
@@ -94,7 +91,7 @@ try {
 
         $publish_year = $book['first_publish_year'] ?? null;
         // sanitize publish_year because books returned using q=*&sort=new have the year 9000+ on them for some reason.
-        if (($publish_year) > (int)date('Y')) { 
+        if (($publish_year) > (int) date('Y')) {
             continue; // skip junk data
         }
 
@@ -194,8 +191,7 @@ try {
         $insertToTable->execute();
     } // FOREACH BOOK END
     echo "All books updated";
-} 
-catch (Exception $e) {
+} catch (Exception $e) {
     error_log("Unable to update recentBooks table : " . $e->getMessage());
     exit(1);
 }
@@ -205,5 +201,3 @@ $insertToTable->close();
 $conn->close();
 
 ?>
-
-

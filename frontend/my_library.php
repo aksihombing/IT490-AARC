@@ -53,7 +53,7 @@ function getPLibDetails($plib_olid)
         'olid' => $plib_olid,
         'title' => $plib_bookdata['title'] ?? 'Unknown Title',
         'author' => $plib_bookdata['author'] ?? 'Unknown Author',
-        'isbn' => $plib_bookdata['isbn'] ?? 'N/A',
+        //'isbn' => $plib_bookdata['isbn'] ?? 'N/A',
         'cover_url' => $plib_bookdata['cover_url'] ?? 'default-cover.png', // fallback if missing
         'publish_year' => $plib_bookdata['publish_year'] ?? 'Unknown'
       ];
@@ -83,7 +83,7 @@ function getRecommendation($library_book)
         'olid' => $rec_bookdata['olid'],
         'title' => $rec_bookdata['title'] ?? 'Unknown Title',
         'author' => $rec_bookdata['author'] ?? 'Unknown Author',
-        'isbn' => $rec_bookdata['isbn'] ?? 'N/A',
+        //'isbn' => $rec_bookdata['isbn'] ?? 'N/A',
         'cover_url' => $rec_bookdata['cover_url'] ?? '', // no fallback actually implemented yet
         'publish_year' => $rec_bookdata['publish_year'] ?? 'Unknown'
       ];
@@ -211,7 +211,7 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
 
           <p><?php echo htmlspecialchars($book['author']) ?></p>
 
-          <p><strong>ISBN:</strong> <?php echo htmlspecialchars($book['isbn']) ?></p>
+          <!-- REMOVE ISBN <p><strong>ISBN:</strong> < ?php echo htmlspecialchars($book['isbn']) ?></p> -->
 
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
