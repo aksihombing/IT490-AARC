@@ -585,3 +585,4 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
     $server->process_requests('requestProcessor');
     echo "Auth server stopped for {$which}\n";
 }
+?>
