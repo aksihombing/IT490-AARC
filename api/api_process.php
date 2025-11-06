@@ -43,7 +43,7 @@ function curl_get(string $url)
 
 
 // bookCache(array $data)
-function doBookCache(array $req)
+function bookCache_check(array $req)
 {
 
   $type = $req['searchType'] ?? 'title';
@@ -75,7 +75,10 @@ function doBookCache(array $req)
     return ['status' => 'success', 'data' => $cachedData];
     // return cache HIT
   }
+}
 
+
+function bookCache_add (array $req){
 
   // cache save
   echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
@@ -103,14 +106,16 @@ function doBookCache(array $req)
   );
 
   $insertToTable->execute();
-  return 
+  return ;
 
 }
 
 // doBookSearch ()
 // use search.json
 function doBookSearch (array $req){
-  doBookCache($req)
+  bookCache_check($req);
+  // if bookcache is false:
+  bookCache_add($req);
   
 
 }
@@ -158,7 +163,7 @@ function doBookRecommend(array $req)
     // https://openlibrary.org/dev/docs/api/subjects
 
 
-    
+
     // read olid of one book
     $olid = $req['olid'] ?? $req['works_id'] ?? ''; // check for olid or works_id
     if ($olid === '')

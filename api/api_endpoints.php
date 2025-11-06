@@ -29,34 +29,36 @@ function curl_get(string $url)
 // /search.json?q=XYZ&fields=x,y,z&limit=1
 function searchEndpoint(array $req)
 { // search for items based on title
-  // EXAMPLE URL https://openlibrary.org/search.json?q=harry%20potter&fields=key,title,author_name,first_publish_year&limit=1
-  // searches ONE BOOK AT A TIME
-  //doBookSearch only actually needs to cache and return OLID, Title, Author, Publish_Year, cover_url, and NO ISBN because we don't really DISPLAY the other information. We can run it through doBookDetails, now that I'm thinking about it.
+  // EXAMPLE URL https://openlibrary.org/search.json?q=harry%20potter&fields=key,title,author_name,first_publish_year&limit=1&page=1
+
 
   $title = $req['title'];
+  $limit = $req['limit'];
+  $page = $req['page'];
   $encodedQuery = urlencode($title); // url encodes query when its actually getting sent to the API
-  $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&fields=key,title,author_name,first_publish_year,cover_i&limit=1";
+  $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&fields=key,title,author_name,first_publish_year,cover_i&limit={$limit}&page={$page}";
+
 
   $search_response = curl_get($searchurl);
   $search_data = json_decode($search_response, true);
-
 
   $author = 'Unknown author';
   $subtitle = null;
   $publish_year = null;
   $cover_url = null;
 
-  if ($search_data && isset($search_data['docs'][0])) { // get first doc only
-    $doc = $search_data['docs'][0];
-    $subtitle = $doc['subtitle'] ?? null; //string
-    $author = $doc['author_name'][0] ?? 'Unknown author'; //string
-    $publish_year = $doc['first_publish_year'];
-    $cover_url = !empty($doc['cover_i'])
-      ? "https://covers.openlibrary.org/b/id/" . $doc['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
+  foreach ($search_data['docs'] as $book) { // FOREACH BOOK START
+    if ($search_data && isset($search_data['docs'][0])) { // get first doc only
+      $doc = $search_data['docs'][0];
+      $author = $doc['author_name'][0] ?? 'Unknown author'; //string
+      $publish_year = $doc['first_publish_year'];
+      $cover_url = !empty($doc['cover_i'])
+        ? "https://covers.openlibrary.org/b/id/" . $doc['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
 
-    // gets the -L (Large) version of the image
+      // gets the -L (Large) version of the image
 
-  }
+    }
+  } // END FOREACH BOOK
 }
 
 

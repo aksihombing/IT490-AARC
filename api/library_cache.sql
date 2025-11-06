@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS library_cache (
   /* basics -- may need more depending on what info we need for the website ? */
   olid VARCHAR(50) DEFAULT NULL,
   title VARCHAR(255) NOT NULL,
-  subtitle VARCHAR(255) DEFAULT NULL,
+  /*subtitle VARCHAR(255) DEFAULT NULL,--> dont care for this rn*/
   author VARCHAR(255) DEFAULT 'Unknown Author',
   isbn VARCHAR(50) DEFAULT NULL, 
   book_desc TEXT DEFAULT NULL,
