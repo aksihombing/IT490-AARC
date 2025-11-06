@@ -1,11 +1,18 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+<<<<<<< HEAD
 include __DIR__ . '/../links/book_link.inc.php';
 session_start();
  
 
 $results = [];
 $error = '';
+=======
+//session_start();
+
+$bookSearchResults = []; // update results while doBookSearch loop
+$error = ''; // error catching
+>>>>>>> ec0357777b444cf6cd7a1e24d3e9952576a43809
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $searchType = $_GET['type'] ?? 'title';
@@ -20,13 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $request = [
                 'type' => 'book_search',
                 'searchType' => $searchType,
-                'query' => $query
+                'query' => $query,
+                'limit' => 10,
+                'page' => 1
             ];
 
             $response = $client->send_request($request);
+            //var_dump($response); //debugging 
 
             if ($response['status'] === 'success') {
-                $results = $response['data'];
+                $bookSearchResults = $response['data'];
             } else {
                 $error = $response['message'] ?? 'Unknown error from server.';
             }
@@ -47,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 <body>
     <h1>Search The Library</h1>
 
+<<<<<<< HEAD
     <form method="GET">
         <!--  name "query" is used for searching by keyword   -->
         <label for="query">Search Term:</label>
@@ -58,6 +69,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             <option value="title">Title</option>
             <option value="author">Author</option>
         </select>
+=======
+
+
+    <form method="GET" action="index.php">
+        <input type="hidden" name="content" value="search">
+
+        <label for="query">Search Term:</label>
+        <input type="text" name="query" id="query" placeholder="Enter book title or author"
+            value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
+
+        <!-- SCRAPPED - search by title (search.json/q=query) or author (search.json/author=query)
+        <label for="type">Search By:</label>
+        <select name="type" id="type">
+            <option value="title" < ?php echo ($_GET['type'] ?? '') === 'title'; ?>>Title</option>
+            <option value="author" < ?php echo ($_GET['type'] ?? '') === 'author'; ?>>Author</option> 
+        </select> 
+        -->
+>>>>>>> ec0357777b444cf6cd7a1e24d3e9952576a43809
 
         <button type="submit">Search</button>
     </form>
@@ -66,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
 
+<<<<<<< HEAD
     <?php if (!empty($results)): // results success?> 
         <h2>Results:</h2>
         <ul>
@@ -79,6 +109,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     </li>
 <?php endforeach; ?>
  // an upgrade from it202, i love it! ?>
+=======
+    <?php if (!empty($bookSearchResults)): ?>
+        <h2>Results:</h2>
+        <ul>
+            <?php foreach ($bookSearchResults as $book):
+                // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
+                $olid = urlencode($book['olid']);
+                // used for book.php GET queries
+                // echo "<p>OLID : $olid</p>";// DEBUGGING
+                ?>
+
+
+                <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
+                <li>
+                    <?php if (!empty($book['cover_url'])): ?>
+                        <br>
+                        <img src="
+                        <?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                    <?php endif; ?>
+                    <a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>
+                    ">
+                        <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
+                        by <?php echo htmlspecialchars($book['author']); ?>
+                        (<?php echo htmlspecialchars($book['publish_year']); ?>)
+
+                    </a>
+                </li>
+            <?php endforeach; ?>
+>>>>>>> ec0357777b444cf6cd7a1e24d3e9952576a43809
         </ul>
     <?php endif; ?>
 </body>

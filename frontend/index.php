@@ -9,14 +9,14 @@ $client = new rabbitMQClient(__DIR__ . "/../host.ini", "AuthValidate");
 $sessionKey = $_SESSION['session_key'] ?? null;
 $userData = null;
 
-if ($sessionKey) {
+if ($sessionKey) { // validate session key
   $response = $client->send_request([
     'type' => 'validate',
     'session_key' => $sessionKey
   ]);
 
   if ($response['status'] === 'success') {
-    $userData = $response['user'];
+    $userData = $response['user']; // saves user data
   } else {
     // invalid or expired session
     unset($_SESSION['session_key']);
@@ -43,15 +43,12 @@ if ($sessionKey) {
     <?php
     // PAGE CONTENT HANDLER
     if (isset($_REQUEST['content'])) {
-      $allowedPages = ['dashboard', 'main']; // prevent arbitrary includes; more dynamic
-      $content = $_REQUEST['content'];
 
-      if (in_array($content, $allowedPages)) {
-        include("$content.inc.php");
-      } else {
-        echo "<p>Page not found.</p>";
-      }
-    } else {
+      $content = $_REQUEST['content'];
+      include("$content.php");
+    } 
+    
+    else {
       include("main.inc.php");
     }
     ?>

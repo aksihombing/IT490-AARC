@@ -3,13 +3,18 @@
 // If not, send them back to login page.
 // FROM CHIZZY
 // edited by Rea
-session_start();
+
+// DEBUGGING
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+
+//session_start();
 require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 
 
 $userId = $_SESSION['user_id'];// getting the user id from the session
-$error = '';
-$library = [];
+$error = ''; // idk if we need this
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
@@ -31,16 +36,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 }
 
+
+function getPLibDetails($plib_olid)
+{
+  try {
+    $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+
+    $response = $bookDetailsClient->send_request([
+      'type' => 'book_details',
+      'olid' => $plib_olid
+    ]);
+
+    if (($response['status'] === 'success') && isset($response['data']) && is_array($response['data'])) { // checks success, if data is set, and if data is array
+      $plib_bookdata = $response['data'];
+      return [
+        'olid' => $plib_olid,
+        'title' => $plib_bookdata['title'] ?? 'Unknown Title',
+        'author' => $plib_bookdata['author'] ?? 'Unknown Author',
+        'isbn' => $plib_bookdata['isbn'] ?? 'N/A',
+        'cover_url' => $plib_bookdata['cover_url'] ?? 'default-cover.png', // fallback if missing
+        'publish_year' => $plib_bookdata['publish_year'] ?? 'Unknown'
+      ];
+
+    } else {
+      return null;
+    }
+  } catch (Exception $e) {
+    return null; // idk what to return here
+  }
+}
+
+
+
+// RUNS WHEN THE PAGE LOADS !! ------------
+
+// libraryOlidList -> all olids from the personal library
+// libraryBooks -> book details for all olids
+
+$libraryOlidList = []; // for all olids in the library
+
 try {
-  $listclient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
-  $resp = $listclient->send_request([
+  $bookListClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+  $resp = $bookListClient->send_request([
     'type' => 'library.personal.list',
     'user_id' => $userId,
 
   ]);
-  echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
+  //echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
   if ($resp['status'] === 'success') {
-    $library = $resp['items'];
+    $libraryOlidList = $resp['items'];
   } else {
     $error = $resp['message'] ?? 'Unknown error from server.';
   }
@@ -48,27 +92,21 @@ try {
   $error = "Error connecting to library service: " . $e->getMessage();
 }
 
-try {
+// after the library is loaded ..
+$libraryBooks = [];
 
-  $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
-  foreach ($library as $i => $row) {
+if (!empty($libraryOlidList)) {
+  foreach ($libraryOlidList as $singleBook) {
+    $olid = $singleBook['olid'] ??  $singleBook['works_id'] ??$singleBook; // it actually should be olid i think
 
-    $response = $bookDetailsClient->send_request([
-      'type' => 'book_details',
-      'olid' => $row['works_id']
-    ]);
-
-    if(($response['status'] ?? '' === 'success')) {
-      $library[$i]['title'] = $response['data']['title'];
-      $library[$i]['author'] = $response['data']['author'];
-      $library[$i]['isbn'] = $response['data']['isbn'];
-      $library[$i]['publish_year'] = $response['data']['publish_year'];
-      $library[$i]['cover_url'] = $response['data']['cover_url'];
-    } 
+    $details = getPLibDetails($olid);
+    if ($details) {
+      $libraryBooks[] = $details; // adds book details in an array per olid
+      //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
+    }
   }
-} catch (Exception $e) {
-  $error = "Error fetching book details: " . $e->getMessage();
 }
+
 
 
 ?>
@@ -91,24 +129,28 @@ try {
   <!-- Page heading -->
   <h2>My Library</h2>
 
-  <?php if (empty($library)): ?>
+  <?php if (empty($libraryOlidList)): ?>
     <p>You haven’t added any books yet.</p>
     <p><a href="index.php?content=search" class="btn">Go to Search Page →</a></p>
   <?php else: ?>
     <div class="grid">
-      <?php foreach ($library as $book): ?>
-           <?php $worksId = htmlspecialchars($book['works_id'] ?? ''); ?>
-           <div class=card>
+
+      <?php foreach ($libraryBooks as $book): ?>
+        <div class="card">
           <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
-          <h3><a href="index.php?content=book&olid=<?php echo $worksId; ?>">
-          <strong>Title:</strong><?php echo htmlspecialchars($book['title']) ?> 
+
+          <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($book['olid']); ?>">
+              <?php echo htmlspecialchars($book['title']) ?>
             </a></h3>
-          <p><strong>Author:</strong> <?php echo htmlspecialchars($book['author']) ?></p>
+
+          <p><?php echo htmlspecialchars($book['author']) ?></p>
+
           <p><strong>ISBN:</strong> <?php echo htmlspecialchars($book['isbn']) ?></p>
+
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
           <form method="POST">
-            <input type="hidden" name="works_id" value="<?php echo $worksId; ?>">
+            <input type="hidden" name="works_id" value="<?php echo htmlspecialchars($book['olid']) ?>">
             <button type="submit" class="btn">Remove</button>
           </form>
         </div>
