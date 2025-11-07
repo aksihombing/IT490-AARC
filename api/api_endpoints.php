@@ -1,6 +1,6 @@
 <?php
 
-// helper functions
+// HELPER FUNCTIONS ------------------------------
 function curl_get(string $url)
 { // curl_get helper
   //https://www.php.net/manual/en/function.curl-setopt-array.php
@@ -47,8 +47,8 @@ function simple_sanitize(array $list_raw)
 }
 
 
-// /search.json?q=XYZ&fields=x,y,z&limit=1
-function searchEndpoint(array $req)
+// API DATA ------------------------------
+function api_search(array $req)
 { // search for items based on title/author/general query
   // EXAMPLE URL https://openlibrary.org/search.json?q=harry%20potter&fields=key,title,author_name,first_publish_year&limit=1&page=1
 
@@ -70,7 +70,7 @@ function searchEndpoint(array $req)
   $olid = null;
   $title = 'Unknown title';
   $author = 'Unknown author';
-  $isbn = null; // returns ALL isbns for ALL editions :(
+  $isbn = null; // returns ALL isbns for ALL editions but honestly doesn't matter if its not THAT accurate for now
   $book_desc = 'No book description available'; // not returned from search endpoint
   $publish_year = null;
   $ratings_average = null;
@@ -80,7 +80,6 @@ function searchEndpoint(array $req)
   $place_key = null;
   $time_key = null;
   $cover_url = null;
-  $book_desc = 'No book description available';
 
   $searchResults = []; // will return all books
 
@@ -89,6 +88,7 @@ function searchEndpoint(array $req)
     $olid = str_replace('/works/', '', $book['key'] ?? null); // string
     $title = $book['title'] ?? 'Unknown title'; // string
     $author = $book['author_name'][0] ?? 'Unknown author'; //string
+    $isbn = $book['isbn'][0] ?? [];
     $publish_year = $book['first_publish_year'] ?? []; // string
     $ratings_average = $book['ratings_average'] ?? [];
     $ratings_count = $book['ratings_count'] ?? [];
@@ -102,8 +102,10 @@ function searchEndpoint(array $req)
     // gets the -L (Large) version of the image
 
 
-    // get bookDescription and isbn
-    $work_url = "https://openlibrary.org/works/{$encodedQuery}.json";
+    $encodedOlid = urlencode($olid);
+
+    // BOOK DESCRIPTION -----
+    $work_url = "https://openlibrary.org/works/{$encodedOlid}.json";
     $work_json = curl_get($work_url);
 
     if ($work_json) {
@@ -120,8 +122,6 @@ function searchEndpoint(array $req)
         $book_desc = "No book description available";
       }
     }
-
-
 
 
     $searchResults[] = [ // this gets returned
