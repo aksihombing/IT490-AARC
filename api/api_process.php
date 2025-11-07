@@ -2,6 +2,10 @@
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 require_once __DIR__ . '/api_endpoints.php'; // curl_get + simple_sanitize
+
+
+
+// DATABASE -----------------------
 function db()
 {
   $host = 'localhost';
@@ -18,85 +22,171 @@ function db()
 
 
 // bookCache(array $data)
-function bookCache_check(array $req)
+function bookCache_check_query(array $req) // check cache book ONE AT A TIME
 {
+  try {
+    $type = $req['searchType'] ?? 'title';
+    $query = strtolower(trim($req['query'] ?? ''));
 
-  $type = $req['searchType'] ?? 'title';
-  $query = strtolower(trim($req['query'] ?? ''));
+    if ($query === '')
+      return ['status' => 'fail', 'message' => 'missing query'];
 
-  if ($query === '')
-    return ['status' => 'fail', 'message' => 'missing query'];
+    $limit = isset($req['limit']) && is_numeric($req['limit']) ? (int) $req['limit'] : 10;
+    $page = isset($req['page']) ? intval($req['page']) : 1;
 
-  $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] : 10;
-  $page = isset($req['page']) ? intval($req['page']) : 1;
+    // CACHE CHECK ----------------------------------
+    $mysqli = db();
 
-  // CACHE CHECK ----------------------------------
-  $mysqli = db();
+    echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n";
 
-  echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n";
+    // check for search_type, query, page_num AND check if expired.
+    $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND page_num=? AND expires_at > NOW() LIMIT ?");
+    $check_cache->bind_param("ssii", $type, $query, $page, $limit);
+    $check_cache->execute();
+    $cache_result = $check_cache->get_result();
 
-  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND pageNum=? AND expires_at > NOW() LIMIT ?");
-  $check_cache->bind_param("ssii", $type, $query, $page, $limit);
-  $check_cache->execute();
-  $cache_result = $check_cache->get_result();
+    if ($cache_result->num_rows > 0) {
+      echo "Cache HIT for {$type}={$query}\n";
+      $cachedData = [];
 
-  if ($cache_result->num_rows > 0) {
-    echo "Cache HIT for {$type}={$query}\n";
-    $cachedData = [];
-
-    while ($row = $cache_result->fetch_assoc()) {
-      $cachedData[] = $row;
+      while ($row = $cache_result->fetch_assoc()) {
+        $cachedData[] = $row;
+      }
+      $mysqli->close();
+      return [
+        'status' => 'success',
+        'data' => $cachedData
+      ];
+      // return cache HIT
+    } else {
+      $mysqli->close();
+      return [
+        'status' => 'fail' // could be expired OR not in cache
+      ];
     }
-
-    return ['status' => 'success', 'data' => $cachedData];
-    // return cache HIT
+  } catch (Exception $e) {
+    return [
+      'status' => 'fail',
+      'message' => "Error processing request: " . $e->getMessage()
+    ];
   }
 }
 
 
-function bookCache_add(array $req)
+function bookCache_add(array $req) // add book ONE AT A TIME
 {
+  $mysqli = db();
+  $insertToTable = $mysqli->prepare("
+    INSERT INTO library_cache (
+      search_type, query, page_num, olid, title, subtitle, author, isbn,
+      book_desc, publish_year, ratings_average, ratings_count,
+      subjects, person_key, place_key, time_key, cover_url
+    )
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    ON DUPLICATE KEY UPDATE
+      title=VALUES(title),
+      subtitle=VALUES(subtitle),
+      author=VALUES(author),
+      isbn=VALUES(isbn),
+      book_desc=VALUES(book_desc),
+      publish_year=VALUES(publish_year),
+      ratings_average=VALUES(ratings_average),
+      ratings_count=VALUES(ratings_count),
+      subjects=VALUES(subjects),
+      person_key=VALUES(person_key),
+      place_key=VALUES(place_key),
+      time_key=VALUES(time_key),
+      cover_url=VALUES(cover_url),
+      last_updated=CURRENT_TIMESTAMP
+  ");
+  try {
+    // read array
+    $type = $req['type'] ?? [];
+    $query = $req['title'] ?? $req['author'] ?? [];
+    $page = isset($req['page']) ? intval($req['page']) : 1; // default to 1 if no page specified
+    $olid = $req['olid'] ?? [];
+    $title = $req['title'] ?? 'Unknown title';
+    $author = $req['author'] ?? 'Unknown author';
+    $isbn = $req['isbn'] ?? []; // returns ALL isbns for ALL editions but honestly doesn't matter if its not THAT accurate for now
+    $book_desc = $req['book_desc'] ?? 'No book description available'; // not returned from search endpoint
+    $publish_year = $req['publish_year'] ?? [];
+    $ratings_average = $req['ratings_average'] ?? [];
+    $ratings_count = $req['ratings_count'] ?? [];
+    $subjects = $req['subjects'] ?? [];
+    $person_key = $req['person_key'] ?? [];
+    $place_key = $req['place_key'] ?? [];
+    $time_key = $req['time_key'] ?? [];
+    $cover_url = $req['cover_url'] ?? [];
 
-  // cache save
-  echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
+    // cache save
+    echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
 
 
-  $insertToTable->bind_param(
-    "ssissssssidisssss",
-    $type, // string
-    $query, // string
-    $page, // int
-    $olid, // string
-    $title, // string
-    $subtitle, // string
-    $author, // string
-    $isbn, // string
-    $book_desc, // string
-    $publish_year, // int
-    $ratings_average, // decimal (double)
-    $ratings_count, // int
-    $subjects, // json_encode(array)
-    $person_key, // json_encode(array)
-    $place_key, // json_encode(array)
-    $time_key, // json_encode(array)
-    $cover_url // string
-  );
+    $insertToTable->bind_param(
+      "ssissssssidisssss",
+      $type, // string
+      $query, // string
+      $page, // int
+      $olid, // string
+      $title, // string
+      $author, // string
+      $isbn, // string
+      $book_desc, // string
+      $publish_year, // int
+      $ratings_average, // decimal (double)
+      $ratings_count, // int
+      $subjects, // json_encode(array)
+      $person_key, // json_encode(array)
+      $place_key, // json_encode(array)
+      $time_key, // json_encode(array)
+      $cover_url // string
+    );
 
-  $insertToTable->execute();
-  return;
-
+    $insertToTable->execute();
+    $mysqli->close();
+    return true; // to verify completion
+  } catch (Exception $e) {
+    //return "Error processing request: " . $e->getMessage();
+    $mysqli->close(); // close just in case
+    return [
+      'status' => 'fail',
+      'message' => "Error processing request: " . $e->getMessage()
+    ];
+  }
 }
 
+
+// PROCESS API DATA -----------------------
 // doBookSearch ()
 // use search.json
 function doBookSearch(array $req)
 {
-  bookCache_check($req);
+  $cache_check = bookCache_check_query($req);
   // if bookcache is false:
+  if ($cache_check['status'] === 'fail') {
+    $api_search = api_search($req);
 
-  api_search($req);
-  bookCache_add($req);
-
+    if ($api_search['status'] === 'fail') {
+      return [
+        "status" => "fail",
+        "message" => "No results found"
+      ];
+    }
+    $cache_add = bookCache_add($req);
+    if ($cache_add['status'] === 'fail') {
+      return [
+        "status" => "fail",
+        "message" => "Unable to add books to cache"
+      ];
+    }
+    return [
+      'status' => 'success',
+      'data' => $searchbookresults,
+      'limit' => $limit,
+      'page' => $page,
+      //removed offset
+    ];
+  }
 
 }
 
@@ -113,10 +203,12 @@ function getRecentBooks()
     while ($row = $result->fetch_assoc()) {
       $books[] = $row;
     }
+    $mysqli->close();
     return ['status' => 'success', 'data' => $books];
 
   } catch (Exception $e) {
     error_log("getRecentBooks() error: " . $e->getMessage());
+    $mysqli->close();
     return [
       "status" => "error",
       "message" => "Failed to load recent books: " . $e->getMessage()

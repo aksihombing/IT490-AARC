@@ -92,7 +92,7 @@ function doBookSearch(array $req)
 
   echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n"; 
 
-  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND pageNum=? AND expires_at > NOW() LIMIT ?");
+  $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND page_num=? AND expires_at > NOW() LIMIT ?");
   $check_cache->bind_param("ssii", $type, $query, $page, $limit);
   $check_cache->execute();
   $cache_result = $check_cache->get_result();
@@ -127,7 +127,7 @@ function doBookSearch(array $req)
   // $insertToTable will be repeatedly called from the loop
   $insertToTable = $mysqli->prepare("
     INSERT INTO library_cache (
-      search_type, query, pageNum, olid, title, subtitle, author, isbn,
+      search_type, query, page_num, olid, title, subtitle, author, isbn,
       book_desc, publish_year, ratings_average, ratings_count,
       subjects, person_key, place_key, time_key, cover_url
     )

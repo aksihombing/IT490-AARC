@@ -56,8 +56,8 @@ function api_search(array $req)
   // https://openlibrary.org/search.json?q=harry+potter&fields=*&limit=1&page=1
 
   $query = $req['title']; // removed the "search by author" request type
-  $limit = $req['limit'] ?? 10; // default to 10 if no limit specified
-  $page = $req['page'] ?? 1; // default to 1 if no page specified
+  $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] : 10; // default to 10 if no limit specified
+  $page = isset($req['page']) ? intval($req['page']) : 1; // default to 1 if no page specified
 
   $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
   $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&fields=key,title,author_name,isbn,first_publish_year,ratings_average,ratings_count,subject_key,person_key,place_key,time_key,cover_i&limit={$limit}&page={$page}";
