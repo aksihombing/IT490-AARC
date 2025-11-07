@@ -3,7 +3,7 @@ require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 require_once __DIR__ . '/api_endpoints.php';
 // curl_get() + simple_sanitize() + api_search()
-require_once __DIR__ . '/api_cache.php'; 
+require_once __DIR__ . '/api_cache.php';
 // db() + bookCache_check_query() + bookCache_check_olid() + bookCache_add()
 // decides which function to run
 
@@ -47,17 +47,33 @@ function doBookSearch(array $req)
     'data' => $books,
     'limit' => $search_api['limit'],
     'page' => $search_api['page'],
-    //removed offset
   ];
-
-
 }
 
 // doBookDetails () 
-// combines all endpoints for accurate info
-function doBookDetails(array $req)
+// combines all endpoints for accurate info ?
+// actually, any book that is viewed should TECHNICALLY already be loaded into the cache so i dont think i need to manually get any book that ISNT in the cache already ?
+function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
 {
+  $olid = $req['olid'];
+  $cache_check = bookCache_check_olid($olid);
+  if ($cache_check['status'] === 'success') {
+    return [
+      'status' => 'success',
+      'data' => $cache_check['data']
+    ];
+  }
 
+  // cache MISS
+  $search_api = api_search($req);
+
+  $book_details = $search_api['data'];
+  // $addedCount = 0; // could count how many books were added for debugging if needed
+
+  return [
+    'status' => 'success',
+    'data' => $book_details
+  ];
 }
 
 
