@@ -2,61 +2,11 @@
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
-require_once __DIR__ . '/api_endpoints.php';
 require_once __DIR__ . '/api_process.php';
-
-// database connection
-function db()
-{
-  $host = 'localhost';
-  $user = 'apiAdmin';
-  $pass = 'aarc490';
-  $name = 'apidb';
-
-  $mysqli = new mysqli($host, $user, $pass, $name);
-  if ($mysqli->connect_errno) {
-    throw new RuntimeException("DB connect failed: " . $mysqli->connect_error);
-  }
-  return $mysqli;
-}
-
-
-// helper function
-function curl_get(string $url)
-{ // curl_get helper
-  //https://www.php.net/manual/en/function.curl-setopt-array.php
-  $curl_handle = curl_init($url);
-  curl_setopt_array($curl_handle, [
-    CURLOPT_RETURNTRANSFER => true, // returns webpage
-    CURLOPT_TIMEOUT => 20,
-    CURLOPT_SSL_VERIFYPEER => true, // verifies SSL
-  ]);
-  $curl_response = curl_exec($curl_handle);
-
-  // error handling based on curl error number
-  if (curl_errno($curl_handle)) {
-    $error = curl_error($curl_handle);
-    curl_close($curl_handle);
-    error_log("curl_get error for {$url}: {$error}");
-    return false;
-  }
-
-  curl_close($curl_handle);
-  return $curl_response;
-}
-/* 
-/works/olid.json    
-/works/olid/editions.json   
-/search.json   
-/works/olid/ratings.json    
-/subjects.json
-*/
-
-
+// api_process requires api_cache and api_endpoints
 
 // ---------------- SERVER ----------------
 
-// decides which function to run
 function requestProcessor($req)
 {
   echo "Received request:\n";
@@ -82,8 +32,8 @@ function requestProcessor($req)
     case 'book_recommend':
       return doBookRecommend($req);
 
-    case 'book_collect':
-      return doBookCollect($req); // not sure if needed
+    /*case 'book_collect':
+      return doBookCollect($req); // not sure if needed*/
 
     default:
       return ['status' => 'fail', 'message' => 'unknown type'];
