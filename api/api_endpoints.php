@@ -1,6 +1,6 @@
 <?php
 
-// helper function
+// helper functions
 function curl_get(string $url)
 { // curl_get helper
   //https://www.php.net/manual/en/function.curl-setopt-array.php
@@ -25,172 +25,131 @@ function curl_get(string $url)
 }
 
 
+function simple_sanitize(array $list_raw)
+{
+  if (empty($list_raw))
+    return [];
+
+  //$list_raw = array_map('strtolower', array_slice($work_data['subjects'] ?? [], 0, 50)); // grab nearly all subjects
+  // NOTE : /works/ uses PLURAL 'subjects' ....
+  $filteredItems = []; // filtered subjects, 1-word
+
+  foreach ($list_raw as $item) {
+    $item = strtolower(trim($item)); // lowercase, trimmed
+    // used regexr to help create regex filter
+    if (!preg_match('/^[a-z\-]+$/', $item))
+      continue;
+    // one-word subjects, allowing for hyphenated subjects also
+    // exclude anything with accented characters (beyond ascii char code 122)
+    $filteredItems[] = $item; // add good, single word subject to array
+  }
+  return array_values(array_unique($filteredItems)); // returns everything that isnt repeated
+}
+
 
 // /search.json?q=XYZ&fields=x,y,z&limit=1
 function searchEndpoint(array $req)
-{ // search for items based on title
+{ // search for items based on title/author/general query
   // EXAMPLE URL https://openlibrary.org/search.json?q=harry%20potter&fields=key,title,author_name,first_publish_year&limit=1&page=1
 
+  // to look at what ALL fields look like; use fields=* sparingly bc its intensive
+  // https://openlibrary.org/search.json?q=harry+potter&fields=*&limit=1&page=1
 
-  $title = $req['title'];
-  $limit = $req['limit'];
-  $page = $req['page'];
-  $encodedQuery = urlencode($title); // url encodes query when its actually getting sent to the API
-  $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&fields=key,title,author_name,first_publish_year,cover_i&limit={$limit}&page={$page}";
+  $query = $req['title']; // removed the "search by author" request type
+  $limit = $req['limit'] ?? 10; // default to 10 if no limit specified
+  $page = $req['page'] ?? 1; // default to 1 if no page specified
+
+  $encodedQuery = urlencode($query); // url encodes query when its actually getting sent to the API
+  $searchurl = "https://openlibrary.org/search.json?q={$encodedQuery}&fields=key,title,author_name,isbn,first_publish_year,ratings_average,ratings_count,subject_key,person_key,place_key,time_key,cover_i&limit={$limit}&page={$page}";
 
 
   $search_response = curl_get($searchurl);
   $search_data = json_decode($search_response, true);
 
+  // what we need to find for each book and store in cache -- defaults if not found
+  $olid = null;
+  $title = 'Unknown title';
   $author = 'Unknown author';
-  $subtitle = null;
+  $isbn = null; // returns ALL isbns for ALL editions :(
+  $book_desc = 'No book description available'; // not returned from search endpoint
   $publish_year = null;
-  $cover_url = null;
-
-  foreach ($search_data['docs'] as $book) { // FOREACH BOOK START
-    if ($search_data && isset($search_data['docs'][0])) { // get first doc only
-      $doc = $search_data['docs'][0];
-      $author = $doc['author_name'][0] ?? 'Unknown author'; //string
-      $publish_year = $doc['first_publish_year'];
-      $cover_url = !empty($doc['cover_i'])
-        ? "https://covers.openlibrary.org/b/id/" . $doc['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
-
-      // gets the -L (Large) version of the image
-
-    }
-  } // END FOREACH BOOK
-}
-
-
-
-
-// /works/olid.json?
-function worksEndpoint(array $req)
-{
-  $encodedOlid = urlencode($req['olid']);
-  $work_url = "https://openlibrary.org/works/{$olid}.json";
-  $work_json = curl_get($work_url);
-
-  $book_desc = 'No book description available';
+  $ratings_average = null;
+  $ratings_count = null;
   $subjects = null;
   $person_key = null;
   $place_key = null;
   $time_key = null;
+  $cover_url = null;
+  $book_desc = 'No book description available';
 
-  if ($work_json) {
-    $work_data = json_decode($work_json, true); // decode to read all data
-    $title = $work_data['title'] ?? 'Unknown title';
+  $searchResults = []; // will return all books
+
+  foreach ($search_data['docs'] as $book) { // FOREACH BOOK START
+    // reading each doc that was returned
+    $olid = str_replace('/works/', '', $book['key'] ?? null); // string
+    $title = $book['title'] ?? 'Unknown title'; // string
+    $author = $book['author_name'][0] ?? 'Unknown author'; //string
+    $publish_year = $book['first_publish_year'] ?? []; // string
+    $ratings_average = $book['ratings_average'] ?? [];
+    $ratings_count = $book['ratings_count'] ?? [];
+    $subjects = json_encode(simple_sanitize($book['subject_key'] ?? []));
+    $person_key = json_encode($book['person_key'] ?? []);
+    $place_key = json_encode($book['place_key'] ?? []);
+    $time_key = json_encode($book['time_key']) ?? [];
+
+    $cover_url = !empty($book['cover_i'])
+      ? "https://covers.openlibrary.org/b/id/" . $book['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
+    // gets the -L (Large) version of the image
 
 
-    if (isset($work_data['description'])) {
-      if (is_array($work_data['description'])) {
-        $book_desc = $work_data['description']['value'];
-      } elseif (is_string($work_data['description'])) {
-        $book_desc = $work_data['description'];
+    // get bookDescription and isbn
+    $work_url = "https://openlibrary.org/works/{$encodedQuery}.json";
+    $work_json = curl_get($work_url);
+
+    if ($work_json) {
+      $work_data = json_decode($work_json, true); // decode to read all data
+      if (isset($work_data['description'])) {
+        if (is_array($work_data['description'])) {
+          $book_desc = $work_data['description']['value'];
+        } elseif (is_string($work_data['description'])) {
+          $book_desc = $work_data['description'];
+        } else {
+          $book_desc = "No book description available";
+        }
       } else {
         $book_desc = "No book description available";
       }
-    } else {
-      $book_desc = "No book description available";
     }
 
 
-    // need to encode the json because the database column is of JSON type
 
-    $subjects = json_encode(array_slice($work_data['subjects'] ?? [], 0, 20)); // take the first 20 subjects max
-    $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
-    $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
-    $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
-  }
-  return $req[
 
+    $searchResults[] = [ // this gets returned
+      'page' => $page,
+      'olid' => $olid,
+      'title' => $title,
+      'author' => $author,
+      'isbn' => $isbn,
+      'book_desc' => $book_desc,
+      'publish_year' => $publish_year,
+      'ratings_average' => $ratings_average,
+      'ratings_count' => $ratings_count,
+      'subjects' => $subjects,
+      'person_key' => $person_key,
+      'place_key' => $place_key,
+      'time_key' => $time_key,
+      'cover_url' => $cover_url
+    ];
+
+  } // END FOREACH BOOK
+
+  return [
+    'status' => 'success',
+    'data' => $searchResults,
+    'limit' => $limit,
+    'page' => $page
   ];
 }
-
-
-
-
-// /works/olid/editions.json?
-function editionsEndpoint(array $req)
-{ // need olid
-  $encodedOlid = urlencode($req['olid']);
-  $editions_url = "https://openlibrary.org/works/{$olid}/editions.json?limit=1"; // only get 1 of the editions isbn
-  $editions_json = curl_get($editions_url);
-
-  $isbn = null;
-  if ($editions_json) {
-    $editions_data = json_decode($editions_json, true);
-    $first_entry = $editions_data['entries'][0]; // gets the first entry result
-
-    if (!empty($first_entry['isbn_13'][0])) {
-      $isbn = $first_entry['isbn_13'][0];
-    } elseif (!empty($first_entry['isbn_10'][0])) {
-      $isbn = $first_entry['isbn_10'][0];
-    } else {
-      $isbn = null; // no isbn found
-    }
-  }
-}
-
-
-
-
-// /works/olid/ratings.json?
-function ratingsEndpoint(array $req)
-{
-  // needs olid
-  $ratings_average = null;
-  $ratings_count = null;
-  $ratings_url = "https://openlibrary.org/works/{$olid}/ratings.json";
-  $ratings_json = curl_get($ratings_url);
-  if ($ratings_json) {
-    $ratings_data = json_decode($ratings_json, true);
-    $ratings_average = $ratings_data['summary']['average'] ?? null;
-    $ratings_count = $ratings_data['summary']['count'] ?? null;
-  }
-}
-
-
-// /subject.json
-function subjectEndpoint(array $req)
-{
-  // needs olid
-  $work_url = "https://openlibrary.org/works/{$olid}.json";
-  $work_json = curl_get($work_url);
-
-  $book_desc = 'No book description available';
-  $subjects = null;
-  $person_key = null;
-  $place_key = null;
-  $time_key = null;
-
-  if ($work_json) {
-    $work_data = json_decode($work_json, true); // decode to read all data
-
-
-    if (is_array($work_data['description'])) { // still getting a php warning idky
-      $book_desc = $work_data['description']['value'];
-    } elseif (is_string($work_data['description'])) {
-      $book_desc = $work_data['description'];
-    } else {
-      $book_desc = 'No book description available';
-    }
-
-    // need to encode the json because the database column is of JSON type
-    $subjects = json_encode(array_slice($work_data['subjects'] ?? [], 0, 20)); // take the first 20 subjects max
-    $person_key = json_encode(array_slice($work_data['subject_people'] ?? [], 0, 20));
-    $place_key = json_encode(array_slice($work_data['subject_places'] ?? [], 0, 20));
-    $time_key = json_encode(array_slice($work_data['subject_times'] ?? [], 0, 20));
-
-    // DEBUGGING
-    //var_dump($subjects);
-    //var_dump($person_key);
-    //var_dump($place_key);
-    //var_dump($time_key);
-  }
-}
-
-
 
 
 ?>

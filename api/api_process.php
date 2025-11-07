@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
-
+require_once __DIR__ . '/api_endpoints.php'; // curl_get + simple_sanitize
 function db()
 {
   $host = 'localhost';
@@ -14,31 +14,6 @@ function db()
     throw new RuntimeException("DB connect failed: " . $mysqli->connect_error);
   }
   return $mysqli;
-}
-
-
-// helper function
-function curl_get(string $url)
-{ // curl_get helper
-  //https://www.php.net/manual/en/function.curl-setopt-array.php
-  $curl_handle = curl_init($url);
-  curl_setopt_array($curl_handle, [
-    CURLOPT_RETURNTRANSFER => true, // returns webpage
-    CURLOPT_TIMEOUT => 20,
-    CURLOPT_SSL_VERIFYPEER => true, // verifies SSL
-  ]);
-  $curl_response = curl_exec($curl_handle);
-
-  // error handling based on curl error number
-  if (curl_errno($curl_handle)) {
-    $error = curl_error($curl_handle);
-    curl_close($curl_handle);
-    error_log("curl_get error for {$url}: {$error}");
-    return false;
-  }
-
-  curl_close($curl_handle);
-  return $curl_response;
 }
 
 
