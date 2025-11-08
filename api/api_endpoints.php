@@ -62,7 +62,8 @@ function api_search(array $req)
   // to look at what ALL fields look like; use fields=* sparingly bc its intensive
   // https://openlibrary.org/search.json?q=harry+potter&fields=*&limit=1&page=1
 
-  $query = $req['searchType']; // removed the "search by author" request type
+  $type = $req['searchType'] ?? 'title';
+  $query = strtolower(trim($req['query'] ?? ''));
   $limit = isset($req['limit']) && is_numeric($req['limit']) ? $req['limit'] : 10; // default to 10 if no limit specified
   $page = isset($req['page']) ? intval($req['page']) : 1; // default to 1 if no page specified
 
@@ -132,6 +133,8 @@ function api_search(array $req)
 
 
     $searchResults[] = [ // this gets returned
+      'searchType' => $type,
+      'query' => $query,
       'page' => $page,
       'olid' => $olid,
       'title' => $title,
