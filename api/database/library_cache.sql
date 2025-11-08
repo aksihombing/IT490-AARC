@@ -1,15 +1,17 @@
-DROP TABLE IF EXISTS olid_cache;
+DROP TABLE IF EXISTS library_cache;
 
-CREATE TABLE IF NOT EXISTS olid_cache (
+CREATE TABLE IF NOT EXISTS library_cache (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  search_type ENUM('title', 'author') NOT NULL, /* maybe i dont need this in the cache.*/
+  query VARCHAR(255) NOT NULL,
+  page_num INT NULL,
+
   /* basics -- may need more depending on what info we need for the website ? */
   olid VARCHAR(50) DEFAULT NULL,
   title VARCHAR(255) NOT NULL,
-  subtitle VARCHAR(255) DEFAULT NULL,
   author VARCHAR(255) DEFAULT 'Unknown Author',
-  isbn VARCHAR(50) DEFAULT NULL, -- from /works/olid/edition.json
-  -- publisher VARCHAR(255) DEFAULT NULL,--> removed bc this depends on the edition
-  book_desc TEXT DEFAULT "No description available",
+  isbn VARCHAR(50) DEFAULT NULL, 
+  book_desc TEXT DEFAULT NULL,
 
   /* ints */
   publish_year INT DEFAULT NULL,
@@ -17,8 +19,6 @@ CREATE TABLE IF NOT EXISTS olid_cache (
   ratings_count INT DEFAULT NULL,
 
   /* subject/genre */
-  -- these should be JSON_ENCODE(data) when INSERTING values
-  -- use JSON_DECODE(data) when reading it from the frontend
   subjects JSON DEFAULT NULL,
   person_key JSON DEFAULT NULL,
   place_key JSON DEFAULT NULL,
@@ -37,6 +37,6 @@ CREATE TABLE IF NOT EXISTS olid_cache (
    
    STORED or VIRTUAL can be used for generated columns. says that the value is physicially stored
    */
-  INDEX(olid)
+  INDEX(search_type, query)
   /*  indexing it by search type and the query makes it easier to find it in the cache and call it  */
 );
