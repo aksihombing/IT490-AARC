@@ -202,11 +202,11 @@ function doBookRecommend(array $req)
   arsort($subjectWeights); // sort weighted subject array
 
   $topSubjects = array_slice(array_keys($subjectWeights), 0, 5); // get top 5 subjects, which are stored as keys in the array
-  echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
+  //echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
   $topSubject1 = $topSubjects[0]; // the anchor
-  echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
+  //echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
   $secondarySubjects = array_slice($topSubjects, 1); // remove the first one
-  echo "Secondary Subjects: " . implode(',' , $secondarySubjects) . "\n"; // DEBUGGING
+  //echo "Secondary Subjects: " . implode(',' , $secondarySubjects) . "\n"; // DEBUGGING
 
 
   //print_r($topSubjects); // DEBUGGING
@@ -216,6 +216,7 @@ function doBookRecommend(array $req)
   $encodedTopSubject = urlencode($topSubject1);
 
   // could move this part into api_endpoints but lazy
+  // reused logic from previous version of rec system
   $subjectUrl = "https://openlibrary.org/subjects/{$encodedTopSubject}.json?sort=rating%20desc&limit=50";
 
   $subject_json = curl_get($subjectUrl);
