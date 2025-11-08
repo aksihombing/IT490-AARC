@@ -66,7 +66,7 @@ function getPLibDetails($plib_olid)
   }
 }
 
-function getRecommendation($library_books)
+function getRecommendation(array $library_books)
 {
   // maybe could use a retry if fail loop or something
   try {
@@ -74,22 +74,23 @@ function getRecommendation($library_books)
 
     $response = $bookRecommendClient->send_request([
       'type' => 'book_recommend',
-      'olids' => $library_books
+      'olids' => $library_books // send ALL olids
     ]);
 
-    if (($response['status'] === 'success') && isset($response['recommended_book']) && is_array($response['recommended_book'])) { // checks success, if data is set, and if data is array
-      $rec_bookdata = $response['recommended_book'];
-      return [
+    if (($response['status'] === 'success') && isset($response['data']) && is_array($response['data'])) { // checks success, if data is set, and if data is array
+      $rec_bookdata = $response['data'];
+      return $rec_bookdata;
+      /*return [
         'olid' => $rec_bookdata['olid'],
         'title' => $rec_bookdata['title'] ?? 'Unknown Title',
         'author' => $rec_bookdata['author'] ?? 'Unknown Author',
         //'isbn' => $rec_bookdata['isbn'] ?? 'N/A',
         'cover_url' => $rec_bookdata['cover_url'] ?? '', // no fallback actually implemented yet
         'publish_year' => $rec_bookdata['publish_year'] ?? 'Unknown'
-      ];
+      ];*/
 
     } else {
-      return null; // if theres no books in library ?
+      return []; // if theres no books in library ?
     }
   } catch (Exception $e) {
     return "Error connecting to personal library service: " . $e->getMessage(); // idk what to return here
@@ -139,16 +140,15 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
       //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
     }
 
-
-    // GET BOOK RECOMMENDATION -  Library_API should already give all necessary info per book
-    $recommendations = getRecommendation($olid);
-    if ($recommendations) {
-      $recommendedBooks[] = $recommendations; // adds book details in an array per olid
-      //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
-    }
-
-
   } // end of foreach for getting details of each book
+
+  // GET BOOK RECOMMENDATION -  Library_API should already give all necessary info per book
+  $recommendedBooks = getRecommendation($olid);
+  /*if ($recommendations) {
+    $recommendedBooks[] = $recommendations; // adds book details in an array per olid
+    //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
+  }*/
+
 }
 
 ?>
@@ -201,9 +201,9 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
       <?php endforeach; ?> <!-- end display each book -->
 
 
-        <br>
-        <br>
-        <br>
+      <br>
+      <br>
+      <br>
 
       <!-- FOR EACH RECOMMENDED BOOK, same as displaying library books -->
       <h3> Recommended Books </h3>
@@ -218,15 +218,15 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
 
             <p><?php echo htmlspecialchars($r_book['author']) ?></p>
 
-           <!-- <p><strong>ISBN:</strong> < ? php echo htmlspecialchars($r_book['isbn']) ? ></p> -->
+            <!-- <p><strong>ISBN:</strong> < ? php echo htmlspecialchars($r_book['isbn']) ? ></p> -->
             <!-- removed ISBN from showing -->
 
             <p><strong>Published:</strong> <?php echo htmlspecialchars($r_book['publish_year']) ?></p>
           </div> <!-- end card -->
 
         <?php endforeach; ?> <!-- end display each book -->
-        <?php else: ?>
-          <p>No recommendations found.</p>
+      <?php else: ?>
+        <p>No recommendations found.</p>
       <?php endif; ?> <!-- end else -->
 
     </div> <!-- end grid -->

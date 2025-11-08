@@ -164,9 +164,6 @@ function api_search(array $req)
 
 
 // ---------------------
-
-
-
 // find api by olid -- uses nearly all api endpoints for the SPECIFIC olid
 function api_olid_details(string $olid)
 {
@@ -262,5 +259,9 @@ function api_olid_details(string $olid)
 
 
 } // end api_olid_details
+
+
+
+// ---------------------
 
 ?>

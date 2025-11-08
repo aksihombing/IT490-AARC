@@ -125,16 +125,6 @@ function getRecentBooks()
 
 
 // doBookRecommend ()
-/*// RECOMMENDATION SYSTEM
-// multiply the weight of the genre based on the books they have that of
-// i.e. if they have a lot of books with the same genre in their library, the recommendation should reflect whatever genre weights heaviest; can assign counts
-//1 - negative weight
-//5 - positive weight
-*/
-
-// weighted recommendation resources
-// https://www.kaggle.com/code/rafaymemon/building-recommendation-system-weighted-average
-// https://global.php.cn/faq/536741.html
 
 function doBookRecommend(array $req)
 {
@@ -147,126 +137,129 @@ function doBookRecommend(array $req)
 
   // collect ALL subjects' counts/weights
   $subjectCounts = [];
+  $totalBooks = count($olids);
 
-  foreach ($olids as $olid) {
-    $olid = trim($olid); // clean the olid
 
-    // check cache first
-    $cache_check = bookCache_check_olid($olid);
-    if ($cache_check['status'] === 'success') { // if book is found in the cache
-      $cache_data = $cache_check['data'];
-    } else {
-      $olid_search = api_olid_details($olid); // manually get
-      $olid_data = $olid_search['data'];
-    }
-  }
   // subjects should already be sanitized via api_endpoint's simple_sanitize
-
-
   // steps to recommend book (source: https://global.php.cn/faq/536741.html)
-
   // 1. data cleaning (already completed through any function in api_endpoints.php functions)
 
 
-
-  // 2. data conversion --> make sure all OLIDs from library are strings within an array that is returned from my_library.php in /frontend
-
-
-
-  // 3. data standardization --> data should be assigned a value within a range; professor recommended 1 (negative, lesser weight) to 5 (positive, higher weight)
+  foreach ($olids as $olid) { // FOR EACH BOOK : 
+    $olid = trim($olid); // clean the olid
 
 
-  // 3a. weighted average formula --> SUM OF WEIGHTED ITEMS / TOTAL COUNT OF ITEMS
+    // 2. data conversion --> make sure all OLIDs from library are strings within an array that is returned from my_library.php in /frontend
+    // check cache first
+    $cache_check = bookCache_check_olid($olid);
+    if ($cache_check['status'] === 'success') { // if book is found in the cache
+      $bookData = $cache_check['data'];
+    } else {
+      $olid_search = api_olid_details($olid); // manually get
+      $bookData = $olid_search['data'];
+      bookCache_add($bookData);
+    }
 
-  // 3b. weighted score formular (for one item) --> SCORE * WEIGHT
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  //shuffle($allSubjects);
-  //print_r($allSubjects); // DEBUGGING
+    // read subjects and decode if it's a json (i.e. if it was returned from the database)
+    $subjects = $bookData['subjects'] ?? [];
+    if (is_string($subjects)) {
+      $subjects_decoded = json_decode($subjects);
+      $subjects = is_array($subjects_decoded) ? $subjects_decoded : [];
+    }
 
 
-  // randomly select 2 subjects within the first 20 subjects
-  $subject1 = $allSubjects[0]; // will get entered into subjects/{subject1}.json, PRIMARY SEARCH
+    // normalize subjects (sanitize isn't needed because _endpoints does it already)
+    foreach ($subjects as $subject) {
+      if ($subject === '')
+        continue; //skip if empty
 
-  //echo "Primary subject: {$subject1}\n"; // DEBUGGING
+      if (!isset($subjectCounts[$subject])) { // add to counts if not already there
+        $subjectCounts[$subject] = 1;
+      } else {
+        $subjectCounts[$subject]++; // update count if subject is repeated
+      }
+    }
+  } // end foreach
 
-  $subject2 = array_slice($allSubjects, 1, 20);
+  // if subjects empty still
+  if (empty($subjectCounts)) {
+    return [
+      "status" => "error",
+      "message" => "No subjects found"
+    ];
+  }
 
-  //echo "Second subject options: \n"; // DEBUGGING
-  //var_dump($subject2);
+  // 3. normalize on a scale of 1 to 5, as recommended by prof
+  $subjectWeights = [];
+  foreach ($subjectCounts as $subject => $count) { // foreach key => value subjectCount pair
+    $normalizedScore = $count / $totalBooks; // frequency percentage
+    $scaledWeight = round($normalizedScore * 5, 2); // get scaled weight of the score; need to round the percentage
+    $subjectWeights[$subject] = $scaledWeight;
+  }
 
-  // subjects/{subject}.json search query
-  // search results for another book in "works" that has a "subject" item equal to $random_subjects[1] --> Only recommend first match
-  $encodedSubject1 = urlencode($subject1);
-  $subjectUrl = "https://openlibrary.org/subjects/{$encodedSubject1}.json?sort=new&sort=rating%20desc&limit=50";
+
+
+  arsort($subjectWeights); // sort weighted subject array
+
+  $topSubjects = array_slice(array_keys($subjectWeights), 0, 5); // get top 5 subjects, which are stored as keys in the array
+  $topSubject1 = $topSubjects[0]; // the anchor
+  $secondarySubjects = array_slice($subjectWeights, 1); // remove the first one
+
+
+  //print_r($topSubjects); // DEBUGGING
+
+  $recommendedBooks = [];
+
+  $encodedTopSubject = urlencode($topSubject1);
+
+  // could move this part into api_endpoints but lazy
+  $subjectUrl = "https://openlibrary.org/subjects/{$encodedTopSubject}.json?sort=rating%20desc&limit=50";
+
   $subject_json = curl_get($subjectUrl);
   $subject_data = json_decode($subject_json, true);
   $works = $subject_data["works"] ?? [];
 
-  $recommendedBook = null;
+  if (isset($subject_data['works'])) {
+    foreach ($subject_data['works'] as $oneBook) {
+      $bookSubjects = [];
+      if (!empty($oneBook['subject'])) { //clean subjects and add to array
+        $bookSubjects = simple_sanitize($oneBook['subject']);
+      }
 
-  // regex and trim filtering for subjects for the recommended books
+      $matchedSubjects = array_intersect($secondarySubjects, $bookSubjects);
+      $matchCount = count($matchedSubjects);
 
-  foreach ($works as $oneBook) {
+      // if we find a book with matches, add to recommendedBooks array
+      if ($matchCount > 0) {
+        $recommendedBooks[] = [
+          'olid' => str_replace('/works/', '', $oneBook['key'] ?? ''),
+          'title' => $oneBook['title'] ?? 'Unknown',
+          'author' => $oneBook['authors'][0]['name'] ?? 'Unknown',
+          'publish_year' => $oneBook['first_publish_year'] ?? null,
+          'cover_url' => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
+            ? "https://covers.openlibrary.org/b/id/" . $oneBook['cover_id'] . "-L.jpg"
+            : null,
 
-    $rec_work_id = $oneBook['key'] ?? ''; // key: XXX is there the works_id is
-    if (!$rec_work_id)
-      continue; // if work id not found, keep going
+          // recommendation system data
+          'anchor_subject' => $topSubject1,
+          'matched_subjects' => array_values($matchedSubjects),
+          'match_score' => $matchCount
+        ];
+      }
+    } // end foreach
+  } // end if for reading json results
 
-    // formatted like "key" : "/works/OLxxxxxW", we only want the OLxxxxxW
-    $rec_olid = str_replace('/works/', '', $rec_work_id);
-    if ($rec_olid === $olid)
-      continue; // skip if its the same book
+  // DEBUGGING
+  //   echo "Found match: " . $olid . " || Matched with " . $rec_olid . " with subjects: \n" . implode(', ', $matchedSubject) . "\n";
 
-    // require 2nd subject match also
-
-    // fallback : strtolower subjects to make sure matching fails arent due to case sensitivity
-    // https://www.php.net/manual/en/function.array-map.php --> used array mapping bc subject is an array
-    $rec_subjects_raw = array_map('strtolower', $oneBook['subject'] ?? []);
-    $rec_subjects = [];
-
-
-    $matchedSubject = array_intersect($rec_subjects, $subject2);
-    //echo "found matched subject: "; // DEBUGGING
-    //print_r(array_values($matchedSubject)); // DEBUGGING
-
-    if (empty($matchedSubject))
-      continue; // goes to next iteration until match found
-
-    // should only reach this area if a return is found
-    $recommendedBook = [
-      'olid' => $rec_olid,
-      'title' => $oneBook['title'] ?? 'Unknown',
-      'author' => $oneBook['authors'][0]['name'] ?? 'Unknown',
-      'publish_year' => $oneBook['first_publish_year'] ?? null,
-      'cover_url' => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
-        ? "https://covers.openlibrary.org/b/id/" . $oneBook['cover_id'] . "-L.jpg"
-        : null,
-    ];
-    break;
-  }
-
-  if (!$recommendedBook) {
+  if (!$recommendedBooks) {
     return ['status' => 'fail', 'message' => 'no recommendation found'];
   }
 
-  echo "Found match: " . $olid . " || Matched with " . $rec_olid . " with subjects: \n" . implode(', ', $matchedSubject) . "\n";
 
   return [
     'status' => 'success',
-    'recommended_book' => $recommendedBook
+    'data' => $recommendedBooks
   ];
 
 
