@@ -205,7 +205,7 @@ function doBookRecommend(array $req)
   echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
   $topSubject1 = $topSubjects[0]; // the anchor
   echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
-  $secondarySubjects = array_slice(array_keys($topSubjects), 1); // remove the first one
+  $secondarySubjects = array_slice($topSubjects, 1); // remove the first one
   echo "Secondary Subjects: " . implode(',' , $secondarySubjects) . "\n"; // DEBUGGING
 
 
