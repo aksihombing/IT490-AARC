@@ -203,7 +203,8 @@ function doBookRecommend(array $req)
 
   $topSubjects = array_slice(array_keys($subjectWeights), 0, 5); // get top 5 subjects, which are stored as keys in the array
   $topSubject1 = $topSubjects[0]; // the anchor
-  $secondarySubjects = array_slice($subjectWeights, 1); // remove the first one
+  echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
+  $secondarySubjects = array_slice(array_keys($subjectWeights), 1); // remove the first one
 
 
   //print_r($topSubjects); // DEBUGGING
@@ -219,8 +220,8 @@ function doBookRecommend(array $req)
   $subject_data = json_decode($subject_json, true);
   $works = $subject_data["works"] ?? [];
 
-  if (isset($subject_data['works'])) {
-    foreach ($subject_data['works'] as $oneBook) {
+  if (isset($works)) {
+    foreach ($works as $oneBook) {
       $bookSubjects = [];
       if (!empty($oneBook['subject'])) { //clean subjects and add to array
         $bookSubjects = simple_sanitize($oneBook['subject']);
