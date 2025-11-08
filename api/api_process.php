@@ -9,7 +9,6 @@ require_once __DIR__ . '/api_cache.php';
 
 
 // PROCESS API DATA -----------------------
-// doBookSearch ()
 // use search.json
 function doBookSearch(array $req)
 {
@@ -64,10 +63,10 @@ function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
   }
 
   // not found in cache -- fallback method
-  $api_olid_search = api_olid_details($req); // will use api_olid_details as a fallback
+  $api_olid_search = api_olid_details($olid); // will use api_olid_details as a fallback
 
   $book_details = $api_olid_search['data'];
-  // $addedCount = 0; // could count how many books were added for debugging if needed
+  // $addedCount = 0; /s/ could count how many books were added for debugging if needed
 
   return [
     'status' => 'success',
