@@ -59,10 +59,63 @@ function getPLibDetails($plib_olid)
       ];
 
     } else {
-      return null;
+      return null; // if theres no books in library ?
     }
   } catch (Exception $e) {
-    return null; // idk what to return here
+    return "Error connecting to personal library service: " . $e->getMessage(); // idk what to return here
+  }
+}
+
+function getRecommendation($library_book)
+{
+  // maybe could use a retry if fail loop or something
+  try {
+    $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+
+    $response = $bookRecommendClient->send_request([
+      'type' => 'book_recommend',
+      'olid' => $library_book
+    ]);
+
+    if (($response['status'] === 'success') && isset($response['recommended_book']) && is_array($response['recommended_book'])) { // checks success, if data is set, and if data is array
+      $rec_bookdata = $response['recommended_book'];
+      return [
+        'olid' => $rec_bookdata['olid'],
+        'title' => $rec_bookdata['title'] ?? 'Unknown Title',
+        'author' => $rec_bookdata['author'] ?? 'Unknown Author',
+        'isbn' => $rec_bookdata['isbn'] ?? 'N/A',
+        'cover_url' => $rec_bookdata['cover_url'] ?? '', // no fallback actually implemented yet
+        'publish_year' => $rec_bookdata['publish_year'] ?? 'Unknown'
+      ];
+      /* in Library_API.php :
+    // should only reach this area if a return is found
+    $recommendedBook = [
+      'olid'     => $rec_olid,
+      'title'        => $oneBook['title'] ?? 'Unknown',
+      'author'       => $oneBook['author_name'][0] ?? 'Unknown',
+      'publish_year' => $oneBook['first_publish_year'] ?? null,
+      'cover_url'    => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
+        ? "https://covers.openlibrary.org/b/id/".$oneBook['cover_id']."-L.jpg"
+        : null,
+      //'matched_subjects' => [$subject1, $subject2] // not really needed to be returned
+    ];
+    break;
+  }
+
+  if (!$recommendedBook) {
+    return ['status' => 'fail', 'message' => 'no recommendation found'];
+  }
+
+  return [
+    'status' => 'success',
+    'recommended_book' => $recommendedBook
+  ];
+      */
+    } else {
+      return null; // if theres no books in library ?
+    }
+  } catch (Exception $e) {
+    return "Error connecting to personal library service: " . $e->getMessage(); // idk what to return here
   }
 }
 
@@ -94,20 +147,32 @@ try {
 
 // after the library is loaded ..
 $libraryBooks = [];
+$recommendedBooks = [];
 
-if (!empty($libraryOlidList)) {
-  foreach ($libraryOlidList as $singleBook) {
-    $olid = $singleBook['olid'] ??  $singleBook['works_id'] ??$singleBook; // it actually should be olid i think
+if (!empty($libraryOlidList)) {  // if library isnt empty
+
+  foreach ($libraryOlidList as $singleBook) { // each book in library loop
+
+    // GET BOOK DETAILS to display on page
+    $olid = $singleBook['olid'] ?? $singleBook['works_id'] ?? $singleBook; // it actually should be olid i think
 
     $details = getPLibDetails($olid);
     if ($details) {
       $libraryBooks[] = $details; // adds book details in an array per olid
       //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
     }
-  }
+
+
+    // GET BOOK RECOMMENDATION -  Library_API should already give all necessary info per book
+    $recommendations = getRecommendation($olid);
+    if ($recommendations) {
+      $recommendedBooks[] = $recommendations; // adds book details in an array per olid
+      //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
+    }
+
+
+  } // end of foreach for getting details of each book
 }
-
-
 
 ?>
 
@@ -133,9 +198,10 @@ if (!empty($libraryOlidList)) {
     <p>You haven’t added any books yet.</p>
     <p><a href="index.php?content=search" class="btn">Go to Search Page →</a></p>
   <?php else: ?>
+
     <div class="grid">
 
-      <?php foreach ($libraryBooks as $book): ?>
+      <?php foreach ($libraryBooks as $book): ?> <!-- DISPLAY EACH BOOK -->
         <div class="card">
           <img class="cover" src="<?php echo htmlspecialchars($book['cover_url']) ?>" alt="Book Cover">
 
@@ -153,12 +219,41 @@ if (!empty($libraryOlidList)) {
             <input type="hidden" name="works_id" value="<?php echo htmlspecialchars($book['olid']) ?>">
             <button type="submit" class="btn">Remove</button>
           </form>
-        </div>
-      <?php endforeach; ?>
+        </div> <!-- end card -->
+
+      <?php endforeach; ?> <!-- end display each book -->
 
 
-    </div>
-  <?php endif; ?>
+        <br>
+        <br>
+        <br>
+
+      <!-- FOR EACH RECOMMENDED BOOK, same as displaying library books -->
+      <h3> Recommended Books </h3>
+      <?php if (!empty($recommendedBooks)): ?>
+        <?php foreach ($recommendedBooks as $r_book): ?> <!-- DISPLAY EACH BOOK -->
+          <div class="card">
+            <img class="cover" src="<?php echo htmlspecialchars($r_book['cover_url']) ?>" alt="Book Cover">
+
+            <h3><a href="index.php?content=book&olid=<?php echo htmlspecialchars($r_book['olid']); ?>">
+                <?php echo htmlspecialchars($r_book['title']) ?>
+              </a></h3>
+
+            <p><?php echo htmlspecialchars($r_book['author']) ?></p>
+
+           <!-- <p><strong>ISBN:</strong> < ? php echo htmlspecialchars($r_book['isbn']) ? ></p> -->
+            <!-- removed ISBN from showing -->
+
+            <p><strong>Published:</strong> <?php echo htmlspecialchars($r_book['publish_year']) ?></p>
+          </div> <!-- end card -->
+
+        <?php endforeach; ?> <!-- end display each book -->
+        <?php else: ?>
+          <p>No recommendations found.</p>
+      <?php endif; ?> <!-- end else -->
+
+    </div> <!-- end grid -->
+  <?php endif; ?> <!-- end else -->
 </body>
 
 </html>
