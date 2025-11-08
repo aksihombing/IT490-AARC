@@ -97,11 +97,7 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
 
     if ($cache_result->num_rows > 0) {
       echo "Cache HIT for OLID {$olid}\n";
-      $cachedData = [];
-
-      while ($row = $cache_result->fetch_assoc()) {
-        $cachedData[] = $row;
-      }
+      $cachedData = $cache_result->fetch_assoc();
 
       $mysqli->close();
       return [
@@ -111,7 +107,7 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
       // return cache HIT
     } else {
       $mysqli->close();
-      echo "Did not find {$olid} in cache";
+      echo "Did not find {$olid} in cache\n";
       return [
         'status' => 'fail' // could be expired OR not in cache
       ];
