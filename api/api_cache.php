@@ -1,5 +1,17 @@
 <?php
 // DATABASE -----------------------
+/*
+- time_key undefined array key warning
+- checking cache for olid fails in doBookDetails; it just freshly grabs the info instead
+- need to fix recommendations
+
+
+
+
+*/
+
+
+
 function db()
 {
   $host = 'localhost';
