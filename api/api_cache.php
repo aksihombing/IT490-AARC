@@ -78,7 +78,7 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
 
     echo "Checking cache for: olid = {$olid}\n";
 
-    // check for search_type, query, page_num AND check if expired.
+    // check for olid, does NOT check if it is expired, but it should be fine
     $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE olid=?");
     $check_cache->bind_param("s", $type);
     $check_cache->execute();

@@ -24,6 +24,7 @@ function curl_get(string $url)
   return $curl_response;
 }
 
+// ---------------------
 
 function simple_sanitize(array $list_raw)
 {
@@ -47,7 +48,13 @@ function simple_sanitize(array $list_raw)
 }
 
 
+
+
+
+
 // API DATA ------------------------------
+
+// general data from search.json endpoint || search based on queries, not OLID
 function api_search(array $req)
 { // search for items based on title/author/general query
   // EXAMPLE URL https://openlibrary.org/search.json?q=harry%20potter&fields=key,title,author_name,first_publish_year&limit=1&page=1
@@ -151,5 +158,106 @@ function api_search(array $req)
   ];
 }
 
+
+
+// ---------------------
+
+
+
+// find api by olid -- uses nearly all api endpoints for the SPECIFIC olid
+function api_olid_details(string $olid)
+{
+  //$olid = $req['olid'] ?? $req['works_id'] ?? ''; // check for olid or works_id
+  if ($olid === '')
+    return ['status' => 'fail', 'message' => 'missing olid for query'];
+
+  $encodedOlid = urlencode($olid);
+
+
+  // for search.json!!!  ----------------------
+  //$encodedQuery = urlencode($title); // url encodes query when its actually getting sent to the API
+
+  $searchurl = "https://openlibrary.org/search.json?q=key:/works/{$encodedOlid}&fields=key,title,author_name,isbn,first_publish_year,ratings_average,ratings_count,subject_key,person_key,place_key,time_key,cover_i&limit=1";
+  // uses solr query q=key:/works/{olid} to filter results for exact olid
+
+  $search_response = curl_get($searchurl);
+  $search_data = json_decode($search_response, true);
+
+  $author = 'Unknown author';
+  $publish_year = null;
+  $cover_url = null;
+
+  if ($search_data && isset($search_data['docs'][0])) { // get first doc only
+    $doc = $search_data['docs'][0];
+
+    $title = $doc['title'] ?? 'Unknown title'; // string
+    $author = $doc['author_name'][0] ?? 'Unknown author'; //string
+    $isbn = $doc['isbn'][0] ?? [];
+    $publish_year = $doc['first_publish_year'] ?? []; // string
+    $ratings_average = $doc['ratings_average'] ?? [];
+    $ratings_count = $doc['ratings_count'] ?? [];
+
+    $subjects = json_encode(simple_sanitize($doc['subject_key'] ?? []));
+    $person_key = json_encode($doc['person_key'] ?? []);
+    $place_key = json_encode($doc['place_key'] ?? []);
+    $time_key = json_encode($doc['time_key']) ?? [];
+
+    $cover_url = !empty($doc['cover_i'])
+      ? "https://covers.openlibrary.org/b/id/" . $doc['cover_i'] . "-L.jpg" : null;
+
+  }
+
+
+  // data from /works/{OLID}.json ----------------------
+  $work_url = "https://openlibrary.org/works/{$encodedOlid}.json";
+  $work_json = curl_get($work_url);
+  $work_data = json_decode($work_json, true);
+
+  if (!$work_data)
+    return ['status' => 'fail', 'message' => 'Failed to get /works/ information'];
+
+
+  if (isset($work_data['description'])) {
+    if (is_array($work_data['description'])) {
+      $book_desc = $work_data['description']['value'];
+    } elseif (is_string($work_data['description'])) {
+      $book_desc = $work_data['description'];
+    } else {
+      $book_desc = "No book description available";
+    }
+  } else {
+    $book_desc = "No book description available";
+  }
+
+  // for the sake of storing it in the cache
+  $query = "q=key:/works/{$encodedOlid}";
+  // returning results
+  $bookDetailsResults = [ // this gets returns to the webserver
+    'query' => $query,
+    'olid' => $olid,
+    'title' => $title,
+    'author' => $author,
+    'isbn' => $isbn,
+    'book_desc' => $book_desc,
+    'publish_year' => $publish_year,
+    'ratings_average' => $ratings_average,
+    'ratings_count' => $ratings_count,
+    'subjects' => $subjects,
+    'person_key' => $person_key,
+    'place_key' => $place_key,
+    'time_key' => $time_key,
+    'cover_url' => $cover_url
+  ];
+
+
+  echo "Returning details for {$olid}={$title}\n";
+  return [
+    'status' => 'success',
+    'data' => $bookDetailsResults
+  ];
+
+
+
+} // end api_olid_details
 
 ?>

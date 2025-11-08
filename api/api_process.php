@@ -51,23 +51,22 @@ function doBookSearch(array $req)
 }
 
 // doBookDetails () 
-// combines all endpoints for accurate info ?
-// actually, any book that is viewed should TECHNICALLY already be loaded into the cache so i dont think i need to manually get any book that ISNT in the cache already ?
+// any book that is viewed should TECHNICALLY already be loaded into the cache so i dont think i need to manually get any book that ISNT in the cache already ?
 function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
 {
   $olid = $req['olid'];
   $cache_check = bookCache_check_olid($olid);
-  if ($cache_check['status'] === 'success') {
+  if ($cache_check['status'] === 'success') { // if book is found in the cache
     return [
       'status' => 'success',
       'data' => $cache_check['data']
     ];
   }
 
-  // cache MISS
-  $search_api = api_search($req);
+  // not found in cache -- fallback method
+  $api_olid_search = api_olid_details($req); // will use api_olid_details as a fallback
 
-  $book_details = $search_api['data'];
+  $book_details = $api_olid_search['data'];
   // $addedCount = 0; // could count how many books were added for debugging if needed
 
   return [
@@ -117,12 +116,9 @@ function getRecentBooks()
 */
 
 
-function doBookRecommend(array $req)
+function doBookRecommend(array $req) // NEED TO GO BACK TO THIS
 {  // 1 to 1 book recommendation for the sake of speed
   // content-based filtering --> uses subjects to recommend a book
-  // https://openlibrary.org/dev/docs/api/subjects
-
-
 
   // read olid of one book
   $olid = $req['olid'] ?? $req['works_id'] ?? ''; // check for olid or works_id
@@ -130,36 +126,21 @@ function doBookRecommend(array $req)
     return ['status' => 'fail', 'message' => 'missing olid for query'];
 
   // find subjects[]
-  // data from /works/{OLID}.json ----------------------
-
-  $work_url = "https://openlibrary.org/works/{$olid}.json";
-  $work_json = curl_get($work_url);
-  if (!$work_json) { // fail catching jusssstt in case
-    return ['status' => 'fail', 'message' => 'failed to fetch work'];
-  }
-  $work_data = json_decode($work_json, true); // decode to read all data
+  $allSubjects = []; // check that array_map doesnt break this if initialized
 
 
-
-  $allSubjects_raw = array_map('strtolower', array_slice($work_data['subjects'] ?? [], 0, 50)); // grab nearly all subjects
-  // NOTE : /works/ uses PLURAL 'subjects' ....
-  $filteredSubjects = []; // filtered subjects, 1-word
-
-  foreach ($allSubjects_raw as $filtering_subject) {
-    $filtering_subject = strtolower(trim($filtering_subject)); // lowercase, trimmed
-
-    // https://www.php.net/manual/en/function.preg-match.php
-    // https://regexr.com/
-    if (!preg_match('/^[a-z\-]+$/', $filtering_subject))
-      continue;
-    // one-word subjects, allowing for hyphenated subjects also
-    // exclude anything with accented characters (beyond ascii char code 122)
-
-    $filteredSubjects[] = $filtering_subject; // add good, single word subject to array
+  $cache_check = bookCache_check_olid($olid);
+  if ($cache_check['status'] === 'success') { // if book is found in the cache
+    $cache_data = $cache_check['data'];
+    $allSubjects = array_map('strtolower', $cache_data['subjects'] ?? []);
+  } else {
+    $olid_search = api_olid_details($olid);
+    $olid_data = $olid_search['data'];
+    $allSubjects = array_map('strtolower', $olid_data['subjects'] ?? []);
   }
 
+  // subjects should already be sanitized via api_endpoint's simple_sanitize
 
-  $allSubjects = array_slice($filteredSubjects, 0, 20); // not sure if slicing is needed here
   shuffle($allSubjects);
   //print_r($allSubjects); // DEBUGGING
 
@@ -170,7 +151,6 @@ function doBookRecommend(array $req)
   //echo "Primary subject: {$subject1}\n"; // DEBUGGING
 
   $subject2 = array_slice($allSubjects, 1, 20);
-  //skip first array item (which is used as the primary search), use next 20 subjects as a fallback in case there isnt a match with any one of them
 
   //echo "Second subject options: \n"; // DEBUGGING
   //var_dump($subject2);
