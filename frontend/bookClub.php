@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", loadClubs); // should auto-load cl
 
 // invite generation function
 async function generateInvite(clubId) {
-  const res = await fetch('clubs_functions.php', {
+  const res = await fetch('includes/clubs_functions.php', {
     method: 'POST',
     body: new URLSearchParams({ 
       action: 'invite_link', 
@@ -80,7 +80,7 @@ async function loadClubs() {
   const list = document.getElementById('clubList');
 
   try {
-    const res = await fetch('clubs_functions.php', {
+    const res = await fetch('includes/clubs_functions.php', {
       method: 'POST',
       body: new URLSearchParams({
         action: 'list',
@@ -120,7 +120,7 @@ async function postForm(form){
     
   if (!data.has('user_id')) data.append('user_id', USER_ID);
 
-  const res = await fetch('clubs_functions.php', {method:'POST', body:data});
+  const res = await fetch('includes/clubs_functions.php', {method:'POST', body:data});
   const out = document.getElementById('output');
 
   if(!res.ok){ out.textContent = 'network error'; return; }

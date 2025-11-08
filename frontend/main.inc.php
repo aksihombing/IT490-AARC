@@ -1,14 +1,13 @@
 <?php
 // MAIN LANDING PAGE (Displays login + registration forms)
-
-
-
 // check session state
 if (!isset($_SESSION['session_key'])):
   ?>
+  <?php include __DIR__ . '/includes/recent.inc.php'; ?>
+
   <section id="auth-section">
     <h2>Register New User</h2>
-    <form name="register" action="register.php" method="post">
+    <form name="register" action="includes/register.php" method="post">
       <label for="emailAddress">Email:</label>
       <input type="email" id="emailAddress" name="emailAddress" size="25" required>
       <br>
@@ -38,7 +37,7 @@ if (!isset($_SESSION['session_key'])):
     <h2>Log In</h2>
     <h4>For existing users</h4>
 
-    <form name="login" action="login.php" method="post">
+    <form name="login" action="includes/login.php" method="post">
       <label for="loginUsername">Username:</label>
       <input type="text" id="loginUsername" name="username" size="25" required>
       <br>
@@ -57,41 +56,10 @@ if (!isset($_SESSION['session_key'])):
     ?>
   </section>
 
-<<<<<<< HEAD
-<?php else: ?>
-  <section id="welcome-section">
-    <h2>Welcome!</h2>
-    <p>You are logged in successfully.</p>
-    <p><a href="index.php?content=dashboard">Go to Dashboard</a> or <a href="logout.php">Logout</a></p>
-=======
 
 <?php else: ?>
 
-  <?php
-  //  FOR RECENT BOOKS !! -------------
-  // to load pre-loaded book data from cache db
-  require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-
-  $recentBooks = []; // for recent books call
-
-
-  try {
-    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibrarySearch'); // no special queue for LibrarySearch
-
-    // Recent books request
-    $recentResponse = $client->send_request(['type' => 'recent_books']);
-
-    if ($recentResponse['status'] === 'success') {
-      $recentBooks = $recentResponse['data'];
-    }
-
-  } catch (Exception $e) {
-    echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
-  }
-
-
-  ?>
-
+ 
 
 
   <section id="welcome-section">
@@ -134,6 +102,5 @@ if (!isset($_SESSION['session_key'])):
     <br>
     <br>
     <p><a id="logoutbutton" href="logout.php">Logout</a></p>
->>>>>>> ec0357777b444cf6cd7a1e24d3e9952576a43809
   </section>
 <?php endif; ?>
