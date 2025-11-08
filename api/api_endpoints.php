@@ -103,7 +103,7 @@ function api_search(array $req)
     $subjects = json_encode(simple_sanitize($book['subject_key'] ?? []));
     $person_key = json_encode($book['person_key'] ?? []);
     $place_key = json_encode($book['place_key'] ?? []);
-    $time_key = json_encode($book['time_key']) ?? [];
+    $time_key = json_encode($book['time_key'] ?? []);
 
     $cover_url = !empty($book['cover_i'])
       ? "https://covers.openlibrary.org/b/id/" . $book['cover_i'] . "-L.jpg" : null; // ternary -> if cover_i is set, then it saves the link
@@ -203,7 +203,7 @@ function api_olid_details(string $olid)
     $subjects = json_encode(simple_sanitize($doc['subject_key'] ?? []));
     $person_key = json_encode($doc['person_key'] ?? []);
     $place_key = json_encode($doc['place_key'] ?? []);
-    $time_key = json_encode($doc['time_key']) ?? [];
+    $time_key = json_encode($doc['time_key'] ?? []);
 
     $cover_url = !empty($doc['cover_i'])
       ? "https://covers.openlibrary.org/b/id/" . $doc['cover_i'] . "-L.jpg" : null;
