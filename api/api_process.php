@@ -205,6 +205,7 @@ function doBookRecommend(array $req)
   $topSubject1 = $topSubjects[0]; // the anchor
   echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
   $secondarySubjects = array_slice(array_keys($subjectWeights), 1); // remove the first one
+  echo "Secondary Subjects: " . implode(',' , $secondarySubjects) . "\n"; // DEBUGGING
 
 
   //print_r($topSubjects); // DEBUGGING
