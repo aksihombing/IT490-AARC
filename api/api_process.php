@@ -53,7 +53,14 @@ function doBookSearch(array $req)
 // any book that is viewed should TECHNICALLY already be loaded into the cache so i dont think i need to manually get any book that ISNT in the cache already ?
 function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
 {
-  $olid = $req['olid'];
+  $olid = $req['olid'] ?? $req['works_id'] ?? null;
+  if (!$olid) {
+    return [
+      'status' => 'fail',
+      'message' => 'Missing OLID parameter for bookDetails'
+    ];
+  }
+
   $cache_check = bookCache_check_olid($olid);
   if ($cache_check['status'] === 'success') { // if book is found in the cache
     return [
@@ -64,9 +71,20 @@ function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
 
   // not found in cache -- fallback method
   $api_olid_search = api_olid_details($olid); // will use api_olid_details as a fallback
+  if ($api_olid_search['status'] === 'fail' || empty($api_olid_search['data'])) {
+    return [
+      'status' => 'fail',
+      'message' => 'Unable to find book details from API'
+    ];
+  }
 
   $book_details = $api_olid_search['data'];
   // $addedCount = 0; /s/ could count how many books were added for debugging if needed
+  $cache_add = bookCache_add($book_details); // to update cache
+
+  if (is_array(($cache_add)) && $cache_add['status'] === 'fail') {
+    error_log("Failed to update cache for OLID {$olid}");
+  }
 
   return [
     'status' => 'success',
@@ -114,33 +132,68 @@ function getRecentBooks()
 //5 - positive weight
 */
 
+// weighted recommendation resources
+// https://www.kaggle.com/code/rafaymemon/building-recommendation-system-weighted-average
+// https://global.php.cn/faq/536741.html
 
-function doBookRecommend(array $req) // NEED TO GO BACK TO THIS
-{  // 1 to 1 book recommendation for the sake of speed
+function doBookRecommend(array $req)
+{
   // content-based filtering --> uses subjects to recommend a book
 
   // read olid of one book
-  $olid = $req['olid'] ?? $req['works_id'] ?? ''; // check for olid or works_id
-  if ($olid === '')
+  $olids = $req['olids'] ?? []; // check for olid or works_id
+  if ($olids === '' || !is_array($olids))
     return ['status' => 'fail', 'message' => 'missing olid for query'];
 
-  // find subjects[]
-  $allSubjects = []; // check that array_map doesnt break this if initialized
+  // collect ALL subjects' counts/weights
+  $subjectCounts = [];
 
+  foreach ($olids as $olid) {
+    $olid = trim($olid); // clean the olid
 
-  $cache_check = bookCache_check_olid($olid);
-  if ($cache_check['status'] === 'success') { // if book is found in the cache
-    $cache_data = $cache_check['data'];
-    $allSubjects = array_map('strtolower', $cache_data['subjects'] ?? []);
-  } else {
-    $olid_search = api_olid_details($olid);
-    $olid_data = $olid_search['data'];
-    $allSubjects = array_map('strtolower', $olid_data['subjects'] ?? []);
+    // check cache first
+    $cache_check = bookCache_check_olid($olid);
+    if ($cache_check['status'] === 'success') { // if book is found in the cache
+      $cache_data = $cache_check['data'];
+    } else {
+      $olid_search = api_olid_details($olid); // manually get
+      $olid_data = $olid_search['data'];
+    }
   }
-
   // subjects should already be sanitized via api_endpoint's simple_sanitize
 
-  shuffle($allSubjects);
+
+  // steps to recommend book (source: https://global.php.cn/faq/536741.html)
+
+  // 1. data cleaning (already completed through any function in api_endpoints.php functions)
+
+
+
+  // 2. data conversion --> make sure all OLIDs from library are strings within an array that is returned from my_library.php in /frontend
+
+
+
+  // 3. data standardization --> data should be assigned a value within a range; professor recommended 1 (negative, lesser weight) to 5 (positive, higher weight)
+
+
+  // 3a. weighted average formula --> SUM OF WEIGHTED ITEMS / TOTAL COUNT OF ITEMS
+
+  // 3b. weighted score formular (for one item) --> SCORE * WEIGHT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //shuffle($allSubjects);
   //print_r($allSubjects); // DEBUGGING
 
 
@@ -183,20 +236,7 @@ function doBookRecommend(array $req) // NEED TO GO BACK TO THIS
     // https://www.php.net/manual/en/function.array-map.php --> used array mapping bc subject is an array
     $rec_subjects_raw = array_map('strtolower', $oneBook['subject'] ?? []);
     $rec_subjects = [];
-    foreach ($rec_subjects_raw as $r_subject) {
-      $r_subject = trim($r_subject);
 
-      // same as previous filtering
-      if (!preg_match('/^[a-z\-]+$/', $r_subject))
-        continue;
-
-      $rec_subjects[] = $r_subject; // add good, single word subject to array
-    }
-
-    //echo "filtered rec_subjects:";
-    //print_r($rec_subjects); // DEBUGGING
-
-    //https://www.php.net/manual/en/function.array-intersect.php
 
     $matchedSubject = array_intersect($rec_subjects, $subject2);
     //echo "found matched subject: "; // DEBUGGING
@@ -214,7 +254,6 @@ function doBookRecommend(array $req) // NEED TO GO BACK TO THIS
       'cover_url' => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
         ? "https://covers.openlibrary.org/b/id/" . $oneBook['cover_id'] . "-L.jpg"
         : null,
-      //'matched_subjects' => [$subject1, $subject2] // not really needed to be returned
     ];
     break;
   }
