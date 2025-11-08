@@ -128,11 +128,12 @@ $libraryBooks = [];
 $recommendedBooks = [];
 
 if (!empty($libraryOlidList)) {  // if library isnt empty
-
+  $library_olids = []; // i think $libraryOlidList stores it as ['olid' => OLID]; we need just a clean list of olids
   foreach ($libraryOlidList as $singleBook) { // each book in library loop
 
     // GET BOOK DETAILS to display on page
-    $olid = $singleBook['olid'] ?? $singleBook['works_id'] ?? $singleBook; // it actually should be olid i think
+    $olid = $singleBook['olid'] ?? $singleBook['works_id'] ?? $singleBook;
+    $library_olids[] = $olid;
 
     $details = getPLibDetails($olid);
     if ($details) {
@@ -143,7 +144,7 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
   } // end of foreach for getting details of each book
 
   // GET BOOK RECOMMENDATION -  Library_API should already give all necessary info per book
-  $recommendedBooks = getRecommendation($olid);
+  $recommendedBooks = getRecommendation($library_olids);
   /*if ($recommendations) {
     $recommendedBooks[] = $recommendations; // adds book details in an array per olid
     //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
