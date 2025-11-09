@@ -4,12 +4,12 @@ require_once __DIR__ . '/rabbitMQLib.inc';
 /* 
 UPDATE recentBooks VIA CRONTAB (updates 10:00 AM):
 
-0 10 * * * * /usr/bin/php /home/updateRecentBooks.php > /dev/null 2>&1
+0 10 * * * * /usr/bin/php /home/cron/updateRecentBooks.php > /dev/null 2>&1
 
 
 
 to force-run the script :
-/usr/bin/php /home/updateRecentBooks.php > /dev/null 2>&1
+/usr/bin/php /home/cron/updateRecentBooks.php > /dev/null 2>&1
 
 
 */
@@ -62,7 +62,7 @@ try {
 
 
 
-    foreach ($search_data['docs'] as $book) { // FOREACH BOOK START
+    foreach ($books as $book) { // FOREACH BOOK START
         $olid = $book['olid'] ?? null; // string
         $title = $book['title'] ?? 'Unknown title'; // string
         $author = $book['author'][0] ?? 'Unknown author'; //string
