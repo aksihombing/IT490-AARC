@@ -4,8 +4,8 @@
 // pulled from Chizzy's branch
 
 session_start();
-require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';  
-require_once __DIR__ . '/../rabbitMQ/get_host_info.inc'; 
+require_once __DIR__ . '/../../rabbitMQ/rabbitMQLib.inc';  
+require_once __DIR__ . '/../../rabbitMQ/get_host_info.inc'; 
 // changed above to expand to absolute path
 
 
@@ -46,20 +46,21 @@ $request = [
 
 try {
   // connect to rmq
-  $client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini', 'AuthRegister');// changed to go to rabbitmq folder; absolute path
+  $client = new rabbitMQClient(__DIR__ . "/../../host.ini", "AuthRegister"); // changed to reflect the new section name
 
   // sending the registration request
   $response = $client->send_request($request); // changed to correct variable name
 
   // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
-      echo "Registration success. You can now log in.";
-      header("Location: index.php?message=" . urlencode("Registration successful! You can now log in."));
-exit;
-  } else {
-      $msg = is_array($response) ? ($response['message'] ?? 'error') : 'No response from server';
-      echo "Registration failed: $msg";
-  }
+    header("Location: /index.php?register_success=1");
+    exit;
+  } 
+  else {
+    $msg = is_array($response) ? urlencode($response['message'] ?? 'Unknown error') : 'No response from server';
+    header("Location: /index.php?register_error=$msg");
+    exit;
+    }
 }
 catch (Exception $e) {
   echo "Error connecting to RabbitMQ: " . $e->getMessage();

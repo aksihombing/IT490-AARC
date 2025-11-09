@@ -1,0 +1,70 @@
+<?php
+require_once('includes/search.inc.php');
+?>
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Book Search</title>
+</head>
+
+<body>
+    <h1>Search The Library</h1>
+
+
+
+    <form method="GET" action="index.php">
+        <input type="hidden" name="content" value="search">
+
+        <label for="query">Search Term:</label>
+        <input type="text" name="query" id="query" placeholder="Enter book title or author"
+            value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
+
+        <!-- SCRAPPED - search by title (search.json/q=query) or author (search.json/author=query)
+        <label for="type">Search By:</label>
+        <select name="type" id="type">
+            <option value="title" < ?php echo ($_GET['type'] ?? '') === 'title'; ?>>Title</option>
+            <option value="author" < ?php echo ($_GET['type'] ?? '') === 'author'; ?>>Author</option> 
+        </select> 
+        -->
+
+        <button type="submit">Search</button>
+    </form>
+
+    <?php if ($error): ?>
+        <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
+    <?php endif; ?>
+
+    <?php if (!empty($bookSearchResults)): ?>
+        <h2>Results:</h2>
+        <ul>
+            <?php foreach ($bookSearchResults as $book):
+                // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
+                $olid = urlencode($book['olid']);
+                // used for book.php GET queries
+                // echo "<p>OLID : $olid</p>";// DEBUGGING
+                ?>
+
+
+                <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
+                <li>
+                    <?php if (!empty($book['cover_url'])): ?>
+                        <br>
+                        <img src="
+                        <?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+                    <?php endif; ?>
+                    <a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>
+                    ">
+                        <strong><?php echo htmlspecialchars($book['title']); ?></strong><br>
+                        by <?php echo htmlspecialchars($book['author']); ?>
+                        (<?php echo htmlspecialchars($book['publish_year']); ?>)
+
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    <?php endif; ?>
+</body>
+
+</html>

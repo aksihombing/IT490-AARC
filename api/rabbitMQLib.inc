@@ -35,15 +35,12 @@ class rabbitMQServer
 		{
 			$this->auto_delete = $this->machine[$server]["AUTO_DELETE"];
 		}
-<<<<<<< HEAD
 <<<<<<<< HEAD:rabbitMQ/rabbitMQLib.inc
 		$this->exchange = $this->machine[$server]["EXCHANGE"];
 		$this->queue = $this->machine[$server]["QUEUE"];
 
 ========
 >>>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81:api/rabbitMQLib.inc
-=======
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
 		if (isset($this->machine[$server]["ROUTING_KEY"])) {
     		$this->routing_key = $this->machine[$server]["ROUTING_KEY"];
 		}
@@ -138,15 +135,11 @@ class rabbitMQServer
 	}
 }
 
-<<<<<<< HEAD
 <<<<<<<< HEAD:rabbitMQ/rabbitMQLib.inc
 // 
 ========
 
 >>>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81:api/rabbitMQLib.inc
-=======
-
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
 class rabbitMQClient
 {
 	private $machine = "";
@@ -160,10 +153,6 @@ class rabbitMQClient
 	private $routing_key = '*';
 	private $response_queue = array();
 	private $exchange_type = "topic";
-<<<<<<< HEAD
-=======
-	private $conn_queue;
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
 
 	function __construct($machine, $server = "rabbitMQ")
 	{
@@ -247,17 +236,6 @@ class rabbitMQClient
 
 			$response = $this->response_queue[$uid];
 			unset($this->response_queue[$uid]);
-<<<<<<< HEAD
-=======
-
-
-			// close queues
-			$callback_queue->cancel(); // stop consume 
-			$channel->close(); 
-			$conn->disconnect();
-
-
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
 			return $response;
 		}
 		catch(Exception $e)
@@ -302,7 +280,4 @@ class rabbitMQClient
 	}
 }
 ?>
-<<<<<<< HEAD
 
-=======
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81

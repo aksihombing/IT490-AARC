@@ -1,97 +1,41 @@
 <?php
-
-session_start();
+require_once('includes/validate.inc.php');
 ?>
-<html>
-<?php
-if (!isset($_SESSION['login'])) {
-?>
-  <h2>Home Page</h2><br>
+<!DOCTYPE html>
+<html lang="en">
 
- <?php
-  // Show success message (if redirected from register.php)
-  if (isset($_GET['message'])) {
-    echo "<p style='color:green;'>" . htmlspecialchars($_GET['message']) . "</p>";
-  }
+<head>
+  <meta charset="UTF-8">
+  <title>AARC Portal</title>
+  <link rel="stylesheet" href="baseStyle.css"> 
+</head>
 
-  // Show login error message (already exists)
-  if (isset($_GET['error'])) {
-    echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-  }
-  ?>
+<body>
+  <header>
+    <?php if ($userData): ?>
+      <?php include("nav.inc.php"); ?>
+    <?php endif; ?>
+  </header>
 
+  <main>
+    <?php
+    // PAGE CONTENT HANDLER
+    if (isset($_REQUEST['content'])) {
 
-  <br>
+      $content = $_REQUEST['content'];
+      include("$content.php");
+    } 
+    
+    else {
+      include("main.inc.php");
+    }
+    ?>
+  </main>
 
+  <footer>
+    <?php include("footer.inc.php"); ?>
+  </footer>
 
-  <h2> REGISTER USER </h2>
-  <form name="register" action="register.php" method="post">
-    <label>Email:</label>
-    <input type="text" name="emailAddress" size="20">
-    <br>
-    <label>Username:</label>
-    <input type="text" name="username" size="20">
-    <br>
-    <label>Password</label>
-    <input type="password" name="password" size="20">
-    <br>
-    <input type="submit" value="Register">
-    <!-- I dont think this is needed
-     <input type="hidden" name="content" value="validate">
-    -->
-  </form>
-  <?php
-  if (isset($_GET['error'])){
-    echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-  }
-
-
-  ?>
-  <br>
-  <br>
-
-
-  <h2>LOG IN</h2>
-  <h4>For existing users</h4>
-
-
-  <form name="login"  action="login.php" method="post">
-    <label>Username:</label>
-    <input type="text" name="username" size="20">
-    <br>
-    <label>Password</label>
-    <input type="password" name="password" size="20">
-    <br>
-   
-    <input type="submit" value="Login">
-    <!-- I dont think this is needed
-     <input type="hidden" name="content" value="validate">
-    -->
-
-
-  </form>
-  <br>
-
-
-
-
-  <?php
-} else {
-   ?>
-  <h2>Home</h2>
-  <p>Welcome, <?= htmlspecialchars($_SESSION['username']) ?>!</p>
-  <p><a href="logout.php">Logout</a></p>
-<?php
-}
-
-
-?>
-
-
-
-
-
+</body>
 
 </html>
-
-
