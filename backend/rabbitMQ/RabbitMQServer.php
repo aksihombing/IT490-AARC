@@ -547,7 +547,8 @@ function requestProcessor($req) {
     case 'club.invite_link': return doInviteLink($req);
     case 'club.join_link' : return doInviteJoin($req);
     // for book api stuff
-    case 'book_collect' : return doBookCollect($req);
+    case 'book_search' : return doBookCollect($req);
+    case 'book_details' : return doBookCollect($req);
     default:         return ['status'=>'fail','message'=>'unknown type'];
   }
 }

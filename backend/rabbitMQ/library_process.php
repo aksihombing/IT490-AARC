@@ -1,5 +1,7 @@
 <?
-
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . '/get_host_info.inc';
+// just in case
 function apidb()
 {
     $host = 'localhost';
@@ -229,17 +231,85 @@ function getRecentBooks()
 
 // to send requests to API/DMZ to update itself
 
-function doBookCollect(array $req){ 
-    // check internal cache for details
+function doBookCollect(array $req)
+{
+    $requestType = $req['type'] ?? null;
+    // check internal cache for details --> depends on if the request type was book_search or book_details
+    $error = null; // backup error checking since so many things can go wrong
+    $responseData = null;
+
+    switch ($requestType) {
+        case 'book_search':
+            $cache_check = bookCache_check_query($req);
+            if ($cache_check['status'] === 'success') {
+                $responseData = $cache_check['data'];
+            } else {
+                echo "Cache MISSED for book_search -- calling DMZ\n";
+                $req['type'] = 'api_book_search';
+                // had to update type so that the library listener LISTENS for this request type
+
+                $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibrarySearch");
+
+                // update request 'type' to api_book_search or api_book_details
+                $DMZresponse = $client->send_request($req); // response from dmz
+                //var_dump($response); //debugging 
+
+                if ($DMZresponse['status'] === 'success' && !empty($DMZresponse['data'])) {
+                    $responseData = $DMZresponse['data'];
+                    foreach ($responseData as $book) {
+                        bookCache_add($book); // update internal apidb with ALL books that are returned
+                    }
+                } else {
+                    $error = $DMZresponse['message'] ?? 'Unknown error from server.';
+                }
+            }
+            break;
 
 
 
-    // if cache miss --> send request to DMZ
+        case 'book_details':
+            $cache_check = bookCache_check_olid($req['olid']);
+            if ($cache_check['status'] === 'success') {
+                $responseData = $cache_check['data'];
+            } else {
+                echo "Cache MISSED for book_details -- calling DMZ\n";
+                $req['type'] = 'api_book_details';
+                // had to update type so that the library listener LISTENS for this request type
 
+                $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibraryDetails");
 
+                // update request 'type' to api_book_search or api_book_details
+                $DMZresponse = $client->send_request($req); // response from dmz
+                //var_dump($response); //debugging 
 
-    // if dmz returns an array with status === success and isarray($res[$data])...
-    // update internal cache, send data back to frontend
+                if ($DMZresponse['status'] === 'success' && !empty($DMZresponse['data'])) {
+                    $responseData = $DMZresponse['data'];
+                    bookCache_add($responseData); // only one book detail is returned at a time
+                }
+                else {
+                    $error = $DMZresponse['message'] ?? 'Unknown error from server.';
+                }
+            }
+            break;
+
+        default:
+            return [
+                "status" => "error",
+                "message" => "Request error in library_process"
+            ];
+    } // end switch
+
+    if ($responseData) {
+        return [
+            'status' => 'success',
+            'data' => $responseData
+        ];
+    } else {
+        return [
+            "status" => "error",
+            "message" => $error ?? "No results from library API found"
+        ];
+    }
 
 }
 

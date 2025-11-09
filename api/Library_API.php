@@ -20,10 +20,10 @@ function requestProcessor($req)
   switch ($req['type']) {
     // [type] references api_process.php
     // api_process.php references api_endpoints.php
-    case 'book_search':
+    case 'api_book_search':
       return doBookSearch($req); // check api db cache before calling api
 
-    case 'book_details':
+    case 'api_book_details':
       return doBookDetails($req); // does not store into api cache, calls the details in-the-moment from the api
 
     case 'book_recommend':
