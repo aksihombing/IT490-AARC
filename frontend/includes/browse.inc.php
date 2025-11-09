@@ -2,7 +2,7 @@
 
 //  FOR RECENT BOOKS !! -------------
 // to load pre-loaded book data from cache db
-require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
 
 
 // FOR GENERAL BROWSING
@@ -14,7 +14,7 @@ $query = 'adventure'; // need a basic query for less api errors, PLEASE WORK
 $browseBooks = [];
 
 try {
-    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryCollect'); // LibraryCollect to prevent clogging ??
+    $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryCollect'); // LibraryCollect to prevent clogging ??
     // browse books request
     $browseResponse = $client->send_request([
         'type' => 'book_search',

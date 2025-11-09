@@ -10,7 +10,7 @@ ini_set('display_errors', 1);
 
 
 //session_start();
-require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
+require_once __DIR__ . '/../../rabbitMQ/rabbitMQLib.inc';
 
 
 $userId = $_SESSION['user_id'];// getting the user id from the session
@@ -19,7 +19,7 @@ $error = ''; // idk if we need this
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
     $worksID = $_POST['works_id'] ?? '';
-    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+    $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryPersonal');
     $client->send_request([
       'type' => 'library.personal.remove',
       'user_id' => $userId,
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function getPLibDetails($plib_olid)
 {
   try {
-    $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+    $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryDetails');
 
     $response = $bookDetailsClient->send_request([
       'type' => 'book_details',
@@ -70,7 +70,7 @@ function getRecommendation($library_book)
 {
   // maybe could use a retry if fail loop or something
   try {
-    $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+    $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryDetails');
 
     $response = $bookRecommendClient->send_request([
       'type' => 'book_recommend',
@@ -129,7 +129,7 @@ function getRecommendation($library_book)
 $libraryOlidList = []; // for all olids in the library
 
 try {
-  $bookListClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+  $bookListClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryPersonal');
   $resp = $bookListClient->send_request([
     'type' => 'library.personal.list',
     'user_id' => $userId,

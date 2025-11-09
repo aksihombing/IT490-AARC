@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
 //session_start();
 
 $bookSearchResults = []; // update results while doBookSearch loop
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $error = "Please enter a search term.";
     } else {
         try {
-            $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibrarySearch");
+            $client = new rabbitMQClient(__DIR__ . "/../../rabbitMQ/host.ini", "LibrarySearch");
 
             $request = [
                 'type' => 'book_search',

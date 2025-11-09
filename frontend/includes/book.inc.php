@@ -1,5 +1,5 @@
 <?php
-require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
 
 /*
 PULLED CHIZZYS CODE
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ADD TO LIBRARY (POST)
     if ($action === 'add_to_library') {
-      $addLibraryClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+      $addLibraryClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryPersonal');
       $addLibraryClient->send_request([
         'type' => 'library.personal.add',
         'user_id' => $userId,
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $rating = $_POST['rating'] ?? 0;
       $body = $_POST['body'] ?? '';
 
-      $createReviewClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
+      $createReviewClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'CreateReviews');
       $createReviewClient->send_request([
         'type' => 'library.review.create',
         'user_id' => $userId,
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // -------------- DO BOOK DETAILS
 try {
-  $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+  $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryDetails');
   $response = $bookDetailsClient->send_request([
     'type' => 'book_details',
     'olid' => $olid
@@ -108,7 +108,7 @@ if (($response['status'] === 'success') && is_array($response)) {
 
 $reviews = [];
 try {
-  $listReviewsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
+  $listReviewsClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ListReviews');
   $resp = $listReviewsClient->send_request([
     'type' => 'library.review.list',
     'works_id' => $olid

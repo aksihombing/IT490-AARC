@@ -2,8 +2,8 @@
 // events_functions 
 // going to handle displaying events, creating, and canceling club events
 session_start();
-require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-require_once(__DIR__ . '/../rabbitMQ/get_host_info.inc');
+require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/get_host_info.inc');
 
 header('Content-Type: application/json');
 
@@ -16,7 +16,7 @@ if (!$action || !$club_id) {
 }
 
 try {
-  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ClubProcessor');
+  $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
   $response = [];
 
   switch ($action) {

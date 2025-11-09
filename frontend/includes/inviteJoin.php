@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once(__DIR__.'/../rabbitMQ/rabbitMQLib.inc');
-require_once(__DIR__.'/../rabbitMQ/get_host_info.inc');
+require_once(__DIR__.'/../../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__.'/../../rabbitMQ/get_host_info.inc');
 
 if (!isset($_SESSION['login'])) {
     header("Location: index.php");
@@ -16,7 +16,7 @@ if (!$hash){
     exit;
 }
 
-$client = new rabbitMQClient(__DIR__.'/../rabbitMQ/host.ini', 'ClubProcessor');
+$client = new rabbitMQClient(__DIR__.'/../../rabbitMQ/host.ini', 'ClubProcessor');
 $res = $client->send_request(['type'=>'club.join_link','hash'=>$hash,'user_id'=>$user_id]);
 
 if ($res['status']==='success') {
