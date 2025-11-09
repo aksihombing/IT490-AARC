@@ -95,10 +95,9 @@ function doBookRecommend(array $req)
 
     $olid_search = api_olid_details($olid); // manually get
     $bookData = $olid_search['data'];
+    $subjects = $bookData['subjects'];
 
-
-    // read subjects and decode if it's a json (i.e. if it was returned from the database)
-    $subjects = $bookData['subjects'] ?? [];
+    // read subjects and decode if it's a json (i.e. if it was returned from the database), not sure if needed anymore but its here just in case
     if (is_string($subjects)) {
       $subjects_decoded = json_decode($subjects);
       $subjects = is_array($subjects_decoded) ? $subjects_decoded : [];
@@ -108,7 +107,7 @@ function doBookRecommend(array $req)
     // normalize subjects (sanitize isn't needed because _endpoints does it already)
     foreach ($subjects as $subject) {
       if ($subject === '')
-        continue; //skip if empty
+        continue; //skip if empty, just in case
 
       if (!isset($subjectCounts[$subject])) { // add to counts if not already there
         $subjectCounts[$subject] = 1;
