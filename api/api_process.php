@@ -141,15 +141,15 @@ function doBookRecommend(array $req)
 
 
   // subjects should already be sanitized via api_endpoint's simple_sanitize
-  // steps to recommend book (source: https://global.php.cn/faq/536741.html)
-  // 1. data cleaning (already completed through any function in api_endpoints.php functions)
+  // general steps to recommend book (source: https://global.php.cn/faq/536741.html)
+  // data cleaning (already completed through any function in api_endpoints.php functions)
 
 
   foreach ($olids as $olid) { // FOR EACH BOOK : 
     $olid = trim($olid); // clean the olid
 
 
-    // 2. data conversion --> make sure all OLIDs from library are strings within an array that is returned from my_library.php in /frontend
+    // data conversion --> make sure all OLIDs from library are strings within an array that is returned from my_library.php in /frontend
     // check cache first
     $cache_check = bookCache_check_olid($olid);
     if ($cache_check['status'] === 'success') { // if book is found in the cache
@@ -189,7 +189,8 @@ function doBookRecommend(array $req)
     ];
   }
 
-  // 3. normalize on a scale of 1 to 5, as recommended by prof
+  // normalize on a scale of 1 to 5, as recommended by prof
+  // normalization is needed because it takes into account the user's library size and why some subjects may appear more than others
   $subjectWeights = [];
   foreach ($subjectCounts as $subject => $count) { // foreach key => value subjectCount pair
     $normalizedScore = $count / $totalBooks; // frequency percentage
