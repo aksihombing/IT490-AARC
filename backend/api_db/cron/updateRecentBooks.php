@@ -4,12 +4,12 @@
 /* 
 UPDATE recentBooks VIA CRONTAB (updates 10:00 AM):
 
-0 10 * * * * /usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/updateRecentBooks.php >> /var/log/updateRecentBooks.log
+0 10 * * * * /usr/bin/php /home/updateRecentBooks.php > /dev/null 2>&1
 
 
 
 to force-run the script :
-/usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/updateRecentBooks.php
+/usr/bin/php /home/updateRecentBooks.php > /dev/null 2>&1
 
 
 */

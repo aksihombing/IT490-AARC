@@ -549,7 +549,7 @@ function requestProcessor($req) {
     // for book api stuff
     case 'book_search' : return doBookCollect($req);
     case 'book_details' : return doBookCollect($req);
-    default:         return ['status'=>'fail','message'=>'unknown type'];
+    default: return ['status'=>'fail','message'=>'unknown type'];
   }
 }
 
