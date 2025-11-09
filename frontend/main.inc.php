@@ -101,6 +101,6 @@ if (!isset($_SESSION['session_key'])):
 
     <br>
     <br>
-    <p><a id="logoutbutton" href="logout.php">Logout</a></p>
+    <p><a id="logoutbutton" href="includes/logout.php">Logout</a></p>
   </section>
 <?php endif; ?>

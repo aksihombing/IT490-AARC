@@ -66,3 +66,4 @@ try {
 catch (Exception $e) {
   echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }
+?>
