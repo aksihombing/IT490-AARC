@@ -221,11 +221,7 @@ try {
         </label>
         <br>
         <label>Review:</label><br>
-<<<<<<< HEAD
-        <textarea id="comment" name="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
-=======
         <textarea id="body" rows="3" name="body" placeholder="Write your thoughts here..."></textarea>
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
         <br>
         <button class="btn" type="submit">Submit</button>
       </form>
@@ -233,22 +229,6 @@ try {
 
     <section>
       <h3>User Reviews</h3>
-<<<<<<< HEAD
-      <div id="reviews"></div>
-      <?php if (empty($reviews)): ?>
-        <p>No reviews yet!</p>
-      <?php else: ?>
-        <?php foreach ($reviews as $review): ?>
-          <div class="card">
-            <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
-             — <?= (int)($review['rating'] ?? 0) ?>/5  
-            <p><?= htmlspecialchars($review['body'] ?? ''); ?></p>
-            <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-        </div>
-=======
       <div id="reviews"> <!-- reviews div -->
         <?php if (empty($reviews)): ?>
           <p>No reviews yet!</p>
@@ -265,7 +245,6 @@ try {
           <?php endforeach; ?>
         <?php endif; ?>
       </div> <!-- card div -->
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
     </section>
     <!-- CHIZZY, END -->
   <?php endif; ?>
