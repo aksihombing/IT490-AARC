@@ -23,17 +23,12 @@ function requestProcessor($req)
     case 'book_search':
       return doBookSearch($req); // check api db cache before calling api
 
-    case 'recent_books':
-      return getRecentBooks(); // pull information from recentBooks, which uses CRON to auto-update table
-
     case 'book_details':
       return doBookDetails($req); // does not store into api cache, calls the details in-the-moment from the api
 
     case 'book_recommend':
       return doBookRecommend($req);
 
-    /*case 'book_collect':
-      return doBookCollect($req); // not sure if needed*/
 
     default:
       return ['status' => 'fail', 'message' => 'unknown type'];

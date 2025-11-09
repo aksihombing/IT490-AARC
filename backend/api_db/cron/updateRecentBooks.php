@@ -2,9 +2,9 @@
 <?php
 
 /* 
-UPDATE recentBooks VIA CRONTAB (updates 9:00):
+UPDATE recentBooks VIA CRONTAB (updates 10:00 AM):
 
-* /5 * * * * /usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/updateRecentBooks.php >> /var/log/updateRecentBooks.log
+0 10 * * * * /usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/updateRecentBooks.php >> /var/log/updateRecentBooks.log
 
 
 
@@ -14,7 +14,7 @@ to force-run the script :
 
 */
 
-// db config
+// apidb config
 $host = 'localhost';
 $user = 'apiAdmin';
 $pass = 'aarc490';
