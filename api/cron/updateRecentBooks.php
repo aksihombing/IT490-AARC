@@ -32,6 +32,7 @@ function curl_get(string $url)
     ]);
     $curl_response = curl_exec($curl_handle);
 
+    // error handling based on curl error number
     if (curl_errno($curl_handle)) {
         $error = curl_error($curl_handle);
         curl_close($curl_handle);
@@ -60,12 +61,12 @@ try {
     $currentYear = date('Y');
     $searchByNew = "https://openlibrary.org/search.json?q=*&first_publish_year={$currentYear}&limit=10&sort=new"; //
 
-// EXAMPLE https://openlibrary.org/search.json?q=*&first_publish_year=2022&limit=10&sort=new
+    // EXAMPLE https://openlibrary.org/search.json?q=*&first_publish_year=2022&limit=10&sort=new
 
     $search_response = curl_get($searchByNew);
-    $curl_data = json_decode($search_response, true);
+    $search_data = json_decode($search_response, true);
 
-    if (empty($curl_data['docs']))
+    if (empty($search_data['docs']))
         return ['status' => 'fail', 'message' => 'no results']; // no results found
 
 
@@ -80,7 +81,7 @@ try {
 
 
 
-    foreach ($curl_data['docs'] as $book) { // FOREACH BOOK START
+    foreach ($search_data['docs'] as $book) { // FOREACH BOOK START
         // reading each doc that was returned
         $olid = str_replace('/works/', '', $book['key'] ?? null); //string --> cover_edition_key was specific to the edition of a book and not the actual OLID value in /works/
         $title = $book['title'] ?? 'Unknown title'; //string
@@ -90,8 +91,8 @@ try {
 
         $publish_year = $book['first_publish_year'] ?? null;
         // sanitize publish_year because books returned using q=*&sort=new have the year 9000+ on them for some reason.
-        if (($publish_year) > date('Y', $publish_year)) {
-
+        if (($publish_year) > (int) date('Y')) {
+            continue; // skip junk data
         }
 
         $cover_url = !empty($book['cover_i'])
@@ -117,7 +118,7 @@ try {
             if (is_array($desc_check)) {
                 $book_desc = $desc_check['value'];
             } // some books have an array for description
-            else if (is_string($desc_check)) {
+            elseif (is_string($desc_check)) {
                 $book_desc = $desc_check;
             } else {
                 $book_desc = null;
@@ -190,8 +191,7 @@ try {
         $insertToTable->execute();
     } // FOREACH BOOK END
     echo "All books updated";
-} 
-catch (Exception $e) {
+} catch (Exception $e) {
     error_log("Unable to update recentBooks table : " . $e->getMessage());
     exit(1);
 }
@@ -201,5 +201,3 @@ $insertToTable->close();
 $conn->close();
 
 ?>
-
-

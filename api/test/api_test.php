@@ -20,7 +20,7 @@ https://openlibrary.org/search/authors.json?q=twain
 */
 
 
-// example search term — you can change this or pass via GET
+// example search term
 $query = $_GET['q'] ?? 'harry potter';
 
 // prepare API URL
