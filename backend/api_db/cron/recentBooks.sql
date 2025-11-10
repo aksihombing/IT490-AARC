@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS recentBooks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     olid VARCHAR(50) DEFAULT NULL,
     title VARCHAR(255) NOT NULL,
-    subtitle VARCHAR(255) DEFAULT NULL,
     author VARCHAR(255) DEFAULT 'Unknown Author',
     isbn VARCHAR(50) DEFAULT NULL,
     -- from /works/olid/edition.json
