@@ -45,7 +45,7 @@ try {
     $client = new rabbitMQClient(__DIR__ . "/library.ini", "LibrarySearch");
     $response = $client->send_request($request);
 
-    if ($respone['status'] != 'success' || empty($response['data'])) {
+    if ($response['status'] != 'success' || empty($response['data'])) {
         error_log("Failed to gather books from DMZ");
     }
 
