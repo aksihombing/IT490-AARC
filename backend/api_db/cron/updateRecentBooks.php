@@ -4,7 +4,7 @@ require_once __DIR__ . '/rabbitMQLib.inc';
 /* 
 UPDATE recentBooks VIA CRONTAB (updates 10:00 AM):
 
-0 10 * * * * /usr/bin/php /home/cron/updateRecentBooks.php > /dev/null 2>&1
+0 10 * * * /usr/bin/php /home/cron/updateRecentBooks.php > /dev/null 2>&1
 
 
 
