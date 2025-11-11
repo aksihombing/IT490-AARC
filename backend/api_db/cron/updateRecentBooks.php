@@ -4,9 +4,11 @@ require_once __DIR__ . '/rabbitMQLib.inc';
 /* 
 UPDATE recentBooks VIA CRONTAB (updates 10:00 AM):
 
-0 10 * * * /usr/bin/php /home/cron/updateRecentBooks.php > /dev/null 2>&1
+0 10 * * * /usr/bin/php /home/cron/updateRecentBooks.php >> /home/cron/recentBooks.log.txt 2>&1
+// logs both stdout and stderr aka EVERYTHING
 
-
+0 10 * * * /usr/bin/php /home/cron/updateRecentBooks.php >> /home/cron/recentBooks.log.txt 2>/dev/null
+// surpresses errors ? not sure which is needed
 
 to force-run the script :
 /usr/bin/php /home/cron/updateRecentBooks.php > /dev/null 2>&1
@@ -42,7 +44,7 @@ try {
         'query' => $searchByNewQuery
     ];
 
-    $client = new rabbitMQClient(__DIR__ . "/library.ini", "LibrarySearch");
+    $client = new rabbitMQClient(__DIR__ . "/library.ini", "LibraryCollect");
     $response = $client->send_request($request);
 
     if ($response['status'] != 'success' || empty($response['data'])) {
