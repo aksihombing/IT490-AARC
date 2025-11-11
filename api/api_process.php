@@ -139,7 +139,7 @@ function doBookRecommend(array $req)
   arsort($subjectWeights); // sort weighted subject array
 
   $topSubjects = array_slice(array_keys($subjectWeights), 0, 5); // get top 5 subjects, which are stored as keys in the array
-  //echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
+  echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
   $topSubject1 = $topSubjects[0]; // the anchor
   //echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
   $secondarySubjects = array_slice($topSubjects, 1); // remove the first one

@@ -9,6 +9,7 @@ require_once __DIR__ . '/api_process.php';
 
 function requestProcessor($req)
 {
+  echo "----------------------";
   echo "Received request:\n";
   var_dump($req);
   flush();

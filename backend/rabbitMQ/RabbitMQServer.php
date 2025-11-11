@@ -844,6 +844,7 @@ function doBookCollect(array $req)
 
 // decides which function to run
 function requestProcessor($req) {
+  echo "----------------------";
   echo "Received request:\n";
     var_dump($req);
     flush();
