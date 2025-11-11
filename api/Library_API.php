@@ -46,7 +46,7 @@ $iniPath = __DIR__ . "/rmqAccess.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
   echo "Auth server starting for ALL queues...\n";
-  $sections = ['LibrarySearch', 'LibraryDetails', 'LibraryCollect'];
+  $sections = ['LibraryCollect'];
 
   foreach ($sections as $section) {
     $pid = pcntl_fork(); // process control fork; creates child process from parent process
