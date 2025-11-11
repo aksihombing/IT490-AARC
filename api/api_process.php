@@ -172,8 +172,13 @@ function doBookRecommend(array $req)
 
       // if we find a book with matches, add to recommendedBooks array
       if ($matchCount > 0) {
+        $rec_olid = str_replace('/works/', '', $oneBook['key'] ?? '');
+
+        if (in_array($rec_olid, $olids, true)) continue;
+        // need to skip a possible recommendation if its already in the array of olids from user's library
+
         $recommendedBooks[] = [
-          'olid' => str_replace('/works/', '', $oneBook['key'] ?? ''),
+          'olid' => $rec_olid,
           'title' => $oneBook['title'] ?? 'Unknown',
           'author' => $oneBook['authors'][0]['name'] ?? 'Unknown',
           'publish_year' => $oneBook['first_publish_year'] ?? null,
