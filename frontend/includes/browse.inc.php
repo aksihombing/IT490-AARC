@@ -14,7 +14,7 @@ $query = 'adventure'; // need a basic query for less api errors, PLEASE WORK
 $browseBooks = [];
 
 try {
-    $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryCollect'); // LibraryCollect to prevent clogging ??
+    $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibrarySearch'); // LibraryCollect to prevent clogging ?? maybe ??
     // browse books request
     $browseResponse = $client->send_request([
         'type' => 'book_search',
