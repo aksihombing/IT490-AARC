@@ -840,10 +840,6 @@ function doBookCollect(array $req)
 
 
 
-
-
-
-
 // --- REQUEST PROCESSOR ---
 
 // decides which function to run

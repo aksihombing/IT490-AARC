@@ -70,7 +70,7 @@ function getRecommendation(array $library_books)
 {
   // maybe could use a retry if fail loop or something
   try {
-    $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+    $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryCollect');
 
     $response = $bookRecommendClient->send_request([
       'type' => 'book_recommend',
