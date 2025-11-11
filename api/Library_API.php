@@ -9,6 +9,7 @@ require_once __DIR__ . '/api_process.php';
 
 function requestProcessor($req)
 {
+  echo "----------------------\n";
   echo "Received request:\n";
   var_dump($req);
   flush();
@@ -20,20 +21,15 @@ function requestProcessor($req)
   switch ($req['type']) {
     // [type] references api_process.php
     // api_process.php references api_endpoints.php
-    case 'book_search':
+    case 'api_book_search':
       return doBookSearch($req); // check api db cache before calling api
 
-    case 'recent_books':
-      return getRecentBooks(); // pull information from recentBooks, which uses CRON to auto-update table
-
-    case 'book_details':
+    case 'api_book_details':
       return doBookDetails($req); // does not store into api cache, calls the details in-the-moment from the api
 
     case 'book_recommend':
       return doBookRecommend($req);
 
-    /*case 'book_collect':
-      return doBookCollect($req); // not sure if needed*/
 
     default:
       return ['status' => 'fail', 'message' => 'unknown type'];
@@ -51,7 +47,7 @@ $iniPath = __DIR__ . "/rmqAccess.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
   echo "Auth server starting for ALL queues...\n";
-  $sections = ['LibrarySearch', 'LibraryDetails', 'LibraryCollect'];
+  $sections = ['LibraryCollect'];
 
   foreach ($sections as $section) {
     $pid = pcntl_fork(); // process control fork; creates child process from parent process

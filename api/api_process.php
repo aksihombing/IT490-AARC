@@ -3,8 +3,6 @@ require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 require_once __DIR__ . '/api_endpoints.php';
 // curl_get() + simple_sanitize() + api_search()
-require_once __DIR__ . '/api_cache.php';
-// db() + bookCache_check_query() + bookCache_check_olid() + bookCache_add()
 // decides which function to run
 
 
@@ -12,14 +10,6 @@ require_once __DIR__ . '/api_cache.php';
 // use search.json
 function doBookSearch(array $req)
 {
-  $cache_check = bookCache_check_query($req);
-  if ($cache_check['status'] === 'success') {
-    return [
-      'status' => 'success',
-      'data' => $cache_check['data']
-    ];
-  }
-
   // cache MISS
   $search_api = api_search($req);
 
@@ -32,14 +22,6 @@ function doBookSearch(array $req)
 
   $books = $search_api['data'];
   // $addedCount = 0; // could count how many books were added for debugging if needed
-
-  foreach ($books as $book) {
-    try {
-      bookCache_add($book);
-    } catch (Exception $e) {
-      error_log("Failed to cache book with OLID= {$book['olid']} || Error: " . $e->getMessage());
-    }
-  }
 
   return [
     'status' => 'success',
@@ -61,14 +43,6 @@ function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
     ];
   }
 
-  $cache_check = bookCache_check_olid($olid);
-  if ($cache_check['status'] === 'success') { // if book is found in the cache
-    return [
-      'status' => 'success',
-      'data' => $cache_check['data']
-    ];
-  }
-
   // not found in cache -- fallback method
   $api_olid_search = api_olid_details($olid); // will use api_olid_details as a fallback
   if ($api_olid_search['status'] === 'fail' || empty($api_olid_search['data'])) {
@@ -80,44 +54,11 @@ function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
 
   $book_details = $api_olid_search['data'];
   // $addedCount = 0; /s/ could count how many books were added for debugging if needed
-  $cache_add = bookCache_add($book_details); // to update cache
-
-  if (is_array(($cache_add)) && $cache_add['status'] === 'fail') {
-    error_log("Failed to update cache for OLID {$olid}");
-  }
 
   return [
     'status' => 'success',
     'data' => $book_details
   ];
-}
-
-
-
-
-
-// Cache Tables Pre-Populated via cron
-function getRecentBooks()
-{
-  try {
-    $mysqli = db();
-    $result = $mysqli->query("SELECT * FROM recentBooks ORDER BY publish_year DESC ");
-
-    $books = [];
-    while ($row = $result->fetch_assoc()) {
-      $books[] = $row;
-    }
-    $mysqli->close();
-    return ['status' => 'success', 'data' => $books];
-
-  } catch (Exception $e) {
-    error_log("getRecentBooks() error: " . $e->getMessage());
-    $mysqli->close();
-    return [
-      "status" => "error",
-      "message" => "Failed to load recent books: " . $e->getMessage()
-    ];
-  }
 }
 
 
@@ -141,27 +82,22 @@ function doBookRecommend(array $req)
 
 
   // subjects should already be sanitized via api_endpoint's simple_sanitize
-  // steps to recommend book (source: https://global.php.cn/faq/536741.html)
-  // 1. data cleaning (already completed through any function in api_endpoints.php functions)
+  // general steps to recommend book (source: https://global.php.cn/faq/536741.html)
+  // data cleaning (already completed through any function in api_endpoints.php functions)
 
 
   foreach ($olids as $olid) { // FOR EACH BOOK : 
     $olid = trim($olid); // clean the olid
 
 
-    // 2. data conversion --> make sure all OLIDs from library are strings within an array that is returned from my_library.php in /frontend
+    // data conversion --> make sure all OLIDs from library are strings within an array that is returned from my_library.php in /frontend
     // check cache first
-    $cache_check = bookCache_check_olid($olid);
-    if ($cache_check['status'] === 'success') { // if book is found in the cache
-      $bookData = $cache_check['data'];
-    } else {
-      $olid_search = api_olid_details($olid); // manually get
-      $bookData = $olid_search['data'];
-      bookCache_add($bookData);
-    }
 
-    // read subjects and decode if it's a json (i.e. if it was returned from the database)
-    $subjects = $bookData['subjects'] ?? [];
+    $olid_search = api_olid_details($olid); // manually get
+    $bookData = $olid_search['data'];
+    $subjects = $bookData['subjects'];
+
+    // read subjects and decode if it's a json (i.e. if it was returned from the database), not sure if needed anymore but its here just in case
     if (is_string($subjects)) {
       $subjects_decoded = json_decode($subjects);
       $subjects = is_array($subjects_decoded) ? $subjects_decoded : [];
@@ -171,7 +107,7 @@ function doBookRecommend(array $req)
     // normalize subjects (sanitize isn't needed because _endpoints does it already)
     foreach ($subjects as $subject) {
       if ($subject === '')
-        continue; //skip if empty
+        continue; //skip if empty, just in case
 
       if (!isset($subjectCounts[$subject])) { // add to counts if not already there
         $subjectCounts[$subject] = 1;
@@ -189,7 +125,8 @@ function doBookRecommend(array $req)
     ];
   }
 
-  // 3. normalize on a scale of 1 to 5, as recommended by prof
+  // normalize on a scale of 1 to 5, as recommended by prof
+  // normalization is needed because it takes into account the user's library size and why some subjects may appear more than others
   $subjectWeights = [];
   foreach ($subjectCounts as $subject => $count) { // foreach key => value subjectCount pair
     $normalizedScore = $count / $totalBooks; // frequency percentage
@@ -202,7 +139,7 @@ function doBookRecommend(array $req)
   arsort($subjectWeights); // sort weighted subject array
 
   $topSubjects = array_slice(array_keys($subjectWeights), 0, 5); // get top 5 subjects, which are stored as keys in the array
-  //echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
+  echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
   $topSubject1 = $topSubjects[0]; // the anchor
   //echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
   $secondarySubjects = array_slice($topSubjects, 1); // remove the first one
@@ -235,8 +172,13 @@ function doBookRecommend(array $req)
 
       // if we find a book with matches, add to recommendedBooks array
       if ($matchCount > 0) {
+        $rec_olid = str_replace('/works/', '', $oneBook['key'] ?? '');
+
+        if (in_array($rec_olid, $olids, true)) continue;
+        // need to skip a possible recommendation if its already in the array of olids from user's library
+
         $recommendedBooks[] = [
-          'olid' => str_replace('/works/', '', $oneBook['key'] ?? ''),
+          'olid' => $rec_olid,
           'title' => $oneBook['title'] ?? 'Unknown',
           'author' => $oneBook['authors'][0]['name'] ?? 'Unknown',
           'publish_year' => $oneBook['first_publish_year'] ?? null,
