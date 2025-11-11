@@ -30,9 +30,12 @@ $user = 'apiAdmin';
 $pass = 'aarc490';
 $name = 'apidb';
 
+date_default_timezone_set('America/New_York');
 
 try {
 
+    echo ("------------------------");
+    echo date ('Y-m-d H:i');
     $conn = new mysqli($host, $user, $pass, $name); // connect to local db 
     if ($conn->connect_errno) {
         throw new RuntimeException("DB connect failed: " . $conn->connect_error);
