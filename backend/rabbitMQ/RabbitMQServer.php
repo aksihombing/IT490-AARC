@@ -894,7 +894,7 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
     $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
       'AuthLogout', 'LibraryPersonal', 'LibraryRemove', 
-      'CreateReviews','ListReviews','LibraryAdd','ClubProcessor', 'LibraryCollect'];
+      'CreateReviews','ListReviews','LibraryAdd','ClubProcessor', 'LibrarySearch', 'LibraryDetails'];
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
