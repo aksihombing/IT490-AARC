@@ -2,13 +2,21 @@
 <?php
 require_once __DIR__ . '/rabbitMQLib.inc';
 /* 
+set file/folder permissions:
+
+sudo chown -R aida:aida /home/aida/cron
+
+
+
 UPDATE recentBooks VIA CRONTAB (updates 10:00 AM):
 
-0 10 * * * /usr/bin/php /home/aida/cron/updateRecentBooks.php >> /home/cron/recentBooks.log.txt 2>&1
+0 10 * * * /usr/bin/php /home/aida/cron/updateRecentBooks.php >> /home/aida/cron/recentBooks.log.txt 2>&1
 // logs both stdout and stderr aka EVERYTHING
 
-0 10 * * * /usr/bin/php /home/aida/cron/updateRecentBooks.php >> /home/cron/recentBooks.log.txt 2>/dev/null
+0 10 * * * /usr/bin/php /home/aida/cron/updateRecentBooks.php >> /home/aida/cron/recentBooks.log.txt 2>/dev/null
 // surpresses errors ? not sure which is needed
+
+
 
 to force-run the script :
 /usr/bin/php /home/aida/cron/updateRecentBooks.php > /dev/null 2>&1
@@ -44,8 +52,11 @@ try {
         'query' => $searchByNewQuery
     ];
 
+    echo "Building request...\n";
     $client = new rabbitMQClient(__DIR__ . "/library.ini", "LibraryCollect");
     $response = $client->send_request($request);
+    
+    echo "Sending request to DMZ lister...\n";
 
     if ($response['status'] != 'success' || empty($response['data'])) {
         error_log("Failed to gather books from DMZ");
