@@ -53,7 +53,7 @@ function getPLibDetails($plib_olid)
         'olid' => $plib_olid,
         'title' => $plib_bookdata['title'] ?? 'Unknown Title',
         'author' => $plib_bookdata['author'] ?? 'Unknown Author',
-        'isbn' => $plib_bookdata['isbn'] ?? 'N/A',
+        //'isbn' => $plib_bookdata['isbn'] ?? 'N/A',
         'cover_url' => $plib_bookdata['cover_url'] ?? 'default-cover.png', // fallback if missing
         'publish_year' => $plib_bookdata['publish_year'] ?? 'Unknown'
       ];
@@ -66,53 +66,31 @@ function getPLibDetails($plib_olid)
   }
 }
 
-function getRecommendation($library_book)
+function getRecommendation(array $library_books)
 {
   // maybe could use a retry if fail loop or something
   try {
-    $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryDetails');
+    $bookRecommendClient = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'LibraryCollect');
 
     $response = $bookRecommendClient->send_request([
       'type' => 'book_recommend',
-      'olid' => $library_book
+      'olids' => $library_books // send ALL olids
     ]);
 
-    if (($response['status'] === 'success') && isset($response['recommended_book']) && is_array($response['recommended_book'])) { // checks success, if data is set, and if data is array
-      $rec_bookdata = $response['recommended_book'];
-      return [
+    if (($response['status'] === 'success') && isset($response['data']) && is_array($response['data'])) { // checks success, if data is set, and if data is array
+      $rec_bookdata = $response['data'];
+      return $rec_bookdata;
+      /*return [
         'olid' => $rec_bookdata['olid'],
         'title' => $rec_bookdata['title'] ?? 'Unknown Title',
         'author' => $rec_bookdata['author'] ?? 'Unknown Author',
-        'isbn' => $rec_bookdata['isbn'] ?? 'N/A',
+        //'isbn' => $rec_bookdata['isbn'] ?? 'N/A',
         'cover_url' => $rec_bookdata['cover_url'] ?? '', // no fallback actually implemented yet
         'publish_year' => $rec_bookdata['publish_year'] ?? 'Unknown'
-      ];
-      /* in Library_API.php :
-    // should only reach this area if a return is found
-    $recommendedBook = [
-      'olid'     => $rec_olid,
-      'title'        => $oneBook['title'] ?? 'Unknown',
-      'author'       => $oneBook['author_name'][0] ?? 'Unknown',
-      'publish_year' => $oneBook['first_publish_year'] ?? null,
-      'cover_url'    => isset($oneBook['cover_id']) // note: stored as cover_id and not cover_i via subjects endpoint
-        ? "https://covers.openlibrary.org/b/id/".$oneBook['cover_id']."-L.jpg"
-        : null,
-      //'matched_subjects' => [$subject1, $subject2] // not really needed to be returned
-    ];
-    break;
-  }
+      ];*/
 
-  if (!$recommendedBook) {
-    return ['status' => 'fail', 'message' => 'no recommendation found'];
-  }
-
-  return [
-    'status' => 'success',
-    'recommended_book' => $recommendedBook
-  ];
-      */
     } else {
-      return null; // if theres no books in library ?
+      return []; // if theres no books in library ?
     }
   } catch (Exception $e) {
     return "Error connecting to personal library service: " . $e->getMessage(); // idk what to return here
@@ -150,11 +128,12 @@ $libraryBooks = [];
 $recommendedBooks = [];
 
 if (!empty($libraryOlidList)) {  // if library isnt empty
-
+  $library_olids = []; // i think $libraryOlidList stores it as ['olid' => OLID]; we need just a clean list of olids
   foreach ($libraryOlidList as $singleBook) { // each book in library loop
 
     // GET BOOK DETAILS to display on page
-    $olid = $singleBook['olid'] ?? $singleBook['works_id'] ?? $singleBook; // it actually should be olid i think
+    $olid = $singleBook['olid'] ?? $singleBook['works_id'] ?? $singleBook;
+    $library_olids[] = $olid;
 
     $details = getPLibDetails($olid);
     if ($details) {
@@ -162,16 +141,15 @@ if (!empty($libraryOlidList)) {  // if library isnt empty
       //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
     }
 
-
-    // GET BOOK RECOMMENDATION -  Library_API should already give all necessary info per book
-    $recommendations = getRecommendation($olid);
-    if ($recommendations) {
-      $recommendedBooks[] = $recommendations; // adds book details in an array per olid
-      //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
-    }
-
-
   } // end of foreach for getting details of each book
+
+  // GET BOOK RECOMMENDATION -  Library_API should already give all necessary info per book
+  $recommendedBooks = getRecommendation($library_olids);
+  /*if ($recommendations) {
+    $recommendedBooks[] = $recommendations; // adds book details in an array per olid
+    //echo "<p>getPLibDetails foreach:" . print_r($libraryBooks, true) . "</p>"; // DEBUGGING - checking response
+  }*/
+
 }
 
 ?>
