@@ -516,12 +516,12 @@ function doInviteJoin(array $req) {$hash = $req['hash'] ?? '';
 
 // --- LIBRARY API
 
-function apidb()
+function library_cache()
 {
     $host = 'localhost';
     $user = 'apiAdmin';
     $pass = 'aarc490';
-    $name = 'apidb';
+    $name = 'library_cache';
 
     $mysqli = new mysqli($host, $user, $pass, $name);
     if ($mysqli->connect_errno) {
@@ -547,7 +547,7 @@ function bookCache_check_query(array $req) // check cache book ONE AT A TIME
         $page = isset($req['page']) ? intval($req['page']) : 1;
 
         // CACHE CHECK ----------------------------------
-        $mysqli = apidb();
+        $mysqli = library_cache();
 
         echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n";
 
@@ -592,7 +592,7 @@ function bookCache_check_query(array $req) // check cache book ONE AT A TIME
 function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
 {
     try {
-        $mysqli = apidb();
+        $mysqli = library_cache();
 
         echo "Checking cache for: olid = {$olid}\n";
 
@@ -633,7 +633,7 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
 // add to cache
 function bookCache_add(array $req) // add book ONE AT A TIME
 {
-    $mysqli = apidb();
+    $mysqli = library_cache();
     $insertToTable = $mysqli->prepare("
     INSERT INTO library_cache (
       search_type, query, page_num, olid, title, author, isbn,
@@ -722,7 +722,7 @@ function bookCache_add(array $req) // add book ONE AT A TIME
 function getRecentBooks()
 {
     try {
-        $mysqli = apidb();
+        $mysqli = library_cache();
         $result = $mysqli->query("SELECT * FROM recentBooks ORDER BY publish_year DESC ");
 
         $books = [];
@@ -771,7 +771,7 @@ function doBookCollect(array $req)
                 if ($DMZresponse['status'] === 'success' && !empty($DMZresponse['data'])) {
                     $responseData = $DMZresponse['data'];
                     foreach ($responseData as $book) {
-                        bookCache_add($book); // update internal apidb with ALL books that are returned
+                        bookCache_add($book); // update internal library_cache with ALL books that are returned
                     }
                 } else {
                     $error = $DMZresponse['message'] ?? 'Unknown error from server.';
