@@ -48,11 +48,12 @@ try {
     // COPIED FROM Library_API.php
 
     $currentYear = date('Y');
-    $searchByNewQuery = "*&first_publish_year={$currentYear}&sort=new"; //
+    $searchByNewQuery = "first_publish_year:{$currentYear}";
 
     $request = [
         'type' => 'api_book_search',
-        'query' => $searchByNewQuery
+        'query' => $searchByNewQuery,
+        'limit' => 10
     ];
 
     echo "Building request...\n";
