@@ -49,11 +49,12 @@ try {
     // COPIED FROM Library_API.php
 
     $currentYear = date('Y');
-    $searchByNewQuery = "*&first_publish_year={$currentYear}&sort=new"; //
+    $searchByNewQuery = "first_publish_year:{$currentYear}"; //
 
     $request = [
         'type' => 'api_book_search',
-        'query' => $searchByNewQuery
+        'query' => $searchByNewQuery,
+        'limit' => 10
     ];
 
     echo "Building request...\n";
@@ -88,10 +89,10 @@ try {
         $publish_year = $book['publish_year'] ?? []; // string
         $ratings_average = $book['ratings_average'] ?? [];
         $ratings_count = $book['ratings_count'] ?? [];
-        $subjects = json_encode($book['subject_key'] ?? []);
-        $person_key = json_encode($book['person_key'] ?? []);
-        $place_key = json_encode($book['place_key'] ?? []);
-        $time_key = json_encode($book['time_key'] ?? []);
+        $subjects = $book['subject_key'] ?? [];
+        $person_key = $book['person_key'] ?? [];
+        $place_key = $book['place_key'] ?? [];
+        $time_key = $book['time_key'] ?? [];
 
         $cover_url = $book['cover_url'] ?? null;
 
