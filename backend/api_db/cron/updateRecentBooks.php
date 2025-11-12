@@ -87,7 +87,7 @@ try {
         $publish_year = $book['publish_year'] ?? []; // string
         $ratings_average = $book['ratings_average'] ?? [];
         $ratings_count = $book['ratings_count'] ?? [];
-        $subjects = json_encode(simple_sanitize($book['subject_key'] ?? []));
+        $subjects = json_encode($book['subject_key'] ?? []);
         $person_key = json_encode($book['person_key'] ?? []);
         $place_key = json_encode($book['place_key'] ?? []);
         $time_key = json_encode($book['time_key'] ?? []);
