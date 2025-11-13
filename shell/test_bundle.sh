@@ -22,13 +22,13 @@ TAR_NAME="${BUNDLE_NAME}.tar.gz"
 
 # need to check -d directory actually exists + verify success
 if [! -d "$FILE_PATH"]; then
-    echo "File path to '$FILE_PATH' not found."
+    echo "File path to '$FILE_PATH' not found.\n"
 fi
 
 # c-create z-zip f-output file -C change directory
 tar -czf "$TAR_NAME" -C "$FILE_PATH" .
 if [$? -ne 0]; then
-    echo "Failed to create tarball."
+    echo "Failed to create tarball.\n"
     exit 1
 fi
 
@@ -37,7 +37,7 @@ fi
 # tarball -> php script -> sends into RMQ -> received by Deploy VM
 php test_bundle.php "$TAR_NAME"
 if [$? -ne 0]; then
-    echo "Failed to send tarball to messaging queue."
+    echo "Failed to send tarball to messaging queue.\n"
     exit 1
 fi
 
