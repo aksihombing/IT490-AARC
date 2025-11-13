@@ -20,10 +20,13 @@ try {
     // build + send request
     $response = $client->send_request($request);
 
-    if ($response['status'] === 'success') {
-        echo "Failure to send bundle to deployment listener script\n";
+    if (isset($response['status']) && $response['status'] === 'success') {
+        echo "Successfully received response from remote\n";
         exit(0);
     }
+
+    echo "Error: Bundle not sent\n";
+        exit(1);
 
 } catch (Exception $e) {
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
