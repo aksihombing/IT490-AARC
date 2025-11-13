@@ -35,6 +35,12 @@ class rabbitMQServer
 		{
 			$this->auto_delete = $this->machine[$server]["AUTO_DELETE"];
 		}
+<<<<<<<< HEAD:rabbitMQ/rabbitMQLib.inc
+		$this->exchange = $this->machine[$server]["EXCHANGE"];
+		$this->queue = $this->machine[$server]["QUEUE"];
+
+========
+>>>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81:api/rabbitMQLib.inc
 		if (isset($this->machine[$server]["ROUTING_KEY"])) {
     		$this->routing_key = $this->machine[$server]["ROUTING_KEY"];
 		}
@@ -129,7 +135,11 @@ class rabbitMQServer
 	}
 }
 
+<<<<<<<< HEAD:rabbitMQ/rabbitMQLib.inc
+// 
+========
 
+>>>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81:api/rabbitMQLib.inc
 class rabbitMQClient
 {
 	private $machine = "";
