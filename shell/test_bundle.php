@@ -10,7 +10,7 @@ try {
     $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'BundleSend'); // need to verify WHERE the bundle script itself will live + make sure host.ini includes the new queue + host specific to the deployment vm
 
     $request = [
-        'type' => 'book_search',
+        'type' => 'set_bundle',
         'bundle_name' => $bundle_name
     ];
 

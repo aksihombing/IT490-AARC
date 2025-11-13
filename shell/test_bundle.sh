@@ -41,6 +41,15 @@ if [$? -ne 0]; then
     exit 1
 fi
 
+
 echo "$BUNDLE_NAME : Successfully sent $SOURCE via RMQ"
 
-# need to SCP bundle into destination i think
+# need to SCP bundle into destination i think ? i dont know if this needs to be in the bundle script itself
+#sshpass -p "passw0rd" ssh aida@172.28.219.213 "scp rea@172.28.109.126:/home/rea/test.txt aida@172.28.219.213:/home/aida/"
+# scp (source) (destination)
+scp rea@172.28.109.126:/home/rea/test.txt aida@172.28.219.213:/home/aida/
+if [$? -ne 0]; then
+    echo "Failed to SCP file to destination.\n"
+    exit 1
+fi
+echo "Sent $BUNDLE_NAME via SCP\n"

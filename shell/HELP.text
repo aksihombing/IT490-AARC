@@ -10,7 +10,7 @@ i hope im on the right track.
 
 
 - how are exercises being graded?
-did you do it or not?
+---> did you do it or not?
 
 
 - deployment flow
@@ -20,10 +20,10 @@ all dev has bundler script
     > we connect to deployment vm to ask the version of the bundle name via PHP RMQ script
     > in bundle.sh, we update the tar_name to include number of next version? i.e. 02_tar_name.tar.gz
     > how do we send the tar through scp to get to qa?
-dispatcher to 
+---> dispatcher
 
 - how to mark status on a package from the QA level? are we running another shell script to ssh into deploy VM to update the database's status for the bundle? > then if deploy processor finds that the status is updated to passed, it sends it into prod?
-make cli utility to send messages to send fromdev or dploy
+---> make cli utility to send messages to send fromdev or dploy
 
 - are we keeping a copy of the bundle in the deploy vm? the database should have a filepath to the specific tar that was scp'd then??
-keep filepath in database 
+---> keep filepath in database 
