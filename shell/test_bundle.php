@@ -1,5 +1,7 @@
 #!/usr/bin/php
 <?php
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . '/get_host_info.inc';
 
 // get argument to know the bundle name
 $bundle_name = $argv[1];
@@ -7,7 +9,7 @@ $bundle_name = $argv[1];
 
 // connect to rmq
 try {
-    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'BundleSend'); // need to verify WHERE the bundle script itself will live + make sure host.ini includes the new queue + host specific to the deployment vm
+    $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'AuthValidate'); // need to verify WHERE the bundle script itself will live + make sure host.ini includes the new queue + host specific to the deployment vm
 
     $request = [
         'type' => 'set_bundle',
