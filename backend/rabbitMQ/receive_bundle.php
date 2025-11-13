@@ -10,7 +10,14 @@ function setBundle(array $req){
     ]; */
 
     $bundle_name = $req['bundle_name'];
-    echo "Bundle name {$bundle_name}\n";
+    echo "Received bundle name {$bundle_name}\n";
+
+    // check bundle_name in database
+
+
+
+    // check version_num from database
+
 
     return [
       'status'=>'success',

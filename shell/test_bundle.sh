@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# are we manually building bundles and placing them into a folder to THEN run the bundle.sh script?
+# or do we need add/create separate scripts based on each TYPE of bundle we are sending?
+# cant i just bundle the entire frontend folder ??
+# or do i need to bundle the frontend contents based on the related functions ?
+# i.e. we were thinking of doing a bundle for USER-DATA on the frontend that deals with login/logout/register
+
 
 # generic bundling shell script draft
 

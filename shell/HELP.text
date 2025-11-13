@@ -23,7 +23,10 @@ all dev has bundler script
 ---> dispatcher
 
 - how to mark status on a package from the QA level? are we running another shell script to ssh into deploy VM to update the database's status for the bundle? > then if deploy processor finds that the status is updated to passed, it sends it into prod?
----> make cli utility to send messages to send fromdev or dploy
+---> make cli utility (shell script) to send messages to send fromdev or dploy
 
 - are we keeping a copy of the bundle in the deploy vm? the database should have a filepath to the specific tar that was scp'd then??
 ---> keep filepath in database 
+
+
+- rollback ? is this rolling back changes in production in case it fails/breaks? or should rollback just be on QA
