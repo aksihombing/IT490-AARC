@@ -133,15 +133,7 @@ class rabbitMQServer
 	}
 }
 
-<<<<<<< HEAD
-<<<<<<<< HEAD:rabbitMQ/rabbitMQLib.inc
-// 
-========
 
->>>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81:api/rabbitMQLib.inc
-=======
-
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
 class rabbitMQClient
 {
 	private $machine = "";
@@ -155,10 +147,7 @@ class rabbitMQClient
 	private $routing_key = '*';
 	private $response_queue = array();
 	private $exchange_type = "topic";
-<<<<<<< HEAD
-=======
 	private $conn_queue;
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
 
 	function __construct($machine, $server = "rabbitMQ")
 	{
@@ -242,9 +231,6 @@ class rabbitMQClient
 
 			$response = $this->response_queue[$uid];
 			unset($this->response_queue[$uid]);
-<<<<<<< HEAD
-=======
-
 
 			// close queues
 			$callback_queue->cancel(); // stop consume 
@@ -252,7 +238,6 @@ class rabbitMQClient
 			$conn->disconnect();
 
 
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
 			return $response;
 		}
 		catch(Exception $e)
@@ -297,7 +282,3 @@ class rabbitMQClient
 	}
 }
 ?>
-<<<<<<< HEAD
-
-=======
->>>>>>> 91c73538b8680a219366966e23a1f0cb76882c81
