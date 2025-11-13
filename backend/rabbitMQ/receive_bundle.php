@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
-
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . '/get_host_info.inc';
 
 function setBundle(array $req){
     /*    $request = [
@@ -10,7 +11,7 @@ function setBundle(array $req){
 
     $bundle_name = $req['bundle_name'];
     echo "Bundle name {$bundle_name}\n";
-    
+
 }
 
 
