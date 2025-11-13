@@ -4,8 +4,8 @@
 // pulled from Chizzy's branch
 
 session_start();
-require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';  
-require_once __DIR__ . '/../rabbitMQ/get_host_info.inc'; 
+require_once __DIR__ . '/../../rabbitMQ/rabbitMQLib.inc';  
+require_once __DIR__ . '/../../rabbitMQ/get_host_info.inc'; 
 // changed above to expand to absolute path
 
 
@@ -46,7 +46,8 @@ $request = [
 
 try {
   // connect to rmq
-  $client = new rabbitMQClient("host.ini", "AuthRegister"); // changed to reflect the new section name
+ $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'AuthRegister');
+ // changed to reflect the new section name
 
   // sending the registration request
   $response = $client->send_request($request); // changed to correct variable name
@@ -65,3 +66,4 @@ try {
 catch (Exception $e) {
   echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }
+?>

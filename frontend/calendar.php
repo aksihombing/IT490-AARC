@@ -31,7 +31,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const clubId = urlParams.get("club_id") || 1;
 
 async function loadEvents() {
-  const res = await fetch(`events_functions.php?action=list&club_id=${clubId}`);
+  const res = await fetch(`includes/events_functions.php?action=list&club_id=${clubId}`);
   const data = await res.json();
   dp.events.list = data.events || [];
   dp.update();
@@ -45,7 +45,7 @@ dp.onTimeRangeSelected = async args => {
   body.append("club_id", clubId);
   body.append("title", title);
   body.append("event_date", args.start.toString("yyyy-MM-dd"));
-  const res = await fetch("clubs_functions.php", { method: "POST", body });
+  const res = await fetch("includes/clubs_functions.php", { method: "POST", body });
   const json = await res.json();
   alert(json.message || json.status);
   await loadEvents();
@@ -57,7 +57,7 @@ dp.onEventClick = async args => {
   const body = new FormData();
   body.append("action", "event_cancel");
   body.append("event_id", args.e.id());
-  const res = await fetch("clubs_functions.php", { method: "POST", body });
+  const res = await fetch("includes/clubs_functions.php", { method: "POST", body });
   const json = await res.json();
   alert(json.message || json.status);
   await loadEvents();
