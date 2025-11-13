@@ -42,9 +42,7 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
     echo "Auth server starting for ALL queues...\n";
-    $sections = ['AuthRegister', 'AuthLogin', 'AuthValidate', 
-      'AuthLogout', 'LibraryPersonal', 'LibraryRemove', 
-      'CreateReviews','ListReviews','LibraryAdd','ClubProcessor', 'LibrarySearch', 'LibraryDetails'];
+    $sections = ['AuthValidate'];
       // LibraryCollect is for the specific connection between database > rmq > api
 
     foreach ($sections as $section) {
