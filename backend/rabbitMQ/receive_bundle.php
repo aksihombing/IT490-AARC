@@ -12,6 +12,10 @@ function setBundle(array $req){
     $bundle_name = $req['bundle_name'];
     echo "Bundle name {$bundle_name}\n";
 
+    return [
+      'status'=>'success',
+      'version_num'=>'001'
+    ];
 }
 
 

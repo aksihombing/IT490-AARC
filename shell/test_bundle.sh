@@ -20,8 +20,9 @@ BUNDLE_NAME=$1
 FILE_PATH=$2
 TAR_NAME="${BUNDLE_NAME}.tar.gz"
 
-# c-create z-zip f-output file -C change directory
-tar -czf "$TAR_NAME" -C "$FILE_PATH" .
+# c-create || z-zip f-output file || -v verbose || -C change directory
+# NOTE: IT TARS FOLDERS not individual files
+tar -czvf "$TAR_NAME" -C "$FILE_PATH" .
 if [ $? -ne 0 ]; then
     echo "Failed to create tarball."
     exit 1
@@ -30,7 +31,7 @@ fi
 # $? = the exit status of the last command ran, exit status 0 usually means success; anything else means fail/error
 
 # tarball -> php script -> sends into RMQ -> received by Deploy VM
-php test_bundle.php "$TAR_NAME" # ERROR couldnt connect to rmq
+php test_bundle.php "$TAR_NAME"
 if [ $? -ne 0 ]; then
     echo "Failed to send tarball to messaging queue."
     exit 1
