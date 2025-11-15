@@ -7,7 +7,23 @@ $whichVM = [
     '172.28.219.213' => 'Backend',
     '172.28.109.126' => 'DMZ'
 ];
-$section = $whichVM[$ip] ?? null;
-echo "Running on VM section: $section";
+$section = null;
+
+foreach ($whichVM as $ip => $vmName){
+    $shellcmd = "hostname -I | grep $ip";
+    exec($shellcmd, $output, $exitCode);
+
+    if ($returnCode === 0){
+        $section = $vmName;
+        break;
+    }
+}
+
+if ($section === null){
+    echo "Could not determine VM. IP Address not expected.\n";
+}
+else{
+    echo "Running on VM section: $section";
+}
 
 ?>
