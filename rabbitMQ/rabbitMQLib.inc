@@ -35,6 +35,10 @@ class rabbitMQServer
 		{
 			$this->auto_delete = $this->machine[$server]["AUTO_DELETE"];
 		}
+
+		$this->exchange = $this->machine[$server]["EXCHANGE"];
+		$this->queue = $this->machine[$server]["QUEUE"];
+
 		if (isset($this->machine[$server]["ROUTING_KEY"])) {
     		$this->routing_key = $this->machine[$server]["ROUTING_KEY"];
 		}
@@ -227,7 +231,6 @@ class rabbitMQClient
 
 			$response = $this->response_queue[$uid];
 			unset($this->response_queue[$uid]);
-
 
 			// close queues
 			$callback_queue->cancel(); // stop consume 

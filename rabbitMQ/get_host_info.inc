@@ -1,5 +1,4 @@
 <?php
-
 /**
     @brief gets the currrent machine information and optionally any other task
     specific INI folder installed in the system path.
