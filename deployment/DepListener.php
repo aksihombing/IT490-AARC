@@ -16,7 +16,7 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 require_once('rabbitMQLib.inc');
 require_once('get_host_info.inc');
 require_once('db_config.inc.php');
-require_once('bundle_destination.json');
+require_once('clusters.ini');
 
 // sends version back to the php script used for the bundle on development cluster
 function doVersionRequest(array $req)
@@ -117,14 +117,18 @@ function doStatusUpdate(array $req)
 
 
 
-function doDeployBundle(array $deployInfo)
+function doDeployBundle(array $deployInfo) // base made by Rea
 {
   // decides if it needs to be sent to QA or production. needs to be called after a status was updated or bundle was 
   // is run after doStatus
   $bundle_status = $deployInfo['bundle_status'];
   $bundle_name = $deployInfo['bundle_name'];
   $destination_cluster = null;
+  $destination_vm = null;
 
+
+
+  
   switch ($bundle_status) { // VERIFY IF UPPERCASE OR LOWERCASE
     case 'new':
       $destination_cluster = 'QA';
@@ -133,14 +137,22 @@ function doDeployBundle(array $deployInfo)
       $destination_cluster = 'Production';
       break;
     case 'failed':
-      doRollback();
+      doRollback([
+        'destination_cluster' => $destination_cluster, 
+          // NEED TO FIX; how do we differentiate between a failure in QA vs Prod?
+        'destination_vm' => $destination_vm,
+        'bundle_name' => $bundle_name
+      ]);
       break;
     default:
       echo "Unable to resolve Deploy Status '{$bundle_status}'\n";
-      return ['status' => 'fail', 'message' => 'Unable to resolve Deploy Status ' .  $bundle_status . '\n'];
+      return ['status' => 'fail', 'message' => 'Unable to resolve Deploy Status ' . $bundle_status . '\n'];
   }
 
-  switch ($destination_cluster) { // VERIFY IF UPPERCASE OR LOWERCASE
+
+
+
+  switch ($destination_cluster) { // check destination for where to send bundle to
     case 'QA':
       // call
       break;
@@ -149,20 +161,39 @@ function doDeployBundle(array $deployInfo)
       break;
     default:
       echo "Unable to resolve Destination Cluster '{$destination_cluster}'\n";
-      return ['status' => 'fail', 'message' => 'Unable to resolve Destination Cluster ' .  $destination_cluster . '\n'];
+      return ['status' => 'fail', 'message' => 'Unable to resolve Destination Cluster ' . $destination_cluster . '\n'];
+  }
+
+
+
+  if ($bundle_name){ // need to parse through cluster.ini to select where it should go BASED ON THE NAME OF THE BUNDLE !
+
   }
 
 
 }
 
-function sendBundle(string $bundle_name)
+function sendBundle(array $deployInfo)
 { // helper function to prevent using a nested switch in doDeployBundle
+
+  
+
 
 }
 
-function doRollback()
+function doRollback(array $rollbackReq)
 { // helper function to do a rollback
+  // array ['destination_cluster', 'destination_vm', 'bundle_name']
+  $destination_cluster = $rollbackReq['destination_cluster'];
+  $destination_vm = $rollbackReq['destination_vm'];
+  $bundle_name = $rollbackReq['bundle_name'];
 
+
+  // search in the database for the highest version of the given bundle_name
+
+  // scp into destination
+
+  // should also call sendBundle so that it re-sends and re-installs rolled-back bundle
 }
 
 
