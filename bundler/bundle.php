@@ -79,7 +79,7 @@ if ($tar_returnCode !== 0) {
 
 // SEND BUNDLE
 // scp to deployment
-exec("scp '$TAR_NAME' chizorom@172.28.121.220:/home/chizorom/bundles/", $scp_output, $scp_returnCode);
+exec("scp '$TAR_NAME' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode);
 if ($scp_returnCode !== 0) {
     echo "Error: Unable to scp $tar_name to deployment\n";
 }
@@ -95,7 +95,7 @@ try {
         'type' => 'add_bundle',
         'bundle_name' => $bundle_name,
         'version' => $version,
-        'path' => '/home/chizorom/bundles/'
+        'path' => '/var/www/bundles/'
     ];
     // build + send request
     $response = $client->send_request($request);
