@@ -13,10 +13,11 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 
 ///REWRITE EXPLANATION COMMENTS 
 
-require_once('rabbitMQLib.inc')
+require_once('rabbitMQLib.inc');
 require_once('get_host_info.inc');
 require_once('db_config.inc.php');
 
+// sends version back to the php script used for the bundle on development cluster
 function doVersionRequest(array $req) {// looks for the next  version number of a bundle
 echo "Processing 'version_request'\n";// replace with with type from Rea's bundler script
   $db = db();
@@ -40,7 +41,7 @@ echo "Processing 'version_request'\n";// replace with with type from Rea's bundl
     return ['status'=>'success','version'=>$max_version];
 }
 
-
+// the dev cluster's bundle php will need to send a request TO this function
 function doAddBundle(array $req) { // adter the bundle script gets the new version number and the .zip/.tar or whichever 
   // is uploaded to the bundles directory on the dep vm , it will call this function to add the bundle info to the db
 echo "Processing 'add_bundle'\n";// replace with type from rea's bundler script
@@ -49,11 +50,13 @@ echo "Processing 'add_bundle'\n";// replace with type from rea's bundler script
     return ['status'=>'fail','message'=>'db connection error'];
   }
 
+
+  
   $bundle_name = $req['bundle_name'] ?? '';
   $version = (int)(req['version'] ?? 0);
   $path = $req['path'] ?? '';
 
-  if (empty($bundle_name)) || $version <= 0 || empty($path) {
+  if (empty($bundle_name) || $version <= 0 || empty($path)) {
     return ['status'=>'fail','message'=>'missing bundle_name'];
   }
 
@@ -63,7 +66,10 @@ echo "Processing 'add_bundle'\n";// replace with type from rea's bundler script
   if ($stmt->execute()){
     $stmt->close();
     $db->close();
-    return ['status'=>'success','message'=>'Bundle added'];
+    return [
+      'status'=>'success',
+      'message'=>'Bundle added'
+    ];
     } else {
         $error = $stmt->error;
         $stmt->close();
@@ -74,7 +80,7 @@ echo "Processing 'add_bundle'\n";// replace with type from rea's bundler script
 }
 
 
-
+// this is updated FROM THE QA layer to update the status of a bundle
 function doStatusUpdate(array $req) { //after the installer scripts is done installing and testing a bundle, it will send a message with the result passed or failed.
 echo "Processing 'status_update'\n";// replace with type from Aida's installer script
   $db = db();
@@ -86,7 +92,7 @@ echo "Processing 'status_update'\n";// replace with type from Aida's installer s
   $version = (int)(req['version'] ?? 0);
   $status = $req['status'] ?? '';
 
-  if (empty($bundle_name) || $version <= 0 || !in array($status, ['passed', 'failed'])) {
+  if (empty($bundle_name) || $version <= 0 || !in_array($status, ['passed', 'failed'])) {
     return ['status'=>'fail','message'=>'missing bundle_name'];
   }
 
@@ -101,18 +107,33 @@ echo "Processing 'status_update'\n";// replace with type from Aida's installer s
     return ['status'=>'success','message'=>'Status updated'];
 }
 
-function idk yet(){
+function doCheckStatus(string $bundle_name){ // not sure if necessary?
+
+}
+
+function doDeployBundle(string $bundle_name){ // decides if it needs to be sent to QA or production
+  // should check for bundles that
+
+}
+
+function doRollback(string $bundle_name){ 
+  // not sure if necessary ? this could be implemented in doStatusUpdate whenever the status is updated to "failed" !!!
+
+}
+
+
+/*function idk yet(){
   // may need more functions
   // possibly for the roll back handler later where the script ask for the last passed version of a bundle, and then have a queue to send that back
   // and then find a way to return that file ???
 }
-
+*/
 
 
 
 //  REQUEST PROCESSOR : same logic from the rabbitmq server 
 
-function requestProcessor($req) {
+function requestProcessor(array $req) {
   echo "Received request:\n";
     var_dump($req);
     flush();
