@@ -11,7 +11,7 @@ $section = null;
 
 foreach ($whichVM as $ip => $vmName){
     $shellcmd = "hostname -I | grep $ip";
-    exec($shellcmd, $output, $exitCode);
+    exec($shellcmd, $output, $returnCode);
 
     if ($returnCode === 0){
         $section = $vmName;
@@ -23,7 +23,7 @@ if ($section === null){
     echo "Could not determine VM. IP Address not expected.\n";
 }
 else{
-    echo "Running on VM section: $section";
+    echo "Running on VM section: $section\n";
 }
 
 ?>

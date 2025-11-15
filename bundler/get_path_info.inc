@@ -10,7 +10,7 @@
     @return parsed ini with bundle file paths
 */
 
-function getPathInfo(string $section)
+function getPathInfo(string $section, string $bundle_name)
 {
 
     $path = __DIR__ . "/bundlepaths.ini";
@@ -25,12 +25,18 @@ function getPathInfo(string $section)
         die("Failed to parse path: $path\n");
     }
 
-    // convert string to array of paths
-    $filepaths = [];
-    foreach ($filepaths[$section] as $key => $value){
-        $filepaths[$key] = array_map('trim', explode(',' $value));
+
+    // check if section found:
+    if(!isset($parsePath[$section])){
+        die("Section '$section' not found at $path\n");
     }
 
+    // check if bundle_name found:
+    if(!isset($parsePath[$section][$bundle_name])){
+        die("Bundle Name '$bundle_name' not found at $path\n");
+    }
 
-    return $filepaths;
+    $paths = $parsePath[$section][$bundle_name];
+
+    return $paths;
 }

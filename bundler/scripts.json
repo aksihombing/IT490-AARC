@@ -1,21 +1,4 @@
 {
-    "environments": {
-        "dev": {
-            "frontend": "172.28.219.213",
-            "backend": "172.28.108.126",
-            "dmz": "172.28.109.126"
-        },
-        "qa": {
-            "frontend": " ",
-            "backend": " ",
-            "dmz": " "
-        },
-        "prod": {
-            "frontend": " ",
-            "backend": " ",
-            "dmz": " "
-        }
-    },
     "bundle_scripts": {
         "bundle_1": "172.28.219.213",
         "bundle_2": "172.28.108.126",
