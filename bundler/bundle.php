@@ -8,34 +8,39 @@ require_once __DIR__ . '/get_host_info.inc';
 
 // HELPER FUNCTIONS -------------------------
 function getPathInfo (string $section, string $bundle_name){
-    $path = __DIR__ . "/bundlepaths.ini";
+    $path = __DIR__ . "/bundlepaths.json";
     if (!file_exists($path)) {
         die("bundle path ini not found at $path\n");
     }
 
     // parse section (changed it from the ini parse to json parse bc idk how to parse ini sorry)
-    $path_decoded = json_decode($path, true);
+    $path_decoded = json_decode(file_get_contents($path, true));
 
     if(!$path_decoded){
         die("Failed to parse path : $path\n");
     }
 
     // check if bundle_name found:
-    if(!isset($parsePath[$section][$bundle_name])){
+    if(!isset($path_decoded[$section][$bundle_name])){
         die("Bundle Name '$bundle_name' not found at $path\n");
     }
 
     $paths_from_json = $path_decoded[$section][$bundle_name];
 
+    // convert to string ??? with implode
+    // https://www.php.net/manual/en/function.escapeshellarg.php maybe?
+
+
     // php.net/manual/en/function.realpath.php ?? not sure if needed, but a reference in case i need it later
     
-    $full_paths = [];
-    foreach ($paths_from_json as $relative_path){
+    //$full_paths = [];
+    /*foreach ($paths_from_json as $relative_path){
         $full_paths[] = __DIR__ . $relative_path;
-    }
+    }*/
 
-    return $full_paths;
-    //return $paths_from_json;
+    //return $full_paths;
+
+    return $paths_from_json;
 }
 
 
@@ -112,18 +117,21 @@ try {
 // get file paths for the section and bundle_name
 $tar_name = "$version" . "_" . "$bundle_name" . ".tar.gz";
 $file_path = getPathInfo($section, $bundle_name);
-exec("cd $ProjectRootPath && tar -czf '$tar_name' -C '$file_path' .", $tar_output, $tar_returnCode);
+$tar_path = "$projectRootPath/bundles/$tar_name";
+// fileList = implode(' ', array_map('escapeshellarg', $file_path);
+// need to go one file back to run the tar + create a folder to place the tar on the local machine too
+exec("cd $projectRootPath && tar -czf $tar_path $file_path .", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
 }
 
 // SEND BUNDLE
 // scp to deployment
-exec("scp '$tar_name' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode);
+exec("scp '$tar_path' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode);
 if ($scp_returnCode !== 0) {
-    echo "Error: Unable to scp $tar_name to deployment\n";
+    echo "Error: Unable to scp $tar_path to deployment\n";
 }
-else {echo "Successfully send $tar_name to deployment\n";}
+else {echo "Successfully send $tar_path to deployment\n";}
 
 
 // CALL AddDeploy ----------------
