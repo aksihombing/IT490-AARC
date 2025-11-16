@@ -2,13 +2,47 @@
 <?php
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
-require_once __DIR__ . '/get_path_info.inc';
 
 // https://www.php.net/manual/en/function.shell-exec.php
 // https://www.php.net/manual/en/function.exec.php
 
+// HELPER FUNCTIONS -------------------------
+function getPathInfo (string $section, string $bundle_name){
+    $path = __DIR__ . "/bundlepaths.ini";
+    if (!file_exists($path)) {
+        die("bundle path ini not found at $path\n");
+    }
+
+    // parse section (changed it from the ini parse to json parse bc idk how to parse ini sorry)
+    $path_decoded = json_decode($path, true);
+
+    if(!$path_decoded){
+        die("Failed to parse path : $path\n");
+    }
+
+    // check if bundle_name found:
+    if(!isset($parsePath[$section][$bundle_name])){
+        die("Bundle Name '$bundle_name' not found at $path\n");
+    }
+
+    $paths_from_json = $path_decoded[$section][$bundle_name];
+
+    // php.net/manual/en/function.realpath.php ?? not sure if needed, but a reference in case i need it later
+    
+    $full_paths = [];
+    foreach ($paths_from_json as $relative_path){
+        $full_paths[] = __DIR__ . $relative_path;
+    }
+
+    return $full_paths;
+    //return $paths_from_json;
+}
 
 
+
+
+
+// ACTUAL BUNDLING SCRIPT ---------------------------
 // CHECK WHICH VM THIS BUNDLE SCRIPT IS ON 
 // this could definitely be done if we set etc/hosts with the correct ip addresses
 // example : 172.28.109.126 dev-dmz
@@ -19,10 +53,15 @@ $whichVM = [
     '172.28.109.126' => 'DMZ'
 ];
 $section = null;
+$projectRootPath = realpath(__DIR__ . "/..");
+// php.net/manual/en/function.realpath.php --> need to cd into the project root before i tar the files to maintain holder hierarchy and bc bundler/ is adjacent to all other dev folders
 
+// find which vm the bundlr script is being run on
 foreach ($whichVM as $ip => $vmName){
-    $shellcmd = "hostname -I | grep $ip"; // we could use hostname more effectively if we assigned each ip in /etc/hosts
-    exec($shellcmd, $output, $returnCode); // similar to shell_exec() but saves output and returncode
+    $shellcmd = "hostname -I | grep $ip"; 
+    // note to self: we could use hostname more effectively if we assigned each ip in /etc/hosts
+    exec($shellcmd, $output, $returnCode); 
+    // similar to shell_exec() but saves output and returncode
 
     // iterate thru each possible ip for the dev layer
     if ($returnCode === 0){
@@ -40,13 +79,14 @@ else{
 
 
 
-// CHECK DEPLOY VERSION ----------
+// CHECK DEPLOY VERSION ---------- calls deploy vms checkVersion
 // get argument to know the bundle name
 $bundle_name = $argv[1];
 $version = null;
 // the deployment listener will be the one to update the name of the bundle by checking its own database
 try {
-    $client = new rabbitMQClient(__DIR__ . '/deployQueues.ini', 'DeployVersion'); // need to verify WHERE the bundle script itself will live + make sure host.ini includes the new queue + host specific to the deployment vm
+    $client = new rabbitMQClient(__DIR__ . '/deployQueues.ini', 'DeployVersion'); 
+    // need to verify WHERE the bundle script itself will live + make sure host.ini includes the new queue + host specific to the deployment vm
 
     $request = [
         'type' => 'version_request',
@@ -72,14 +112,14 @@ try {
 // get file paths for the section and bundle_name
 $tar_name = "$version" . "_" . "$bundle_name" . ".tar.gz";
 $file_path = getPathInfo($section, $bundle_name);
-exec("tar -czf '$tar_name' -C '$file_path' .", $tar_output, $tar_returnCode);
+exec("cd $ProjectRootPath && tar -czf '$tar_name' -C '$file_path' .", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
 }
 
 // SEND BUNDLE
 // scp to deployment
-exec("scp '$TAR_NAME' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode);
+exec("scp '$tar_name' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode);
 if ($scp_returnCode !== 0) {
     echo "Error: Unable to scp $tar_name to deployment\n";
 }
@@ -94,8 +134,7 @@ try {
     $request = [
         'type' => 'add_bundle',
         'bundle_name' => $bundle_name,
-        'version' => $version,
-        'path' => '/var/www/bundles/'
+        'version' => $version
     ];
     // build + send request
     $response = $client->send_request($request);
