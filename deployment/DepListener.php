@@ -126,7 +126,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   $destination_cluster = null;
   $destination_vm = null;
 
-
+  //need a map to route bundles based on where they are going frontend/backend/dmz
 
   
   switch ($bundle_status) { // VERIFY IF UPPERCASE OR LOWERCASE
