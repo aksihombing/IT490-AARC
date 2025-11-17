@@ -11,7 +11,24 @@
 require_once __DIR__ . '/rabbitMQ/rabbitMQLib.inc';
 require_once __DIR__ . '/rabbitMQ/get_host_info.inc';
 
-//need map for whatever the target directory is based on vm and map from dep listener
+function getBundlePath($bundle_name){
+    //need to alter paths to whatever we end up doing for each vm
+    $BUNDLE_PATHS = [
+        //frontend bundles
+        'userFeatures' => '/var/www/html/',
+        'clubFeatures' => '/var/www/html/',
+        'bookFeatures' => '/var/www/html/',
+        'baseFeatures' => '/var/www/html/', 
+
+        //backend bundles
+        'userData'     => '/idk/',
+        'clubData'     => '/idk/',
+        'bookData'     => '/idk/',
+
+        //dmz bundles
+        'apiData'      => '/idk/'
+];
+}
 
 function installBundle(array $req){
     $bundle_name = $req['bundle_name'] ?? '';
@@ -21,8 +38,14 @@ function installBundle(array $req){
     if (!$bundle_name || !$version || !$path){
         return ['status' => 'fail', 'message' => 'missing install reqs'];
     }
+
+    $bundleDir = getBundlePath($bundle_name);
+
+    if ($bundleDir === null){
+        return ['status' => 'fail', 'message' => 'unknown bundle type']; // if this shows up need to add a new section to the map for new bundle type
+    }
     
-    $bundleFile = "/deployment/bundles/{$path}";
+    $bundleFile = "/deployment/bundles/{$path}"; //unsure if this is the correct path :(
 
     if (!file_exists($bundleFile)){ // bundle needs to exist to be installed
         echo "bundle not found: $bundleFile\n";
@@ -30,6 +53,7 @@ function installBundle(array $req){
     }
 
     //extract bundle
+    
 
     //install bundle based on target directory + vm
 
@@ -38,9 +62,12 @@ function installBundle(array $req){
     //change bundle status here?
 }
 
+/*
 function sendStatus(array $req){
     //sending status to deployment
 }
+idk if i need this actually    
+*/
 
 
 // --- REQUEST PROCESSOR ---
@@ -50,7 +77,7 @@ function sendStatus(array $req){
 
 // decides which function to run
 function requestProcessor($req) {
-  echo "Received request:\n";
+  echo "Received install request:\n";
     var_dump($req);
     flush();
   
