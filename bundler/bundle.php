@@ -27,12 +27,17 @@ function getPathInfo (string $section, string $bundle_name){
         echo "Bundle Name '$bundle_name' not found at $path\n";
         
         //$debuggingarray = implode( ", ", $path_decoded[$section][$bundle_name]);
-        echo "Checking if bundle_name is found : $path_decoded[$section][$bundle_name]\n"; //DEBUGGING
+        //echo "Checking if bundle_name is found: "; //DEBUGGING
+        //print_r($path_decoded[$section][$bundle_name]); //DEBUGGING
+        //echo "\n"; //DEBUGGING
         exit(1);
     }
 
     $paths_from_json = $path_decoded[$section][$bundle_name];
-    echo "PATHS_FROM_JSON IS : $paths_from_json\n"; //DEBUGGING
+    //echo "PATHS_FROM_JSON IS : "; //DEBUGGING
+    //print_r($paths_from_json); //DEBUGGING
+    //echo "\n"; //DEBUGGING
+
     // convert to string ??? with implode
     // escapeshellarg translates it to be able to work as a shell argument, which is good for when its actually called
     // https://www.php.net/manual/en/function.escapeshellarg.php maybe?
@@ -121,6 +126,7 @@ try {
         exit(1);
     }
     $version = $response['version'];
+    //echo "Section: $section || Bundle Name: $bundle_name\n"; //DEBUGGING
     echo "Successfully received response from remote. $bundle_name version number is $version.\n";
 
     
@@ -135,8 +141,13 @@ try {
 $tar_name = "$version" . "_" . "$bundle_name" . ".tar.gz";
 $file_path = getPathInfo($section, $bundle_name);
 $tar_path = "$projectRootPath/bundles/$tar_name";
-// fileList = implode(' ', array_map('escapeshellarg', $file_path);
+
+//$parent_path = dirname($projectRootPath); // im losing my mind trying to get tar working from the parent directory.....
+//echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
+// php.net/manual/en/function.dirname.php 
+
 // need to go one file back to run the tar + create a folder to place the tar on the local machine too
+//shell_exec("cd $parent_path && mkdir bundles/"); // MAKE DIR IF NOT EXISTS !!!
 exec("cd $projectRootPath && tar -czf $tar_path $file_path .", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";

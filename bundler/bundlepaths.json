@@ -6,15 +6,13 @@
             "frontend/includes/register.php", 
             "frontend/includes/validate.inc.php", 
             "frontend/my_library"],
-
         "clubFeatures" :[
             "frontend/includes/club_functions.php", 
             "frontend/includes/events_api.php",
             "frontend/includes/events_functions.php",
             "frontend/bookClub.php", 
             "frontend/calendar.php"],
-
-        "bookFeatures" :[ 
+        "bookFeatures" :[
             "frontend/includes/book.inc.php", 
             "frontend/includes/browse.inc.php", 
             "frontend/includes/my_library.php", 
@@ -23,24 +21,19 @@
             "frontend/book.php", 
             "frontend/browse.php", 
             "frontend/search.php"],
-
         "baseFeatures" :
             ["frontend/footer.inc.php", 
             "frontend/index.php", 
             "frontend/main.inc.php", 
             "frontend/nav.inc.php"]
         },
-    
-    "Backend": 
+    "Backend":
         {
             "userData": ["backend/sql_db"],
-
             "bookData": ["backend/api_db"],
-
             "databaseProcess": ["backend/rabbitMQ"]
         },
-
-    "DMZ": 
+    "DMZ":
         {"apiProcess": [
             "api/api_cache.php", 
             "api/api_endpoints.php",
@@ -50,5 +43,4 @@
             "api/rabbitMQLib.inc", 
             "api/rmqAccess.ini"]
         }
-
 }
