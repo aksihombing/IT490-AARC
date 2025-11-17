@@ -16,7 +16,7 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 require_once('rabbitMQLib.inc');
 require_once('get_host_info.inc');
 require_once('db_config.inc.php');
-require_once('clusters.ini');
+//require_once('clusters.ini');
 
 // sends version back to the php script used for the bundle on development cluster
 function doVersionRequest(array $req)
@@ -57,14 +57,14 @@ function doAddBundle(array $req)
 
   $bundle_name = $req['bundle_name'] ?? '';
   $version = (int) ($req['version'] ?? 0);
-  $path = $req['path'] ?? '';
+  
 
-  if (empty($bundle_name) || $version <= 0 || empty($path)) {
+  if (empty($bundle_name) || $version <= 0) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
 
-  $stmt = $db->prepare("INSERT INTO bundles (bundle_name, version, path) VALUES (?,?,?)");// creates a new row for the bundle and this bundle is given a status of new by default
-  $stmt->bind_param('sis', $bundle_name, $version, $path);
+  $stmt = $db->prepare("INSERT INTO bundles (bundle_name, version) VALUES (?,?)");// creates a new row for the bundle and this bundle is given a status of new by default
+  $stmt->bind_param('si', $bundle_name, $version);
 
   if ($stmt->execute()) {
     $stmt->close();
