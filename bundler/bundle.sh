@@ -16,7 +16,7 @@ fi
 
 BUNDLE_NAME=$1
 
-php test_bundle.php "$BUNDLE_NAME"
+php bundle.php "$BUNDLE_NAME"
 if [ $? -ne 0 ]; then
     echo "Failed to send tarball to messaging queue."
     exit 1

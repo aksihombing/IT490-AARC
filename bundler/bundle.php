@@ -10,26 +10,34 @@ require_once __DIR__ . '/get_host_info.inc';
 function getPathInfo (string $section, string $bundle_name){
     $path = __DIR__ . "/bundlepaths.json";
     if (!file_exists($path)) {
-        die("bundle path ini not found at $path\n");
+        echo "bundle path ini not found at $path\n";
+        exit(1);
     }
 
     // parse section (changed it from the ini parse to json parse bc idk how to parse ini sorry)
-    $path_decoded = json_decode(file_get_contents($path, true));
+    $path_decoded = json_decode(file_get_contents($path), true);
 
     if(!$path_decoded){
-        die("Failed to parse path : $path\n");
+        echo "Failed to parse path : $path\n";
+        exit(1);
     }
 
     // check if bundle_name found:
     if(!isset($path_decoded[$section][$bundle_name])){
-        die("Bundle Name '$bundle_name' not found at $path\n");
+        echo "Bundle Name '$bundle_name' not found at $path\n";
+        
+        //$debuggingarray = implode( ", ", $path_decoded[$section][$bundle_name]);
+        echo "Checking if bundle_name is found : $path_decoded[$section][$bundle_name]\n"; //DEBUGGING
+        exit(1);
     }
 
     $paths_from_json = $path_decoded[$section][$bundle_name];
-
+    echo "PATHS_FROM_JSON IS : $paths_from_json\n"; //DEBUGGING
     // convert to string ??? with implode
+    // escapeshellarg translates it to be able to work as a shell argument, which is good for when its actually called
     // https://www.php.net/manual/en/function.escapeshellarg.php maybe?
-
+    $paths_list = implode(' ', array_map('escapeshellarg', $paths_from_json));
+    echo "PATHS_LIST IS : $paths_list\n"; //DEBUGGING
 
     // php.net/manual/en/function.realpath.php ?? not sure if needed, but a reference in case i need it later
     
@@ -40,7 +48,9 @@ function getPathInfo (string $section, string $bundle_name){
 
     //return $full_paths;
 
-    return $paths_from_json;
+    //return $paths_from_json;
+
+    return $paths_list;
 }
 
 
@@ -100,17 +110,24 @@ try {
     // build + send request
     $response = $client->send_request($request);
 
-    if (isset($response['status']) && $response['status'] === 'success') {
+    /*if (isset($response['status']) && $response['status'] === 'success') {
         $version = $response['version'];
         echo "Successfully received response from remote\n";
     }
     else{echo "Error: Bundle not sent\n";}
-    $client->close();
+    $client->close();*/
+    if (!isset($response['status']) || $response['status'] === 'fail') {
+        echo "Unable to get version number from database\n";
+        exit(1);
+    }
+    $version = $response['version'];
+    echo "Successfully received response from remote. $bundle_name version number is $version.\n";
+
     
 
 } catch (Exception $e) {
-    $client->close();
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
+    exit(1);
 }
 
 // CREATE BUNDLE
@@ -123,6 +140,7 @@ $tar_path = "$projectRootPath/bundles/$tar_name";
 exec("cd $projectRootPath && tar -czf $tar_path $file_path .", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
+    exit(1);
 }
 
 // SEND BUNDLE
@@ -130,6 +148,7 @@ if ($tar_returnCode !== 0) {
 exec("scp '$tar_path' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode);
 if ($scp_returnCode !== 0) {
     echo "Error: Unable to scp $tar_path to deployment\n";
+    exit(1);
 }
 else {echo "Successfully send $tar_path to deployment\n";}
 
@@ -147,16 +166,16 @@ try {
     // build + send request
     $response = $client->send_request($request);
 
-    if (isset($response['status']) && $response['status'] === 'success') {
-        echo "Successfully sent request to Deploy VM to update database\n";
+    if (!isset($response['status']) || $response['status'] === 'fail') {
+        echo "Unable to get version number from database\n";
+        exit(1);
     }
-    else {echo "Error: Deploy VM was unable to update database\n";}
-    $client->close();
+    echo "Successfully sent request to Deploy VM to update database\n"; // im assuming that it is a success
     
 
 } catch (Exception $e) {
-    $client->close();
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
+    exit(1);
 }
 
 // to tell bundle.sh that it was successful : 
