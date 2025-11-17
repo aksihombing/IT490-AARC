@@ -148,7 +148,7 @@ $tar_path = "$projectRootPath/bundles/$tar_name";
 
 // need to go one file back to run the tar + create a folder to place the tar on the local machine too
 //shell_exec("cd $parent_path && mkdir bundles/"); // MAKE DIR IF NOT EXISTS !!!
-exec("cd $projectRootPath && tar -czf $tar_path $file_path .", $tar_output, $tar_returnCode);
+exec("cd $projectRootPath && tar -czf $tar_path $file_path", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
     exit(1);
