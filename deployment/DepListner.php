@@ -41,7 +41,7 @@ echo "Processing 'version_request'\n";// replace with with type from Rea's bundl
 }
 
 
-function doAddBundle(array $req) { // adter the bundle script gets the new version number and the .zip/.tar or whichever 
+function doAddBundle(array $req) { // after the bundle script gets the new version number and the .zip/.tar or whichever 
   // is uploaded to the bundles directory on the dep vm , it will call this function to add the bundle info to the db
 echo "Processing 'add_bundle'\n";// replace with type from rea's bundler script
   $db = db();
