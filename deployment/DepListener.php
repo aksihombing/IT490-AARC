@@ -63,8 +63,8 @@ function doAddBundle(array $req)
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
 
-  $stmt = $db->prepare("INSERT INTO bundles (bundle_name, version) VALUES (?,?,?)");// creates a new row for the bundle and this bundle is given a status of new by default
-  $stmt->bind_param('sis', $bundle_name, $version);
+  $stmt = $db->prepare("INSERT INTO bundles (bundle_name, version) VALUES (?,?)");// creates a new row for the bundle and this bundle is given a status of new by default
+  $stmt->bind_param('si', $bundle_name, $version);
 
   if ($stmt->execute()) {
     $stmt->close();
