@@ -1,0 +1,57 @@
+{
+    "userFeatures": {
+        "commands": [
+            "echo 'Installing userFeatures'",
+            "sudo mv -r frontend/ /var/www/aarc",
+            "sudo service apache2 restart"
+        ]
+    },
+    "clubFeatures": {
+        "commands": [
+            "echo 'Installing clubFeatures'",
+            "sudo mv -r frontend/ /var/www/aarc",
+            "sudo service apache2 restart"
+        ]
+    },
+    "bookFeatures": {
+        "commands": [
+            "echo 'Installing bookFeatures'",
+            "sudo mv -r frontend/ /var/www/aarc",
+            "sudo service apache2 restart"
+        ]
+    },
+    "baseFeatures": {
+        "commands": [
+            "echo 'Installing baseFeatures'",
+            "sudo mv -r frontend/ /var/www/aarc",
+            "sudo service apache2 restart"
+        ]
+    },
+    "userData": {
+        "commands": [
+            "echo 'Installing userData'",
+            "sudo mysql -u 'userAdmin' -p 'aarc490' 'userdb' < 'userdb.sql'"
+        ]
+    },
+    "bookData": {
+        "commands": [
+            "echo 'Installing bookData'",
+            "sudo mysql -u 'apiAdmin' -p 'aarc490' 'apidb' < 'backend/api_db/library_cache.sql'",
+            "sudo mysql -u 'apiAdmin' -p 'aarc490' 'apidb' < 'backend/api_db/cron/recentBooks.sql'",
+            "https://stackoverflow.com/questions/4880290/how-do-i-create-a-crontab-through-a-script"
+        ]
+    },
+    "databaseProcess": {
+        "commands": [
+            "echo 'Installing databaseProcess (RabbitMQ Processor)'",
+            "need to restart database's RabbitMQServer daemon and/or set it up"
+        ]
+    },
+    "apiProcess": {
+        "commands": [
+            "echo 'Installing apiProcess (RabbitMQ Processor)'",
+            "script",
+            "script"
+        ]
+    }
+}

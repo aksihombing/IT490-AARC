@@ -7,7 +7,8 @@ require_once __DIR__ . '/get_host_info.inc';
 // https://www.php.net/manual/en/function.exec.php
 
 // HELPER FUNCTIONS -------------------------
-function getPathInfo (string $section, string $bundle_name){
+function getPathInfo(string $section, string $bundle_name)
+{
     $path = __DIR__ . "/bundlepaths.json";
     if (!file_exists($path)) {
         echo "bundle path ini not found at $path\n";
@@ -17,15 +18,19 @@ function getPathInfo (string $section, string $bundle_name){
     // parse section (changed it from the ini parse to json parse bc idk how to parse ini sorry)
     $path_decoded = json_decode(file_get_contents($path), true);
 
-    if(!$path_decoded){
+    if (!$path_decoded) {
         echo "Failed to parse path : $path\n";
         exit(1);
     }
 
     // check if bundle_name found:
-    if(!isset($path_decoded[$section][$bundle_name])){
-        echo "Bundle Name '$bundle_name' not found at $path\n";
-        
+    if (!isset($path_decoded[$section][$bundle_name])) {
+        echo "Bundle Name '$bundle_name' not found at $path\n\n";
+        echo "Please select appropriate bundle name:\n";
+        echo "Frontend: userFeatures , clubFeatures , bookFeatures, baseFeatures\n
+                Backend: userData, bookData, databaseProcess\n
+                DMZ: apiProcess\n";
+
         //$debuggingarray = implode( ", ", $path_decoded[$section][$bundle_name]);
         //echo "Checking if bundle_name is found: "; //DEBUGGING
         //print_r($path_decoded[$section][$bundle_name]); //DEBUGGING
@@ -45,7 +50,7 @@ function getPathInfo (string $section, string $bundle_name){
     echo "PATHS_LIST IS : $paths_list\n"; //DEBUGGING
 
     // php.net/manual/en/function.realpath.php ?? not sure if needed, but a reference in case i need it later
-    
+
     //$full_paths = [];
     /*foreach ($paths_from_json as $relative_path){
         $full_paths[] = __DIR__ . $relative_path;
@@ -77,23 +82,22 @@ $projectRootPath = realpath(__DIR__ . "/..");
 // php.net/manual/en/function.realpath.php --> need to cd into the project root before i tar the files to maintain holder hierarchy and bc bundler/ is adjacent to all other dev folders
 
 // find which vm the bundlr script is being run on
-foreach ($whichVM as $ip => $vmName){
-    $shellcmd = "hostname -I | grep $ip"; 
+foreach ($whichVM as $ip => $vmName) {
+    $shellcmd = "hostname -I | grep $ip";
     // note to self: we could use hostname more effectively if we assigned each ip in /etc/hosts
-    exec($shellcmd, $output, $returnCode); 
+    exec($shellcmd, $output, $returnCode);
     // similar to shell_exec() but saves output and returncode
 
     // iterate thru each possible ip for the dev layer
-    if ($returnCode === 0){
+    if ($returnCode === 0) {
         $section = $vmName;
         break;
     }
 }
 
-if ($section === null){
+if ($section === null) {
     echo "Could not determine VM. IP Address not expected.\n";
-}
-else{
+} else {
     echo "Running on VM section: $section\n";
 }
 
@@ -105,7 +109,7 @@ $bundle_name = $argv[1];
 $version = null;
 // the deployment listener will be the one to update the name of the bundle by checking its own database
 try {
-    $client = new rabbitMQClient(__DIR__ . '/deployQueues.ini', 'DeployVersion'); 
+    $client = new rabbitMQClient(__DIR__ . '/deployQueues.ini', 'DeployVersion');
     // need to verify WHERE the bundle script itself will live + make sure host.ini includes the new queue + host specific to the deployment vm
 
     $request = [
@@ -129,7 +133,7 @@ try {
     //echo "Section: $section || Bundle Name: $bundle_name\n"; //DEBUGGING
     echo "Successfully received response from remote. $bundle_name version number is $version.\n";
 
-    
+
 
 } catch (Exception $e) {
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
@@ -152,8 +156,6 @@ $tar_path = "$projectRootPath/bundles/$tar_name";
 
 
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
-// https://stackoverflow.com/questions/31820750/run-sql-file-in-database-from-terminal
-
 
 
 exec("cd $projectRootPath && tar -czf $tar_path $file_path", $tar_output, $tar_returnCode);
@@ -168,8 +170,9 @@ exec("scp '$tar_path' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $
 if ($scp_returnCode !== 0) {
     echo "Error: Unable to scp $tar_path to deployment\n";
     exit(1);
+} else {
+    echo "Successfully send $tar_path to deployment\n";
 }
-else {echo "Successfully send $tar_path to deployment\n";}
 
 
 // CALL AddDeploy ----------------
@@ -190,7 +193,7 @@ try {
         exit(1);
     }
     echo "Successfully sent request to Deploy VM to update database\n"; // im assuming that it is a success
-    
+
 
 } catch (Exception $e) {
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
