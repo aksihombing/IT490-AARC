@@ -1,6 +1,6 @@
 <?php
 require_once(__DIR__ . '/../rabbitMQ/rabbitMQLib.inc');
-//session_start();
+
 /*
 PULLED CHIZZYS CODE
 edited by Rea
@@ -27,44 +27,48 @@ if ($olid == '') {
   exit;
 }
 
+// check uid and username
+$userId = $_SESSION['user_id'];
+//$username = $_SESSION['username'];
 
 // --------- ADD TO LIBRARY
-$error = '';
+$error = ''; // error catching
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // POST functions are used for add_to_library and create_review
   try {
     $action = $_POST['action'] ?? '';
 
-    if ($action === 'add_to_library'){
-      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
-      $client->send_request([
-        'type'    => 'library.personal.add',
-        'user_id' => $_SESSION['uid'],
+
+    // ADD TO LIBRARY (POST)
+    if ($action === 'add_to_library') {
+      $addLibraryClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryPersonal');
+      $addLibraryClient->send_request([
+        'type' => 'library.personal.add',
+        'user_id' => $userId,
         'works_id' => $olid,
       ]);
 
-      
-    
-
       header("Location: index.php?content=book&olid=" . urlencode($olid));
       exit;// should we reedirect after to show it works?
-      
+
       echo "<p>Book added to your library!</p>";
 
     }
 
-    // ------------- CREATE REVIEW
+    // ------------- CREATE REVIEW (POST)
     //handling  the review submission
     if ($action === 'create_review') {
-      $rating  = $_POST['rating']  ?? 0;
-      $comment = $_POST['comment'] ?? '';
+      $rating = $_POST['rating'] ?? 0;
+      $body = $_POST['body'] ?? '';
 
-      $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
-      $client->send_request([
-        'type'     => 'library.review.create',
-        'user_id'  => $_SESSION['uid'],
+      $createReviewClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'CreateReviews');
+      $createReviewClient->send_request([
+        'type' => 'library.review.create',
+        'user_id' => $userId,
         'works_id' => $olid,
-        'rating'   => $rating,
-        'comment'  => $comment,
+        'rating' => $rating,
+        'body' => $body,
       ]);
 
       header("Location: index.php?content=book&olid=" . urlencode($olid));
@@ -76,14 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-
+// both book_details and ListReviews are run when the page is loaded -- doesnt rely on any other http request methods
 
 // -------------- DO BOOK DETAILS
 try {
-  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
-  $response = $client->send_request([
+  $bookDetailsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'LibraryDetails');
+  $response = $bookDetailsClient->send_request([
     'type' => 'book_details',
-    'works_id' => $olid
+    'olid' => $olid
   ]);
 } catch (Exception $e) {
   $response = [
@@ -102,18 +106,25 @@ if (($response['status'] === 'success') && is_array($response)) {
 // ------------- LIST REVIEWS
 //fetch reviews and then list reviews
 
-$reviews=[];
+$reviews = [];
 try {
-  $client = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
-  $resp = $client->send_request([
-    'type'     => 'library.reviews.list',
-    'works_id' => $olid,
+  $listReviewsClient = new rabbitMQClient(__DIR__ . '/../rabbitMQ/host.ini', 'ListReviews');
+  $resp = $listReviewsClient->send_request([
+    'type' => 'library.review.list',
+    'works_id' => $olid
   ]);
-  if ($resp['status'] === 'success') {
+  //echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
+  if ($resp['status'] === 'success' && is_array($resp['items'])) {
     $reviews = $resp['items'];
   }
-  } catch (Exception $e) {
-
+  else {
+    $error = "Failed to load reviews: " . ($resp['message'] ?? 'Unknown error');
+  }
+} catch (Exception $e) {
+  $resp = [
+    'status' => 'error',
+    'message' => 'Unable to connect to ListReviews' . $e->getMessage()
+  ];
 }
 
 ?>
@@ -167,14 +178,14 @@ try {
       <img id="cover" class="cover" alt="Book Cover" src="<?php echo htmlspecialchars($book['cover_url']); ?>">
 
       <div id="book-data">
-        <p><strong>Rating</strong> <?php echo htmlspecialchars($book['rating_average']); ?> </p>
+        <p><strong>Average Rating</strong> <?php echo htmlspecialchars(round($book['ratings_average'],2)); ?> </p>
         <br>
         <p><strong>ISBN: </strong> <?php echo htmlspecialchars($book['isbn']); ?> </p>
         <p><strong>Description: </strong> <?php echo htmlspecialchars($book['book_desc']); ?> </p>
         <p><strong>First Published: </strong> <?php echo htmlspecialchars($book['publish_year']); ?> </p>
 
         <?php // FOR SUBJECTS, comma separated
-          $subjects = json_decode($books['subjects'] ?? '[]', true);
+          $subjects = json_decode($book['subjects'] ?? '[]', true);
 
           echo "<p><strong>Subjects: </strong>" . htmlspecialchars(implode(', ', $subjects)) . "</p>";
           ?>
@@ -189,9 +200,9 @@ try {
     </div>
 
     <form method="POST" style="margin-top:12px;">
-    <input type="hidden" name="action" value="add_to_library">            
-    <button class="btn" type="submit">Add to My Library</button>         
-  </form>
+      <input type="hidden" name="action" value="add_to_library">
+      <button class="btn" type="submit">Add to My Library</button>
+    </form>
 
     <!-- CHIZZY -->
     <section>
@@ -199,7 +210,7 @@ try {
       <form id="reviewForm" method="POST">
         <input type="hidden" name="action" value="create_review">
         <label>Rating:
-          <select id="rating" required>
+          <select id="rating" name="rating" required>
             <option value="">Select...</option>
             <option>1</option>
             <option>2</option>
@@ -210,7 +221,7 @@ try {
         </label>
         <br>
         <label>Review:</label><br>
-        <textarea id="comment" rows="3" placeholder="Write your thoughts here..."></textarea>
+        <textarea id="body" rows="3" name="body" placeholder="Write your thoughts here..."></textarea>
         <br>
         <button class="btn" type="submit">Submit</button>
       </form>
@@ -218,20 +229,22 @@ try {
 
     <section>
       <h3>User Reviews</h3>
-      <div id="reviews"></div>
-      <?php if (empty($reviews)): ?>
-        <p>No reviews yet!</p>
-      <?php else: ?>
-        <?php foreach ($reviews as $review): ?>
-          <div class="card">
-            <strong><?= htmlspecialchars($review['username'] ?? 'User'); ?></strong>
-             — <?= (int)($review['rating'] ?? 0) ?>/5  
-            <p><?= htmlspecialchars($review['comment'] ?? ''); ?></p>
-            <small><?= htmlspecialchars($review['created_at'] ?? ''); ?></small>
-          </div>
-        <?php endforeach; ?>
-      <?php endif; ?>
-        </div>
+      <div id="reviews"> <!-- reviews div -->
+        <?php if (empty($reviews)): ?>
+          <p>No reviews yet!</p>
+        <?php else: ?>
+          <?php foreach ($reviews as $review): ?>
+            <div class="card"> <!-- card div -->
+              <p>
+                <strong> <?php echo htmlspecialchars($review['username'] ?? 'Anonymous'); ?> </strong>
+                — <?php echo (int) ($review['rating'] ?? 0) ?>/5
+              </p>
+              <p> <?php echo htmlspecialchars($review['body'] ?? ''); ?></p>
+              <small> <?php echo htmlspecialchars($review['created_at'] ?? ''); ?> </small>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div> <!-- card div -->
     </section>
     <!-- CHIZZY, END -->
   <?php endif; ?>

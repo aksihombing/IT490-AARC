@@ -1,4 +1,5 @@
 <!doctype html>
+
 <html>
 <head>
   <meta charset="utf-8">
@@ -11,33 +12,8 @@
 
 <section id="myClubs">
   <h3>My Clubs</h3>
-  <button onclick="loadClubs()">Refresh List</button>
   <ul id="clubList"></ul>
 </section>
-
-<script>
-const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
-
-async function loadClubs() {
-  const res = await fetch('clubs_functions.php', {
-    method: 'POST',
-    body: new URLSearchParams({ action: 'list', user_id: '<?= $_SESSION['user_id'] ?? 1 ?>' })
-  });
-  const json = await res.json();
-  const list = document.getElementById('clubList');
-  list.innerHTML = '';
-  if (!json.clubs || json.clubs.length === 0) {
-    list.innerHTML = '<li>No clubs found.</li>';
-    return;
-  }
-  json.clubs.forEach(c => {
-    const li = document.createElement('li');
-    li.innerHTML = `<strong>${c.name}</strong> — ${c.description || 'No description'} 
-                    (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>)`;
-    list.appendChild(li);
-  });
-}
-</script>
 
 <section id="createClub">
   <h3>Create Club</h3>
@@ -50,6 +26,7 @@ async function loadClubs() {
   </form>
 </section>
 
+<!--
 <section id="inviteMember">
   <h3>Invite Member</h3>
   <form id="formInvite">
@@ -59,6 +36,7 @@ async function loadClubs() {
     <button type="submit">Invite</button>
   </form>
 </section>
+-->
 
 <section id="events">
   <h3>Schedule Event</h3>
@@ -76,6 +54,67 @@ async function loadClubs() {
 <div id="output" style="margin-top:1rem;color:#333;"></div>
 
 <script>
+const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
+
+document.addEventListener("DOMContentLoaded", loadClubs); // should auto-load clubs list when page loads
+
+// invite generation function
+async function generateInvite(clubId) {
+  const res = await fetch('clubs_functions.php', {
+    method: 'POST',
+    body: new URLSearchParams({ 
+      action: 'invite_link', 
+      club_id: clubId, 
+      user_id: USER_ID })
+  });
+  const json = await res.json();
+  if (json.status === 'success' && json.link) {
+    alert(`Invite link: ${json.link}`);
+  } else {
+    alert(`Failed to generate invite link: ${json.message || 'unknown error'}`);
+  }
+}
+
+// club list loading function
+async function loadClubs() {
+  const list = document.getElementById('clubList');
+
+  try {
+    const res = await fetch('clubs_functions.php', {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'list',
+        user_id: USER_ID
+      })
+    });
+
+    const json = await res.json();
+
+    if (!json.clubs || json.clubs.length === 0) {
+      list.innerHTML = '<li>no clubs found</li>';
+      return;
+    }
+
+    list.innerHTML = '';
+    json.clubs.forEach(c => {
+      const li = document.createElement('li');
+      let inviteLinkHTML = '';
+      //modified existing login here for club list to include the link I Hope
+      if (c.owner_id == USER_ID) {
+        inviteLinkHTML = `<button onclick="generateInvite(${c.club_id})">Generate Invite Link</button>`;
+      }
+
+      li.innerHTML = `<strong>${c.name}</strong> — ${c.description || 'No club description'} 
+        (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>) ${inviteLinkHTML}`;
+        
+      list.appendChild(li); 
+    });
+  } catch (err) {
+    list.innerHTML = `<li>error loading clubs: ${err.message}</li>`;
+  }
+}
+
+
 async function postForm(form){
   const data = new FormData(form);
     
@@ -89,11 +128,16 @@ async function postForm(form){
   const json = await res.json();
   out.textContent = json.message || json.status;
 
+  // refresh clubs automatically after forms submitted
+  if (['create', 'invite'].includes(data.get('action'))) {
+    await loadClubs();
+  }
+
   form.reset();
 }
 
 document.getElementById('formCreate').onsubmit = e => {e.preventDefault();postForm(e.target);}
-document.getElementById('formInvite').onsubmit = e => {e.preventDefault();postForm(e.target);}
+// document.getElementById('formInvite').onsubmit = e => {e.preventDefault();postForm(e.target);}
 document.getElementById('formEvent').onsubmit = e => {e.preventDefault();postForm(e.target);}
 </script>
 
