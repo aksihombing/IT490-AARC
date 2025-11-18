@@ -8,11 +8,12 @@
     for incoming messages from deployment to install bundles and also return status
     of the bundle back to deployment
 */
-require_once __DIR__ . '/rabbitMQ/rabbitMQLib.inc';
-require_once __DIR__ . '/rabbitMQ/get_host_info.inc';
+require_once __DIR__ . 'rabbitMQLib.inc';
+require_once __DIR__ . 'get_host_info.inc';
 
-function getBundlePath($bundle_name){
-    //need to alter paths to whatever we end up doing for each vm
+function getBundlePath(string $bundle_name){
+    //need to alter paths to whatever we end up doing for each vm <<<------
+    //DONT FORGET 
     $BUNDLE_PATHS = [
         //frontend bundles
         'userFeatures' => '/var/www/html/',
@@ -21,13 +22,31 @@ function getBundlePath($bundle_name){
         'baseFeatures' => '/var/www/html/', 
 
         //backend bundles
-        'userData'     => '/idk/',
-        'clubData'     => '/idk/',
-        'bookData'     => '/idk/',
+        'userData' => '/home/backend/sql_db',
+        'bookData' => '/home/backend/api_db',
+        'databaseProcess' => '/home/backend/rabbitMQ',
+        'databaseDaemon' => '/home/backend/daemon',
 
         //dmz bundles
-        'apiData'      => '/idk/'
-];
+        'apiProcess' => '/home/api/',
+        'apiDaemon' => '/home/api/daemon',
+        'apiCron' => '/home/api/cron',
+    ];
+
+    return $BUNDLE_PATHS[$bundle_name];
+}
+
+function sendStatus(string $bundle_name, int $version, string $status, string $cluster){
+    $server = new rabbitMQServer(__DIR__ . '/host.ini', 'deployStatus');
+
+    $status_map = [
+        'bundle_name' => $bundle_name,
+        'version' => $version,
+        'status' => $status,
+        'cluster' => $cluster
+    ];
+    
+    //request logic here
 }
 
 function installBundle(array $req){
@@ -42,7 +61,7 @@ function installBundle(array $req){
     $bundleDir = getBundlePath($bundle_name);
 
     if ($bundleDir === null){
-        return ['status' => 'fail', 'message' => 'unknown bundle type']; // if this shows up need to add a new section to the map for new bundle type
+        return ['status' => 'fail', 'message' => 'unknown bundle type']; // if this shows up need to add a new section to the map for new bundle type?? or should i have it created here
     }
     
     $bundleFile = "/deployment/bundles/{$path}"; //unsure if this is the correct path :(
@@ -52,22 +71,24 @@ function installBundle(array $req){
         return ['status' => 'fail', 'message' => 'bundle missing'];
     }
 
-    //extract bundle
-    
+    /*extract bundle
+
+    https://www.php.net/manual/en/function.mkdir.php
+    https://www.php.net/manual/en/function.uniqid.php
+    https://systemd.io/TEMPORARY_DIRECTORIES/
+    https://linuxvox.com/blog/linux-tmp-folder/
+    */
+    $tmp = "/tmp/deployment_extract" . uniqid();
+
+    mkdir($tmp, , true); //figure out permission 
+    //eugghhhh m confused
 
     //install bundle based on target directory + vm
 
-    //test bundle
+    //test bundle??
 
     //change bundle status here?
 }
-
-/*
-function sendStatus(array $req){
-    //sending status to deployment
-}
-idk if i need this actually    
-*/
 
 
 // --- REQUEST PROCESSOR ---
