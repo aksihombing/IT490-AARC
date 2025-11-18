@@ -156,6 +156,11 @@ $tar_path = "$projectRootPath/bundles/$tar_name";
 
 
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
+// https://www.geeksforgeeks.org/php/php-file_put_contents-function/
+$config_script = "configure/$bundle_name.sh";
+file_put_contents('configure', $config_script );
+// wip
+
 
 
 exec("cd $projectRootPath && tar -czf $tar_path $file_path", $tar_output, $tar_returnCode);
