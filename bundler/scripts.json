@@ -1,7 +1,37 @@
 {
-    "bundle_scripts": {
-        "bundle_1": "172.28.219.213",
-        "bundle_2": "172.28.108.126",
-        "bundle_3": "172.28.109.126"
-    }
+    "userFeatures": [
+        "sudo mv -r frontend/ /var/www/aarc",
+        "sudo service apache2 restart"
+    ],
+    "clubFeatures": [
+        "sudo mv -r frontend/ /var/www/aarc",
+        "sudo service apache2 restart"
+    ],
+    "bookFeatures": [
+        "sudo mv -r frontend/ /var/www/aarc",
+        "sudo service apache2 restart"
+    ],
+    "baseFeatures": [
+        "sudo mv -r frontend/ /var/www/aarc",
+        "sudo service apache2 restart"
+    ],
+
+
+    "userData": [
+        "sudo mysql -u 'userAdmin' -p 'aarc490' 'userdb' < 'userdb.sql'"
+    ],
+    "bookData": [
+        "sudo mysql -u 'apiAdmin' -p 'aarc490' 'apidb' < 'backend/api_db/library_cache.sql'",
+        "sudo mysql -u 'apiAdmin' -p 'aarc490' 'apidb' < 'backend/api_db/cron/recentBooks.sql'",
+        "https://stackoverflow.com/questions/4880290/how-do-i-create-a-crontab-through-a-script"
+    ],
+    "databaseProcess": [
+        "need to restart database's RabbitMQServer daemon and/or set it up"
+    ],
+
+
+    "apiProcess": [
+        "script",
+        "script"
+    ]
 }

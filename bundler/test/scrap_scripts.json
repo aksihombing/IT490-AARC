@@ -1,0 +1,31 @@
+{
+    "userFeatures": [
+        "script",
+        "script"
+    ],
+    "clubFeatures": [
+        "script",
+        "script"
+    ],
+    "bookFeatures": [
+        "script",
+        "script"
+    ],
+    "baseFeatures": [
+        "script",
+        "script"
+    ],
+    "userData": [
+        "script"
+    ],
+    "bookData": [
+        "script"
+    ],
+    "databaseProcess": [
+        "script"
+    ],
+    "apiProcess": [
+        "script",
+        "script"
+    ]
+}

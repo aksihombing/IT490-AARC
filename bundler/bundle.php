@@ -148,6 +148,14 @@ $tar_path = "$projectRootPath/bundles/$tar_name";
 
 // need to go one file back to run the tar + create a folder to place the tar on the local machine too
 //shell_exec("cd $parent_path && mkdir bundles/"); // MAKE DIR IF NOT EXISTS !!!
+
+
+
+// TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
+// https://stackoverflow.com/questions/31820750/run-sql-file-in-database-from-terminal
+
+
+
 exec("cd $projectRootPath && tar -czf $tar_path $file_path", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
