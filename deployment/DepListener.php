@@ -70,7 +70,7 @@ function doAddBundle(array $req)
     $stmt->close();
     $db->close();
 
-    $filename = $bundle_name . "vers" . $version . ".tar.gz"; //do we include file extension too, .tar.gz or .zip?
+    $filename = $bundle_name . "v" . $version . ".tar.gz"; //do we include file extension too, .tar.gz or .zip?
 
     echo "Bundle {$filename} added to database, deploying to QA.\n";
 
@@ -128,7 +128,7 @@ function doStatusUpdate(array $req)
   $stmt->close();
   $db->close();
 
-   $filename = $bundle_name . "vers" . $version . ".tar.gz";// same question about the file extension
+   $filename = $bundle_name . "v" . $version . ".tar.gz";// same question about the file extension
 
   doDeployBundle([
     'bundle_status' => $status,
@@ -165,18 +165,18 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       $destination_cluster = 'Prod';
        } 
        else {
-        echo "Bundle $bundle_name vers$version pased on to Production. Deplotment done.\n";
+        echo "Bundle $bundle_name v$version pased on to Production. Deplotment done.\n";
         return;
        }
        break;
     case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
       if ($starting_cluster === 'Prod'){
-        echo "Bundle $bundle_name vers$version failed in Production. Rolling back.\n";
+        echo "Bundle $bundle_name v$version failed in Production. Rolling back.\n";
       doRollback([ 
         'bundle_name' => $bundle_name
       ]);
     } else {
-        echo "Bundle $bundle_name vers$version failed in QA. Deployment stopping.\n";
+        echo "Bundle $bundle_name v$version failed in QA. Deployment stopping.\n";
     }
       return;
     default:
@@ -184,7 +184,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       return;
   }
 
-  echo "Deploying bundle $bundle_name vers$version to $destination_cluster\n";
+  echo "Deploying bundle $bundle_name v$version to $destination_cluster\n";
   // figuring out which vm to send it to baased on the bundle name and destination cluster
 
   //using the clusters ini to connect bundle names to vm names
@@ -249,6 +249,7 @@ function sendBundle(array $deployInfo)
 
 }
 
+/*
 function doRollback(array $rollbackReq)
 { // helper function to do a rollback
   // array ['destination_cluster', 'destination_vm', 'bundle_name']
@@ -279,7 +280,7 @@ $stmt->bind_param('s', $bundle_name);
 
   // file name construction to be sent
 
-  $old_path = $bundle_name . "vers" . $old_version . ".tar.gz";// same question about file extension
+  $old_path = $bundle_name . "v" . $old_version . ".tar.gz";// same question about file extension
 
   echo "Deploying rollback of $bundle_name to version $old_version\n";
 
@@ -292,7 +293,7 @@ $stmt->bind_param('s', $bundle_name);
     'cluster' => 'Prod'
   ]);
 }
-
+*/
 
 /*function idk yet(){
   // may need more functions
