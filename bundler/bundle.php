@@ -227,7 +227,7 @@ try {
 }
 
 // delete configure.sh after it was created to prevent overlapped
-//shell_exec("sudo rm configure.sh");
+shell_exec("sudo rm configure.sh");
 
 // to tell bundle.sh that it was successful : 
 exit(0);
