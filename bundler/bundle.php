@@ -166,8 +166,7 @@ shell_exec("cd $projectRootPath && mkdir -p bundles/"); // MAKE DIR IF NOT EXIST
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
 // https://www.geeksforgeeks.org/php/php-file_put_contents-function/
 $config_script = getBundleInfo($section, $bundle_name, "commands");
-$config_path = $projectRootPath/'configure.sh';
-file_put_contents($config_path, $config_script);
+file_put_contents('configure.sh', $config_script);
 chmod('configure.sh', 755); // wxr for owner + others
 // wip
 
