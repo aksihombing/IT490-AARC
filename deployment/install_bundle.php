@@ -44,7 +44,7 @@ function sendStatus(string $bundle_name, int $version, string $status, string $c
         $client = new rabbitMQClient(__DIR__ . '/host.ini', 'deployStatus');
 
         $status_map = [
-            'type' => 'send_status'
+            'type' => 'send_status',
             'bundle_name' => $bundle_name,
             'version' => $version,
             'status' => $status, // passed or failed
@@ -101,7 +101,7 @@ function installBundle(array $req){
 
     //configure bundle/tar 
     $configFile = __DIR__. "/bundleconfig.json";
-    $config = json_decode(file_get_contents($configFile),true)
+    $config = json_decode(file_get_contents($configFile),true);
 
     $cmds = null;
     foreach ($config as $section=>$bundles){
@@ -115,13 +115,13 @@ function installBundle(array $req){
         return ['status' => 'fail', 'message' => 'bundle not found in config file'];
     }
 
-    foreach($cmds){
-        $runCmds = "cd"> escapeshellarg($tmp) . "&&". $cmds;
+    foreach($cmds as $c){
+        $runCmds = "cd"> escapeshellarg($tmp) . "&&". $c;
         exec($runCmds, $output, $result);
 
         if ($result !== 0){
-            echo "command failed $cmds\n";
-            return ['status' => 'fail', 'message' => 'install command failed']
+            echo "command failed $c\n";
+            return ['status' => 'fail', 'message' => 'install command failed'];
         }
 
         echo "bundle installed successfully\n";
@@ -165,7 +165,7 @@ flush();
 // multi-queue capable version of the queue
 
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
-$which = $argv[1] ?? 'deployQA';
+$which = $argv[1] ?? 'deployQAbackend';
 $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
