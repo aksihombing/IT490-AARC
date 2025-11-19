@@ -184,7 +184,7 @@ chmod($config_path, 0755); // wxr for owner + others
 
 
 
-exec("cd $projectRootPath && tar -czf $tar_path  configure.sh $file_path", $tar_output, $tar_returnCode);
+exec("cd $projectRootPath && tar -czf $tar_path  $config_path $file_path", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
     exit(1);
@@ -227,7 +227,7 @@ try {
 }
 
 // delete configure.sh after it was created to prevent overlapped
-shell_exec("sudo rm configure.sh");
+shell_exec("sudo rm $config_path");
 
 // to tell bundle.sh that it was successful : 
 exit(0);
