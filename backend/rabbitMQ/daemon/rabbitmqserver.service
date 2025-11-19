@@ -6,9 +6,9 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/php /home/rea-sihombing/Project/IT490-AARC/backend/rabbitMQ/RabbitMQServer.php
+ExecStart=/usr/bin/php /home/aida/git/IT490-AARC/backend/rabbitMQ/RabbitMQServer.php
 
-User=rea-sihombing
+User=aida
 
 Restart=always
 RestartSec=1
