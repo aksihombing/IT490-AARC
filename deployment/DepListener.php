@@ -70,7 +70,7 @@ function doAddBundle(array $req)
     $stmt->close();
     $db->close();
 
-    $filename = $bundle_name . "vers" . $version . ".tar.gz"; //do we include file extension too, .tar.gz or .zip?
+    $filename = $version . "_" . $bundle_name . ".tar.gz"; //do we include file extension too, .tar.gz or .zip?
 
     echo "Bundle {$filename} added to database, deploying to QA.\n";
 
@@ -117,7 +117,7 @@ function doStatusUpdate(array $req)
 
   $cluster = getClusterInfo($sender_ip);
   if ($cluster === null) {
-    return ['status' => 'fail', 'message' => '$sender_ip not found in cluster.ini'];
+    return ['status' => 'fail', 'message' => '$sender_ip not found in clusters.ini'];
   }
 
   $stmt = $db->prepare("UPDATE bundles SET status = ? WHERE bundle_name = ? AND version = ?");// this records the result of the installation test by updatinf the fields in the db
@@ -128,7 +128,7 @@ function doStatusUpdate(array $req)
   $stmt->close();
   $db->close();
 
-   $filename = $bundle_name . "vers" . $version . ".tar.gz";// same question about the file extension
+   $filename = $version . "_" . $bundle_name . ".tar.gz";// same question about the file extension
 
   doDeployBundle([
     'bundle_status' => $status,
@@ -233,7 +233,11 @@ function sendBundle(array $deployInfo)
 
   echo "Install for" . $deployInfo['bundle_name'] . "\n";
   $iniPath = __DIR__ . "/host.ini";
+  $filePath = $deployInfo['path'];
+  $destinationIP = $deployInfo['vm_ip'];
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
+
+  exec("scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/", $sendOutput, $sendCode); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
@@ -281,7 +285,7 @@ $stmt->bind_param('s', $bundle_name);
 
   // file name construction to be sent
 
-  $old_path = $bundle_name . "vers" . $old_version . ".tar.gz";// same question about file extension
+  $old_path = $old_version . "_" . $bundle_name . ".tar.gz";// same question about file extension
 
   echo "Deploying rollback of $bundle_name to version $old_version\n";
 
