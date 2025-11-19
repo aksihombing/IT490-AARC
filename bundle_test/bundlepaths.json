@@ -35,12 +35,12 @@
         },
     "DMZ":
         {"apiProcess": [
-            "api/api_cache.php", 
             "api/api_endpoints.php",
             "api/api_process.php", 
             "api/get_host_info.inc", 
             "api/Library_API.php", 
             "api/rabbitMQLib.inc", 
-            "api/rmqAccess.ini"]
+            "api/rmqAccess.ini",
+            "api/daemon"]
         }
 }

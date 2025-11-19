@@ -1,27 +1,22 @@
 #!/bin/bash
 
-# FOR [BACKEND]
+# FOR [DMZ]
 # moves files (?) + installs(?)/restarts daemon
+# similar to the databaseProcess
 
-echo 'Installing databaseProcess (Backend RabbitMQ Processor)'
-
-
+echo 'Installing apiProcess (DMZ RabbitMQ Processor)'
 # move folders if needed
-sudo mv -r backend/ /home/
+sudo mv -r api/ /home/
 if [ $? -ne 0 ]; then
     echo "Failed to move files."
     exit 1
 fi
-
-
 # processes to bounce
-# NEED TO UPDATE SERVICE FILE NAME
-sudo service restart backenddb.service
+sudo systemctl restart libraryapi.service
 if [ $? -ne 0 ]; then
-    echo "Failed to restart backenddb.service."
+    echo "Failed to restart libraryapi.service."
     exit 1
 fi
-
 
 echo "-----Installation complete-----"
 exit 0

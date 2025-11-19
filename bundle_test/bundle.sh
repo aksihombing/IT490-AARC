@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# SCRAPPED because im silly
 # ./bundle.sh {BUNDLENAME} serves as a utility script
 
 # generic bundle shell script

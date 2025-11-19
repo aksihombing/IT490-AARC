@@ -7,9 +7,9 @@ require_once __DIR__ . '/get_host_info.inc';
 // https://www.php.net/manual/en/function.exec.php
 
 // HELPER FUNCTIONS -------------------------
-function getPathInfo(string $section, string $bundle_name)
+function getBundleInfo(string $section, string $bundle_name, string $bundle_attribute)
 {
-    $path = __DIR__ . "/bundlepaths.json";
+    $path = __DIR__ . "/bundleconfig.json";
     if (!file_exists($path)) {
         echo "bundle path ini not found at $path\n";
         exit(1);
@@ -38,7 +38,13 @@ function getPathInfo(string $section, string $bundle_name)
         exit(1);
     }
 
-    $paths_from_json = $path_decoded[$section][$bundle_name];
+    // not sure if necessary, but checks if the bundle has a PATHS or COMMAND specified
+    if (!isset($path_decoded[$section][$bundle_name][$bundle_attribute])) {
+        echo "Script error: '$bundle_name' missing path/command in json file\n\n";
+        exit(1);
+    }
+
+    $parsed_json = $path_decoded[$section][$bundle_name][$bundle_attribute];
     //echo "PATHS_FROM_JSON IS : "; //DEBUGGING
     //print_r($paths_from_json); //DEBUGGING
     //echo "\n"; //DEBUGGING
@@ -46,21 +52,19 @@ function getPathInfo(string $section, string $bundle_name)
     // convert to string ??? with implode
     // escapeshellarg translates it to be able to work as a shell argument, which is good for when its actually called
     // https://www.php.net/manual/en/function.escapeshellarg.php maybe?
-    $paths_list = implode(' ', array_map('escapeshellarg', $paths_from_json));
-    echo "PATHS_LIST IS : $paths_list\n"; //DEBUGGING
+    $attribute_list = implode(' ', array_map('escapeshellarg', $parsed_json));
+    echo "PATHS_LIST IS : $attribute_list\n"; //DEBUGGING
 
     // php.net/manual/en/function.realpath.php ?? not sure if needed, but a reference in case i need it later
-
     //$full_paths = [];
     /*foreach ($paths_from_json as $relative_path){
         $full_paths[] = __DIR__ . $relative_path;
     }*/
-
     //return $full_paths;
-
     //return $paths_from_json;
 
-    return $paths_list;
+
+    return $attribute_list;
 }
 
 
@@ -68,6 +72,14 @@ function getPathInfo(string $section, string $bundle_name)
 
 
 // ACTUAL BUNDLING SCRIPT ---------------------------
+// we dont need the shell script bc argv already accepts the name of the bundle, silly me :P
+$bundle_name = $argv[1];
+$version = null;
+$section = null;
+$projectRootPath = realpath(__DIR__ . "/..");
+// php.net/manual/en/function.realpath.php --> need to cd into the project root before i tar the files to maintain holder hierarchy and bc bundler/ is adjacent to all other dev folders
+
+
 // CHECK WHICH VM THIS BUNDLE SCRIPT IS ON 
 // this could definitely be done if we set etc/hosts with the correct ip addresses
 // example : 172.28.109.126 dev-dmz
@@ -77,9 +89,6 @@ $whichVM = [
     '172.28.219.213' => 'Backend',
     '172.28.109.126' => 'DMZ'
 ];
-$section = null;
-$projectRootPath = realpath(__DIR__ . "/..");
-// php.net/manual/en/function.realpath.php --> need to cd into the project root before i tar the files to maintain holder hierarchy and bc bundler/ is adjacent to all other dev folders
 
 // find which vm the bundlr script is being run on
 foreach ($whichVM as $ip => $vmName) {
@@ -105,8 +114,7 @@ if ($section === null) {
 
 // CHECK DEPLOY VERSION ---------- calls deploy vms checkVersion
 // get argument to know the bundle name
-$bundle_name = $argv[1];
-$version = null;
+
 // the deployment listener will be the one to update the name of the bundle by checking its own database
 try {
     $client = new rabbitMQClient(__DIR__ . '/deployQueues.ini', 'DeployVersion');
@@ -143,22 +151,24 @@ try {
 // CREATE BUNDLE
 // get file paths for the section and bundle_name
 $tar_name = "$version" . "_" . "$bundle_name" . ".tar.gz";
-$file_path = getPathInfo($section, $bundle_name);
+$file_path = getBundleInfo($section, $bundle_name, "paths");
 $tar_path = "$projectRootPath/bundles/$tar_name";
 
 //$parent_path = dirname($projectRootPath); // im losing my mind trying to get tar working from the parent directory.....
-//echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
+echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
 // php.net/manual/en/function.dirname.php 
 
 // need to go one file back to run the tar + create a folder to place the tar on the local machine too
-//shell_exec("cd $parent_path && mkdir bundles/"); // MAKE DIR IF NOT EXISTS !!!
+shell_exec("cd $parent_path && mkdir -p bundles/"); // MAKE DIR IF NOT EXISTS !!!
 
 
 
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
 // https://www.geeksforgeeks.org/php/php-file_put_contents-function/
-$config_script = "configure/$bundle_name.sh";
-file_put_contents('configure', $config_script );
+$config_script = getBundleInfo($section, $bundle_name, "commands");
+$config_path = $projectRootPath/'configure.sh';
+file_put_contents($config_path, $config_script);
+chmod('configure.sh', 755); // wxr for owner + others
 // wip
 
 
@@ -171,7 +181,7 @@ if ($tar_returnCode !== 0) {
 
 // SEND BUNDLE
 // scp to deployment
-exec("scp '$tar_path' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode);
+exec("scp '$tar_path' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode); // update name of user later !!
 if ($scp_returnCode !== 0) {
     echo "Error: Unable to scp $tar_path to deployment\n";
     exit(1);
@@ -195,7 +205,7 @@ try {
 
     if (!isset($response['status']) || $response['status'] === 'fail') {
         echo "Unable to get version number from database\n";
-        exit(1);
+         exit(1);
     }
     echo "Successfully sent request to Deploy VM to update database\n"; // im assuming that it is a success
 
@@ -204,6 +214,9 @@ try {
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
     exit(1);
 }
+
+// delete configure.sh after it was created to prevent overlapped
+shell_exec("sudo rm configure.sh");
 
 // to tell bundle.sh that it was successful : 
 exit(0);
