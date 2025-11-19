@@ -38,7 +38,7 @@ function getHostInfo(array $extra = NULL)
 }
 
 function getClusterInfo($ip) {
-    $clusterPath = __DIR__ . "/cluster.ini";
+    $clusterPath = __DIR__ . "/clusters.ini";
     if (!file_exists($clusterPath)) return null;
     $cluster_conf = parse_ini_file($clusterPath, true);
 
@@ -56,7 +56,7 @@ function getClusterInfo($ip) {
 
 
 function getVmIp($bundle_name, $cluster) {
-    $clusterPath = __DIR__ . "/cluster.ini";
+    $clusterPath = __DIR__ . "/clusters.ini";
     if (!file_exists($clusterPath)) return null;
     $clusterI = parse_ini_file($clusterPath, true);
 

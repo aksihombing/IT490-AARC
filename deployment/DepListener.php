@@ -188,7 +188,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   // figuring out which vm to send it to baased on the bundle name and destination cluster
 
   //using the clusters ini to connect bundle names to vm names
-  $clusters_ini = parse_ini_file(__DIR__ . "/cluster.ini", true);
+  $clusters_ini = parse_ini_file(__DIR__ . "/clusters.ini", true);
   $vm_name = $clusters_ini['BundleDestinations'][$bundle_name] ?? null;
 
   //
@@ -249,7 +249,7 @@ function sendBundle(array $deployInfo)
 
 }
 
-/*
+
 function doRollback(array $rollbackReq)
 { // helper function to do a rollback
   // array ['destination_cluster', 'destination_vm', 'bundle_name']
@@ -293,7 +293,7 @@ $stmt->bind_param('s', $bundle_name);
     'cluster' => 'Prod'
   ]);
 }
-*/
+
 
 /*function idk yet(){
   // may need more functions
