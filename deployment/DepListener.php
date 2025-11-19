@@ -195,6 +195,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   //
   if (!$vm_name) {
     echo "Error: Uknown bundle name for '$bundle_name'\n";
+    echo "VM Name is : $vm_name\n";
     return;
   }
 // getting the vm ip from the bundle name and destination cluster
