@@ -1,11 +1,16 @@
 <?
 require_once __DIR__ . '/rabbitMQLib.inc'; //will probably need to fix path like usual
 
-$server = new rabbitMQServer("host.ini", "logFanout"); // i think ill need to change this or the other one
+$server = new rabbitMQServer(__DIR__ . "/host.ini", "logListener"); // need .ini section for this
+$queue_name = "logs.backend"; //change for each vm
+function log_process($req){
+    $log = json_encode($req);
 
-$server->consume("queue"){//logic here still cant figure out
-    $data = json_encode($log);
     file_put_contents("/var/log/distributed.log", $log.PHP_EOL, FILE_APPEND); //https://www.php.net/manual/en/function.file-put-contents.php
+
+    return ["status" => "received"];
 }
+
+server->process_requests("log_process",$queue_name);
 
 ?>
