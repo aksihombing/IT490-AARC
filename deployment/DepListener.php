@@ -69,9 +69,21 @@ function doAddBundle(array $req)
   if ($stmt->execute()) {
     $stmt->close();
     $db->close();
+
+    $filename = $bundle_name . "vers" . $version . ".tar.gz"; //do we include file extension too, .tar.gz or .zip?
+
+    echo "Bundle {$filename} added to database, deploying to QA.\n";
+
+    doDeployBundle([
+      'bundle_status' => 'new',
+      'bundle_name' => $bundle_name,
+      'version' => $version,
+      'path' => $filename,
+      'cluster' => 'QA'
+    ]);
     return [
       'status' => 'success',
-      'message' => 'Bundle added'
+      'message' => 'Bundle added to and sent over to QA'
     ];
   } else {
     $error = $stmt->error;
@@ -86,7 +98,8 @@ function doAddBundle(array $req)
 // this is updated FROM THE QA layer to update the status of a bundle
 function doStatusUpdate(array $req)
 { //after the installer scripts is done installing and testing a bundle, it will send a message with the result passed or failed.
-  echo "Processing 'status_update'\n";// replace with type from Aida's installer script
+  echo "Processing 'status_update'\n";
+  
   $db = db();
   if ($db === null) {
     return ['status' => 'fail', 'message' => 'db connection error'];
@@ -95,9 +108,16 @@ function doStatusUpdate(array $req)
   $bundle_name = $req['bundle_name'] ?? '';
   $version = (int) ($req['version'] ?? 0);
   $status = $req['status'] ?? '';
+  $sender_ip = $req['sender_ip'] ?? '';
 
   if (empty($bundle_name) || $version <= 0 || !in_array($status, ['passed', 'failed'])) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
+  }
+  
+
+  $cluster = getClusterInfo($sender_ip);
+  if ($cluster === null) {
+    return ['status' => 'fail', 'message' => '$sender_ip not found in cluster.ini'];
   }
 
   $stmt = $db->prepare("UPDATE bundles SET status = ? WHERE bundle_name = ? AND version = ?");// this records the result of the installation test by updatinf the fields in the db
@@ -105,12 +125,17 @@ function doStatusUpdate(array $req)
   $stmt->execute();
 
 
-
   $stmt->close();
   $db->close();
+
+   $filename = $bundle_name . "vers" . $version . ".tar.gz";// same question about the file extension
+
   doDeployBundle([
     'bundle_status' => $status,
-    'bundle_name' => $bundle_name
+    'bundle_name' => $bundle_name,
+    'version' => $version,
+    'path' => $filename,
+    'cluster' => $cluster
   ]);
   return ['status' => 'success', 'message' => 'Status updated'];
 }
@@ -125,56 +150,99 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   $bundle_name = $deployInfo['bundle_name'];
   $destination_cluster = null;
   $destination_vm = null;
+  $path = $deployInfo['path'];// not really the path but just the filename, will change soon
+  $starting_cluster = $deployInfo['cluster']; //Where did it happen (QA or Prod)
 
   //need a map to route bundles based on where they are going frontend/backend/dmz
 
   
   switch ($bundle_status) { // VERIFY IF UPPERCASE OR LOWERCASE
     case 'new':
-      $destination_cluster = 'QA';
+      $destination_cluster = 'QA';// new bundles always go to qa first
       break;
     case 'passed':
-      $destination_cluster = 'Production';
-      break;
-    case 'failed':
-      doRollback([
-        'destination_cluster' => $destination_cluster, 
-          // NEED TO FIX; how do we differentiate between a failure in QA vs Prod?
-        'destination_vm' => $destination_vm,
+      if ($starting_cluster === 'QA'){// passed the test (after statusupdate from QA)
+      $destination_cluster = 'Prod';
+       } 
+       else {
+        echo "Bundle $bundle_name vers$version pased on to Production. Deplotment done.\n";
+        return;
+       }
+       break;
+    case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
+      if ($starting_cluster === 'Prod'){
+        echo "Bundle $bundle_name vers$version failed in Production. Rolling back.\n";
+      doRollback([ 
         'bundle_name' => $bundle_name
       ]);
-      break;
+    } else {
+        echo "Bundle $bundle_name vers$version failed in QA. Deployment stopping.\n";
+    }
+      return;
     default:
-      echo "Unable to resolve Deploy Status '{$bundle_status}'\n";
-      return ['status' => 'fail', 'message' => 'Unable to resolve Deploy Status ' . $bundle_status . '\n'];
+      echo "error: having trouble processing the status'\n";
+      return;
+  }
+
+  echo "Deploying bundle $bundle_name vers$version to $destination_cluster\n";
+  // figuring out which vm to send it to baased on the bundle name and destination cluster
+
+  //using the clusters ini to connect bundle names to vm names
+  $clusters_ini = parse_ini_file(__DIR__ . "/cluster.ini", true);
+  $vm_name = $clusters_ini['BundleDestinations'][$bundle_name] ?? null;
+
+  //
+  if (!$vm_name) {
+    echo "Error: Uknown bundle name for '$bundle_name'\n";
+    return;
+  }
+// getting the vm ip from the bundle name and destination cluster
+//using the get host functions and the queue name is constructing the message to be sent, so that it knows which queue to go to based on the cluster and vm name
+    $queue_name = "deploy" . $destination_cluster . $vm_name;
+    $vm_ip = getVmIp($bundle_name, $destination_cluster);
+    if ($vm_ip === null) {
+      echo "Error: Unable to find VM IP for bundle '$bundle_name' in cluster '$destination_cluster'\n";
+      return;
+    }
+
+
+
+    sendBundle([
+      'queue_name' => $queue_name,
+      'vm_ip' => $vm_ip,
+      'path' => $path,
+      'bundle_name' => $bundle_name,
+      'version' => $version
+    ]);
   }
 
 
 
 
-  switch ($destination_cluster) { // check destination for where to send bundle to
-    case 'QA':
-      // call
-      break;
-    case 'Production':
-      // call
-      break;
-    default:
-      echo "Unable to resolve Destination Cluster '{$destination_cluster}'\n";
-      return ['status' => 'fail', 'message' => 'Unable to resolve Destination Cluster ' . $destination_cluster . '\n'];
-  }
+
+
+ 
 
 
 
-  if ($bundle_name){ // need to parse through cluster.ini to select where it should go BASED ON THE NAME OF THE BUNDLE !
-
-  }
-
-
-}
 
 function sendBundle(array $deployInfo)
 { // helper function to prevent using a nested switch in doDeployBundle
+
+  echo "Install for" . $deployInfo['bundle_name'] . "\n";
+  $iniPath = __DIR__ . "/host.ini";
+  $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
+
+  $request = [
+    'type' => 'install_bundle',
+    'path' => $deployInfo['path'],
+    'bundle_name' => $deployInfo['bundle_name'],
+    'version' => $deployInfo['version'],
+    'vm_ip' => $deployInfo['vm_ip']
+  ];
+
+  $client->send_request($request);
+  echo "Install sent\n";
 
   
 
@@ -184,16 +252,45 @@ function sendBundle(array $deployInfo)
 function doRollback(array $rollbackReq)
 { // helper function to do a rollback
   // array ['destination_cluster', 'destination_vm', 'bundle_name']
-  $destination_cluster = $rollbackReq['destination_cluster'];
-  $destination_vm = $rollbackReq['destination_vm'];
-  $bundle_name = $rollbackReq['bundle_name'];
+  //$destination_cluster = $rollbackReq['destination_cluster'];
+
+  //$destination_vm = $rollbackReq['destination_vm'];
+    $bundle_name = $rollbackReq['bundle_name'];
+
+  echo "Rolling back bundle: " . $rollbackReq['bundle_name'] . "\n";
 
 
-  // search in the database for the highest version of the given bundle_name
+$db = db();
+if ($db === null) return;
+$stmt = $db->prepare("SELECT version FROM bundles WHERE bundle_name = ? AND status = 'passed' ORDER BY version DESC LIMIT 1");
+// finds the last good version following the query requirements 
+$stmt->bind_param('s', $bundle_name);
+  $stmt->execute();
+  $result = $stmt->get_result()->fetch_assoc();
+  $stmt->close();
+  $db->close();
 
-  // scp into destination
+  if (!$result) {
+    echo "No previous version found to roll back to for bundle: $bundle_name\n";
+    return;
+  }// should really just show up if the first version failed, hopefully
 
-  // should also call sendBundle so that it re-sends and re-installs rolled-back bundle
+  $old_version = $result['version'];
+
+  // file name construction to be sent
+
+  $old_path = $bundle_name . "vers" . $old_version . ".tar.gz";// same question about file extension
+
+  echo "Deploying rollback of $bundle_name to version $old_version\n";
+
+// will just call dodeploybundle with the old version infor to trigger the deployment process to Production but with the old version
+  doDeployBundle([
+    'bundle_status' => 'rollback',
+    'bundle_name' => $bundle_name,
+    'version' => $old_version,
+    'path' => $old_path,
+    'cluster' => 'Prod'
+  ]);
 }
 
 
@@ -225,6 +322,7 @@ function requestProcessor(array $req)
       return doAddBundle($req);
     case 'status_update'://from Aida's installer script
       return doStatusUpdate($req);
+   
 
 
     default:

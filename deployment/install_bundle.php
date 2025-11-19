@@ -8,38 +8,131 @@
     for incoming messages from deployment to install bundles and also return status
     of the bundle back to deployment
 */
-require_once __DIR__ . '/rabbitMQ/rabbitMQLib.inc';
-require_once __DIR__ . '/rabbitMQ/get_host_info.inc';
+require_once __DIR__ . '/rabbitMQLib.inc';
+require_once __DIR__ . '/get_host_info.inc';
 
-//need map for whatever the target directory is based on vm and map from dep listener
+/* function getBundlePath(string $bundle_name){
+    //need to alter paths to whatever we end up doing for each vm <<<------
+    //DONT FORGET 
+    $BUNDLE_PATHS = [
+        //frontend bundles
+        'userFeatures' => '/var/www/html/',
+        'clubFeatures' => '/var/www/html/',
+        'bookFeatures' => '/var/www/html/',
+        'baseFeatures' => '/var/www/html/', 
+
+        //backend bundles
+        'userData' => '/home/backend/sql_db',
+        'bookData' => '/home/backend/api_db',
+        'databaseProcess' => '/home/backend/rabbitMQ',
+        'databaseDaemon' => '/home/backend/daemon',
+
+        //dmz bundles
+        'apiProcess' => '/home/api/',
+        'apiDaemon' => '/home/api/daemon',
+        'apiCron' => '/home/api/cron',
+    ];
+
+    return $BUNDLE_PATHS[$bundle_name];
+}
+not sure if needed anymore with the config scripts
+
+*/
+
+function sendStatus(string $bundle_name, int $version, string $status, string $cluster){
+    try{
+        $client = new rabbitMQClient(__DIR__ . '/host.ini', 'deployStatus');
+
+        $status_map = [
+            'type' => 'send_status'
+            'bundle_name' => $bundle_name,
+            'version' => $version,
+            'status' => $status, // passed or failed
+            'cluster' => $cluster //qa or prod
+        ];
+        
+        $response = $client->send_request($req);
+        echo "status sent to deployment:\n";
+        var_dump($response);
+    } catch(Exception $e){
+        echo "failed to send status to deployment: ". $e->getMessage;
+    }
+}
 
 function installBundle(array $req){
     $bundle_name = $req['bundle_name'] ?? '';
-    $version = $req['version'] ?? ;
-    $path = $req['path'] ?? '';
+    $version = $req['version'] ?? '';
+    $tar = $req['tar_name'] ?? '';
 
-    if (!$bundle_name || !$version || !$path){
-        return ['status' => 'fail', 'message' => 'missing install reqs'];
+    if (!$bundle_name || !$version || !$tar){
+        return ['status' => 'fail', 'message' => 'missing install requirements'];
     }
-    
-    $bundleFile = "/deployment/bundles/{$path}";
+
+    $bundleDir = "/var/www/bundles";
+    $bundleFile = $bundleDir . "/". $tar;
 
     if (!file_exists($bundleFile)){ // bundle needs to exist to be installed
         echo "bundle not found: $bundleFile\n";
         return ['status' => 'fail', 'message' => 'bundle missing'];
     }
 
-    //extract bundle
+    /*
+    https://www.php.net/manual/en/function.mkdir.php
+    https://www.php.net/manual/en/function.uniqid.php
+    https://systemd.io/TEMPORARY_DIRECTORIES/
+    https://linuxvox.com/blog/linux-tmp-folder/
+    https://linuxvox.com/blog/linux-install-from-tar-gz/#google_vignette
+    https://www.php.net/manual/en/function.escapeshellarg.php
+    */
 
-    //install bundle based on target directory + vm
+    // making a temporary directory and setting permissions
+    $tmp = "/tmp/deployment_extract" . uniqid(); 
+    mkdir($tmp, 0755, true); 
+    
+    // extract bundle/tar
+    $cmd = "tar -xzf". escapeshellarg($bundleFile) . "-C". escapeshellarg($tmp);
+    exec($cmd, $output, $result);
 
-    //test bundle
+    if ($result !== 0){
+        echo "bundle extraction failed\n";
+        sendStatus($bundle_name, $version, "failed", $cluster);
+        return ['status' => 'fail', 'message' => 'tar extraction failed'];
+    }
 
-    //change bundle status here?
-}
+    //configure bundle/tar 
+    $configFile = __DIR__. "/bundleconfig.json";
+    $config = json_decode(file_get_contents($configFile),true)
 
-function sendStatus(array $req){
-    //sending status to deployment
+    $cmds = null;
+    foreach ($config as $section=>$bundles){
+        if (isset($bundles[$bundle_name])){
+            $cmds = $bundles[$bundle_name]['commands'];
+            break;
+        }
+    }
+    if (!$cmds){
+        echo "no config commands found for $bundle_name\n";
+        return ['status' => 'fail', 'message' => 'bundle not found in config file'];
+    }
+
+    foreach($cmds){
+        $runCmds = "cd"> escapeshellarg($tmp) . "&&". $cmds;
+        exec($runCmds, $output, $result);
+
+        if ($result !== 0){
+            echo "command failed $cmds\n";
+            return ['status' => 'fail', 'message' => 'install command failed']
+        }
+
+        echo "bundle installed successfully\n";
+        sendStatus($bundle_name, $version, "passed", $cluster);
+        return ['status' => 'success', 'message' => 'bundle installed'];
+    }
+
+    echo "bundle test success\n";
+    sendStatus($bundle_name, $version, "passed", $cluster);
+    return ['status' => 'fail', 'message' => 'bundle installed'];
+
 }
 
 
@@ -50,7 +143,7 @@ function sendStatus(array $req){
 
 // decides which function to run
 function requestProcessor($req) {
-  echo "Received request:\n";
+  echo "Received install request:\n";
     var_dump($req);
     flush();
   
@@ -59,20 +152,20 @@ function requestProcessor($req) {
   }
 
   switch ($req['type']) {
-    case 'install.bundle': return installBundle($req);
+    case 'install_bundle': return installBundle($req);
     // will need to add other cases for the other deployment functions when files are put into 1 full bundler script
 
     default: return ['status'=>'fail','message'=>'unknown type'];
   }
 }
 
-echo "Bundler ready, waiting for requests\n";
+echo "Installer ready, waiting for requests\n";
 flush();
 
 // multi-queue capable version of the queue
 
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
-$which = $argv[1] ?? 'bundler';
+$which = $argv[1] ?? 'deployQA';
 $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
