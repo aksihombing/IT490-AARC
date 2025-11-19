@@ -53,7 +53,7 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
     // escapeshellarg translates it to be able to work as a shell argument, which is good for when its actually called
     // https://www.php.net/manual/en/function.escapeshellarg.php maybe?
     $attribute_list = implode(' ', array_map('escapeshellarg', $parsed_json));
-    //echo "PATHS_LIST IS : $attribute_list\n"; //DEBUGGING
+    echo "PATHS_LIST IS : $attribute_list\n"; //DEBUGGING
 
     // php.net/manual/en/function.realpath.php ?? not sure if needed, but a reference in case i need it later
     //$full_paths = [];
@@ -154,21 +154,21 @@ $tar_name = "$version" . "_" . "$bundle_name" . ".tar.gz";
 $file_path = getBundleInfo($section, $bundle_name, "paths");
 $tar_path = "$projectRootPath/bundles/$tar_name";
 
-$parent_path = dirname($projectRootPath); // im losing my mind trying to get tar working from the parent directory.....
-// echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
-// /home/rea-sihombing/Project/IT490-AARC    || /home/rea-sihombing/Project
+//$parent_path = dirname($projectRootPath); // im losing my mind trying to get tar working from the parent directory.....
+echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
 // php.net/manual/en/function.dirname.php 
 
 // need to go one file back to run the tar + create a folder to place the tar on the local machine too
-shell_exec("cd $projectRootPath && mkdir -p bundles/"); // MAKE DIR IF NOT EXISTS !!!
+shell_exec("cd $parent_path && mkdir -p bundles/"); // MAKE DIR IF NOT EXISTS !!!
 
 
 
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
 // https://www.geeksforgeeks.org/php/php-file_put_contents-function/
 $config_script = getBundleInfo($section, $bundle_name, "commands");
-file_put_contents("configure.sh", $config_script);
-chmod("configure.sh", 755); // wxr for owner + others
+$config_path = $projectRootPath/'configure.sh';
+file_put_contents($config_path, $config_script);
+chmod('configure.sh', 755); // wxr for owner + others
 // wip
 
 
