@@ -148,6 +148,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   // is run after doStatus
   $bundle_status = $deployInfo['bundle_status'];
   $bundle_name = $deployInfo['bundle_name'];
+  $version = $deployInfo['version'];
   $destination_cluster = null;
   $destination_vm = null;
   $path = $deployInfo['path'];// not really the path but just the filename, will change soon
@@ -188,7 +189,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   // figuring out which vm to send it to baased on the bundle name and destination cluster
 
   //using the clusters ini to connect bundle names to vm names
-  $clusters_ini = parse_ini_file(__DIR__ . "/cluster.ini", true);
+  $clusters_ini = parse_ini_file(__DIR__ . "/clusters.ini", true);
   $vm_name = $clusters_ini['BundleDestinations'][$bundle_name] ?? null;
 
   //
