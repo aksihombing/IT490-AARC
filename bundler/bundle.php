@@ -40,7 +40,7 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
 
     // not sure if necessary, but checks if the bundle has a PATHS or COMMAND specified
     if (!isset($path_decoded[$section][$bundle_name][$bundle_attribute])) {
-        echo "Script error: '$bundle_name' missing path/command in json file\n\n";
+        echo "Script error: '$bundle_name' missing path/command in json file. Was given $bundle_attribute\n\n";
         exit(1);
     }
 
@@ -52,8 +52,15 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
     // convert to string ??? with implode
     // escapeshellarg translates it to be able to work as a shell argument, which is good for when its actually called
     // https://www.php.net/manual/en/function.escapeshellarg.php maybe?
-    $attribute_list = implode(' ', array_map('escapeshellarg', $parsed_json));
-    echo "PATHS_LIST IS : $attribute_list\n"; //DEBUGGING
+    $attribute_list = null;
+    if ($bundle_attribute == 'paths') {
+        $attribute_list = implode(' ', array_map('escapeshellarg', $parsed_json));
+    }
+    elseif ($bundle_attribute == 'commands'){
+        $attribute_list = implode("\n\n", $parsed_json);
+    }
+
+    //echo "PATHS_LIST IS : $attribute_list\n"; //DEBUGGING
 
     // php.net/manual/en/function.realpath.php ?? not sure if needed, but a reference in case i need it later
     //$full_paths = [];
@@ -137,7 +144,8 @@ try {
         echo "Unable to get version number from database\n";
         exit(1);
     }
-    $version = $response['version'];
+    // previous_version + 1
+    $version = $response['version'] + 1;
     //echo "Section: $section || Bundle Name: $bundle_name\n"; //DEBUGGING
     echo "Successfully received response from remote. $bundle_name version number is $version.\n";
 
@@ -155,25 +163,25 @@ $file_path = getBundleInfo($section, $bundle_name, "paths");
 $tar_path = "$projectRootPath/bundles/$tar_name";
 
 //$parent_path = dirname($projectRootPath); // im losing my mind trying to get tar working from the parent directory.....
-echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
+//echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
 // php.net/manual/en/function.dirname.php 
 
 // need to go one file back to run the tar + create a folder to place the tar on the local machine too
-shell_exec("cd $parent_path && mkdir -p bundles/"); // MAKE DIR IF NOT EXISTS !!!
+shell_exec("cd $projectRootPath && mkdir -p bundles/"); // MAKE DIR IF NOT EXISTS !!!
 
 
 
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
 // https://www.geeksforgeeks.org/php/php-file_put_contents-function/
 $config_script = getBundleInfo($section, $bundle_name, "commands");
-$config_path = $projectRootPath/'configure.sh';
-file_put_contents($config_path, $config_script);
-chmod('configure.sh', 755); // wxr for owner + others
-// wip
+$config_path = $projectRootPath . "/configure.sh";
+file_put_contents($config_path, "#!/bin/bash\n\n" . $config_script);
+chmod($config_path, 0755); // wxr for owner + others
 
 
 
-exec("cd $projectRootPath && tar -czf $tar_path $file_path", $tar_output, $tar_returnCode);
+
+exec("cd $projectRootPath && tar -czf $tar_path  configure.sh $file_path", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
     exit(1);
@@ -216,7 +224,7 @@ try {
 }
 
 // delete configure.sh after it was created to prevent overlapped
-shell_exec("sudo rm configure.sh");
+//shell_exec("sudo rm configure.sh");
 
 // to tell bundle.sh that it was successful : 
 exit(0);
