@@ -55,8 +55,7 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
     $attribute_list = null;
     if ($bundle_attribute == 'paths') {
         $attribute_list = implode(' ', array_map('escapeshellarg', $parsed_json));
-    }
-    elseif ($bundle_attribute == 'commands'){
+    } elseif ($bundle_attribute == 'commands') {
         $attribute_list = implode("\n\n", $parsed_json);
     }
 
@@ -145,7 +144,11 @@ try {
         exit(1);
     }
     // previous_version + 1
-    $version = $response['version'] + 1;
+    if ($version !== 1) {
+        $version = $response['version'] + 1;
+    } else {
+        $version = $response['version'];
+    }
     //echo "Section: $section || Bundle Name: $bundle_name\n"; //DEBUGGING
     echo "Successfully received response from remote. $bundle_name version number is $version.\n";
 
@@ -213,7 +216,7 @@ try {
 
     if (!isset($response['status']) || $response['status'] === 'fail') {
         echo "Unable to get version number from database\n";
-         exit(1);
+        exit(1);
     }
     echo "Successfully sent request to Deploy VM to update database\n"; // im assuming that it is a success
 
