@@ -231,13 +231,13 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 function sendBundle(array $deployInfo)
 { // helper function to prevent using a nested switch in doDeployBundle
 
-  echo "Install for" . $deployInfo['bundle_name'] . "\n";
+  echo "Install for " . $deployInfo['bundle_name'] . "\n";
   $iniPath = __DIR__ . "/host.ini";
   $filePath = $deployInfo['path'];
   $destinationIP = $deployInfo['vm_ip'];
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
-  exec("sudo scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/", $sendOutput, $sendCode); // URGENT : NEED TO CHANGE LATER !!!!
+  shell_exec("sudo scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
