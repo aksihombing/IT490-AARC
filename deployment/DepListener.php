@@ -13,7 +13,7 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 
 ///REWRITE EXPLANATION COMMENTS 
 
-require_once(__DIR__ .'rabbitMQLib.inc');
+require_once('rabbitMQLib.inc');
 require_once('get_host_info.inc');
 require_once('db_config.inc.php');
 //require_once('clusters.ini');
