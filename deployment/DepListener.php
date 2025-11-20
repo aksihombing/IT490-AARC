@@ -237,7 +237,7 @@ function sendBundle(array $deployInfo)
   $destinationIP = $deployInfo['vm_ip'];
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
-  exec("scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/", $sendOutput, $sendCode); // URGENT : NEED TO CHANGE LATER !!!!
+  exec("sudo scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/", $sendOutput, $sendCode); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
