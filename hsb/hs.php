@@ -12,9 +12,9 @@ const timeFailture = 3;
 const db = 'sudo /user/local/bin/db.sh';
 const dbTakeover = 'sudo /user/local/bin/dbTakeover.sh';
 
-function primaryVM 
+function checkCurrentIP (): string
 (
-
+    checkForBackUpFile = 
 )
 </php>
 
