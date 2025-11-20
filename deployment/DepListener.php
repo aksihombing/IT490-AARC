@@ -13,7 +13,7 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 
 ///REWRITE EXPLANATION COMMENTS 
 
-require_once('rabbitMQLib.inc');
+require_once(__DIR__ .'rabbitMQLib.inc');
 require_once('get_host_info.inc');
 require_once('db_config.inc.php');
 //require_once('clusters.ini');
@@ -237,7 +237,7 @@ function sendBundle(array $deployInfo)
   $destinationIP = $deployInfo['vm_ip'];
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
-  shell_exec("sudo scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
+  exec("sudo scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
