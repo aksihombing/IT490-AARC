@@ -227,7 +227,8 @@ try {
 }
 
 // delete configure.sh after it was created to prevent overlapped
-shell_exec("sudo rm $config_path");
+shell_exec("rm $config_path");
+shell_exec("rm $tar_path");
 
 // to tell bundle.sh that it was successful : 
 exit(0);
