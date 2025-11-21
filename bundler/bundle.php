@@ -163,7 +163,7 @@ try {
 // get file paths for the section and bundle_name
 $tar_name = "$version" . "_" . "$bundle_name" . ".tar.gz";
 $file_path = getBundleInfo($section, $bundle_name, "paths");
-$tar_path = "$projectRootPath/bundles/$tar_name";
+$tar_path = "bundles/$tar_name";
 
 //$parent_path = dirname($projectRootPath); // im losing my mind trying to get tar working from the parent directory.....
 //echo "projectRootPath: $projectRootPath || parent_path: $parent_path\n"; //DEBUGGIN
@@ -177,14 +177,14 @@ shell_exec("cd $projectRootPath && mkdir -p bundles/"); // MAKE DIR IF NOT EXIST
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
 // https://www.geeksforgeeks.org/php/php-file_put_contents-function/
 $config_script = getBundleInfo($section, $bundle_name, "commands");
-$config_path = $projectRootPath . "/configure.sh";
+$config_path = "configure.sh";
 file_put_contents($config_path, "#!/bin/bash\n\n" . $config_script);
 chmod($config_path, 0755); // wxr for owner + others
 
 
 
 
-exec("cd $projectRootPath && tar -czf $tar_path  $config_path $file_path", $tar_output, $tar_returnCode);
+exec("cd $projectRootPath && tar -czf bundles/$tar_name $config_path $file_path", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
     exit(1);
