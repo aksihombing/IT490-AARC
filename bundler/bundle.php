@@ -80,6 +80,14 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
 // ACTUAL BUNDLING SCRIPT ---------------------------
 // we dont need the shell script bc argv already accepts the name of the bundle, silly me :P
 $bundle_name = $argv[1];
+if (!isset($bundle_name)) {
+    echo "Please select appropriate bundle name:\n";
+    echo "Frontend: userFeatures , clubFeatures , bookFeatures, baseFeatures\n
+                Backend: userData, bookData, databaseProcess\n
+                DMZ: apiProcess\n";
+    exit(1);
+}
+
 $version = null;
 $section = null;
 $projectRootPath = realpath(__DIR__ . "/..");
