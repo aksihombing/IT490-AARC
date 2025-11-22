@@ -26,10 +26,6 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
     // check if bundle_name found:
     if (!isset($path_decoded[$section][$bundle_name])) {
         echo "Bundle Name '$bundle_name' not found at $path\n\n";
-        echo "Please select appropriate bundle name:\n";
-        echo "Frontend: userFeatures , clubFeatures , bookFeatures, baseFeatures\n
-                Backend: userData, bookData, databaseProcess\n
-                DMZ: apiProcess\n";
 
         //$debuggingarray = implode( ", ", $path_decoded[$section][$bundle_name]);
         //echo "Checking if bundle_name is found: "; //DEBUGGING
@@ -80,6 +76,14 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
 // ACTUAL BUNDLING SCRIPT ---------------------------
 // we dont need the shell script bc argv already accepts the name of the bundle, silly me :P
 $bundle_name = $argv[1];
+if (!isset($bundle_name)) {
+    echo "Please select appropriate bundle name:\n";
+    echo "Frontend: userFeatures , clubFeatures , bookFeatures, baseFeatures, frontendProcess\n
+                Backend: userData, bookData, databaseProcess\n
+                DMZ: apiProcess\n";
+    exit(1);
+}
+
 $version = null;
 $section = null;
 $projectRootPath = realpath(__DIR__ . "/..");
@@ -177,14 +181,14 @@ shell_exec("cd $projectRootPath && mkdir -p bundles/"); // MAKE DIR IF NOT EXIST
 // TO DO: [CREATE CONFIG FILE AND ADD IT INTO THE TAR]
 // https://www.geeksforgeeks.org/php/php-file_put_contents-function/
 $config_script = getBundleInfo($section, $bundle_name, "commands");
-$config_path = $projectRootPath . "/configure.sh";
+$config_path = "$projectRootPath/configure.sh";
 file_put_contents($config_path, "#!/bin/bash\n\n" . $config_script);
 chmod($config_path, 0755); // wxr for owner + others
 
 
 
 
-exec("cd $projectRootPath && tar -czf $tar_path  configure.sh $file_path", $tar_output, $tar_returnCode);
+exec("cd $projectRootPath && tar -czf bundles/$tar_name configure.sh $file_path", $tar_output, $tar_returnCode);
 if ($tar_returnCode !== 0) {
     echo "Error: Unable to bundle $tar_name\n";
     exit(1);
@@ -227,7 +231,8 @@ try {
 }
 
 // delete configure.sh after it was created to prevent overlapped
-shell_exec("sudo rm configure.sh");
+shell_exec("rm $config_path");
+shell_exec("rm $tar_path");
 
 // to tell bundle.sh that it was successful : 
 exit(0);
