@@ -196,7 +196,7 @@ if ($tar_returnCode !== 0) {
 
 // SEND BUNDLE
 // scp to deployment
-exec("scp '$tar_path' chizorom@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode); // update name of user later !!
+exec("scp '$tar_path' aarc-deploy@172.28.121.220:/var/www/bundles/", $scp_output, $scp_returnCode); // update name of user later !!
 if ($scp_returnCode !== 0) {
     echo "Error: Unable to scp $tar_path to deployment\n";
     exit(1);
