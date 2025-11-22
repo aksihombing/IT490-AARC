@@ -33,7 +33,7 @@ function checkCurrentIP(): string
 
 function setCurrentIP (string $ip) :bool 
 {
-    $sucess = fileRefresh(statusFile, $ip); 
+    $sucess = fileRefresh(statusFile, $ip);
     if $sucess === false
     (
         logMessage ("something is wrong the file could not be written"); 
@@ -53,6 +53,15 @@ function isPrimaryOkay(): bool
     curl_close($curlStuff); 
 
     return $httpCode === 200;
+}
+
+/* below is where the main function will be, 
+// this functions is in charge of the curl, 
+the shell will run and also the primary vms and ips will be checked or reverted etc 
+*/
+function mainStuff ()
+{
+
 }
 
 </php>
