@@ -1,4 +1,4 @@
-<?php>
+<?php
 
 // this script is to go on the backup VM only 
 const primaryVM = "172.28.172.114";  // might need to be change bc it might be a differnt machine ip address? 
@@ -13,7 +13,7 @@ const heartBeatRetry = 3;
 const timeCheck = 2; 
 const timeFailture = 3;
 
-const statusFile = "/"
+const statusFile = "/";
 // shell scripts / the file paths 
 const db = 'sudo /user/local/bin/db.sh';
 const dbTakeover = 'sudo /user/local/bin/dbTakeover.sh';
@@ -42,5 +42,18 @@ function setCurrentIP (string $ip) :bool
     logMessage ("the file could be written");
     return true;
 }
+
+function isPrimaryOkay(): bool 
+{
+    $curlStuff = curl_init(HEARTBEAT_URL); 
+    curl_setopt($curlStuff, CURLOPT_RETURNTRANSFER, true); 
+    curl_setopt($curlStuff, CURLOPT_TIMEOUT, timeCheck); 
+    $curlExecute = curl_exec($curlStuff); 
+    $httpCode = curl_getinfo($curlStuff, CURLINFO_HTTP_CODE);
+    curl_close($curlStuff); 
+
+    return $httpCode === 200;
+}
+
 </php>
 
