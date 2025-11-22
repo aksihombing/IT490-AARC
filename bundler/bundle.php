@@ -26,10 +26,6 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
     // check if bundle_name found:
     if (!isset($path_decoded[$section][$bundle_name])) {
         echo "Bundle Name '$bundle_name' not found at $path\n\n";
-        echo "Please select appropriate bundle name:\n";
-        echo "Frontend: userFeatures , clubFeatures , bookFeatures, baseFeatures\n
-                Backend: userData, bookData, databaseProcess\n
-                DMZ: apiProcess\n";
 
         //$debuggingarray = implode( ", ", $path_decoded[$section][$bundle_name]);
         //echo "Checking if bundle_name is found: "; //DEBUGGING
@@ -82,7 +78,7 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
 $bundle_name = $argv[1];
 if (!isset($bundle_name)) {
     echo "Please select appropriate bundle name:\n";
-    echo "Frontend: userFeatures , clubFeatures , bookFeatures, baseFeatures\n
+    echo "Frontend: userFeatures , clubFeatures , bookFeatures, baseFeatures, frontendProcess\n
                 Backend: userData, bookData, databaseProcess\n
                 DMZ: apiProcess\n";
     exit(1);
