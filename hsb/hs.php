@@ -13,39 +13,45 @@ const heartBeatRetry = 3;
 const timeCheck = 2; 
 const timeFailture = 3;
 
-const statusFile = "/";
+const statusFile = "/tmp/hsStatus";
 // shell scripts / the file paths 
-const db = 'sudo /user/local/bin/db.sh';
-const dbTakeover = 'sudo /user/local/bin/dbTakeover.sh';
+const db = 'sudo /usr/local/bin/db.sh';
+const dbTakeover = 'sudo /usr/local/bin/dbTakeover.sh';
+
+function logMessage($msg) {
+    echo date("Y-m-d H:i:s") . " — " . $msg . "\n";
+}
+
 
 function checkCurrentIP(): string 
 {
     
-    if (!file_exists(STATE_FILE)) {
-        logMessage("Status file is not real or missing or is the primary stuff" . primaryVM);
+    if (!file_exists(statusFile)) {
+        logMessage("Status file is missing, so using primary " . primaryVM);
         return primaryVM;
     }
     
-    $ip = trim(file_get_contents(STATE_FILE));
+    $ip = trim(file_get_contents(statusFile));
     
     return $ip ?: primaryVM;
 }
 
 function setCurrentIP (string $ip) :bool 
 {
-    $sucess = fileRefresh(statusFile, $ip);
-    if $sucess === false
-    (
+    $success = file_put_contents(statusFile, $ip);
+    if ($success === false) 
+    {
+    
         logMessage ("something is wrong the file could not be written"); 
         return false;
-    )
+    }
     logMessage ("the file could be written");
     return true;
 }
 
 function isPrimaryOkay(): bool 
 {
-    $curlStuff = curl_init(HEARTBEAT_URL); 
+    $curlStuff = curl_init(heartBeatURL); 
     curl_setopt($curlStuff, CURLOPT_RETURNTRANSFER, true); 
     curl_setopt($curlStuff, CURLOPT_TIMEOUT, timeCheck); 
     $curlExecute = curl_exec($curlStuff); 
@@ -59,10 +65,36 @@ function isPrimaryOkay(): bool
 // this functions is in charge of the curl, 
 the shell will run and also the primary vms and ips will be checked or reverted etc 
 */
-function mainStuff ()
+function mainStuff()
 {
+    $currentIP = checkCurrentIP();
+    $fails = 0;
 
+    while (true) {
+
+        if (isPrimaryOkay()) {
+            if ($currentIP !== primaryVM) {
+                logMessage("real primary is back");
+                setCurrentIP(primaryVM);
+                shell_exec(db);
+            }
+            $fails = 0;
+        } else {
+            $fails++;
+
+            if ($fails >= heartBeatRetry) {
+                if ($currentIP !== backVM) {
+                    logMessage("the primary is now reverted");
+                    setCurrentIP(backVM);
+                    shell_exec(dbTakeover);
+                }
+            }
+        }
+
+        sleep(heartBeatTime);
+    }
 }
 
-</php>
+mainStuff();
+?>
 
