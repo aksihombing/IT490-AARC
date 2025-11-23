@@ -8,4 +8,4 @@ echo "forcing primary role on my sql" >> "$LOG_FILE"
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'pccc' -Q "ALTER DATABASE [userdb] SET PRIMARY" >> "$LOG_FILE" 2>&1
 # might need to change the db and user credentials
 
-echp "restarting the mysql service as new primary" >> "$LOG_FILE"
+echo "restarting the mysql service as new primary" >> "$LOG_FILE"
