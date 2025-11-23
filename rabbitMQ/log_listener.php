@@ -11,6 +11,6 @@ function log_process($req){
     return ["status" => "received"];
 }
 
-server->process_requests("log_process",$queue_name);
+$server->process_requests("log_process",$queue_name);
 
 ?>
