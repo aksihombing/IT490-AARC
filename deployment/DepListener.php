@@ -70,7 +70,7 @@ function doAddBundle(array $req)
     $stmt->close();
     $db->close();
 
-    $filename = $bundle_name . "v" . $version . ".tar.gz"; //do we include file extension too, .tar.gz or .zip?
+    $filename = $version . "_" . $bundle_name . ".tar.gz"; //do we include file extension too, .tar.gz or .zip?
 
     echo "Bundle {$filename} added to database, deploying to QA.\n";
 
@@ -117,7 +117,7 @@ function doStatusUpdate(array $req)
 
   $cluster = getClusterInfo($sender_ip);
   if ($cluster === null) {
-    return ['status' => 'fail', 'message' => '$sender_ip not found in cluster.ini'];
+    return ['status' => 'fail', 'message' => '$sender_ip not found in clusters.ini'];
   }
 
   $stmt = $db->prepare("UPDATE bundles SET status = ? WHERE bundle_name = ? AND version = ?");// this records the result of the installation test by updatinf the fields in the db
@@ -128,7 +128,7 @@ function doStatusUpdate(array $req)
   $stmt->close();
   $db->close();
 
-   $filename = $bundle_name . "v" . $version . ".tar.gz";// same question about the file extension
+   $filename = $version . "_" . $bundle_name . ".tar.gz";// same question about the file extension
 
   doDeployBundle([
     'bundle_status' => $status,
@@ -148,6 +148,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   // is run after doStatus
   $bundle_status = $deployInfo['bundle_status'];
   $bundle_name = $deployInfo['bundle_name'];
+  $version = $deployInfo['version'];
   $destination_cluster = null;
   $destination_vm = null;
   $path = $deployInfo['path'];// not really the path but just the filename, will change soon
@@ -194,6 +195,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   //
   if (!$vm_name) {
     echo "Error: Uknown bundle name for '$bundle_name'\n";
+    echo "VM Name is : $vm_name\n";
     return;
   }
 // getting the vm ip from the bundle name and destination cluster
@@ -204,7 +206,6 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       echo "Error: Unable to find VM IP for bundle '$bundle_name' in cluster '$destination_cluster'\n";
       return;
     }
-
 
 
     sendBundle([
@@ -231,7 +232,11 @@ function sendBundle(array $deployInfo)
 
   echo "Install for" . $deployInfo['bundle_name'] . "\n";
   $iniPath = __DIR__ . "/host.ini";
+  $filePath = $deployInfo['path'];
+  $destinationIP = $deployInfo['vm_ip'];
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
+
+  exec("scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/", $sendOutput, $sendCode); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
@@ -280,7 +285,7 @@ $stmt->bind_param('s', $bundle_name);
 
   // file name construction to be sent
 
-  $old_path = $bundle_name . "v" . $old_version . ".tar.gz";// same question about file extension
+  $old_path = $old_version . "_" . $bundle_name . ".tar.gz";// same question about file extension
 
   echo "Deploying rollback of $bundle_name to version $old_version\n";
 
@@ -324,6 +329,7 @@ function requestProcessor(array $req)
     case 'status_update'://from Aida's installer script
       return doStatusUpdate($req);
    
+   
 
 
     default:
@@ -342,7 +348,7 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
   echo "Deployment server starting for all queues...\n";
-  $sections = ['deployVersion', 'deployStatus'];
+  $sections = ['deployVersion', 'deployStatus', 'deployQAfrontend', 'deployQAbackend', 'deployQAdmz', 'deployProdfrontend', 'deployProdbackend', 'deployProddmz'];
 
   foreach ($sections as $section) {
     $pid = pcntl_fork(); // process control fork; creats child process 
