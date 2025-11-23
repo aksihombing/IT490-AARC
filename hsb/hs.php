@@ -1,33 +1,27 @@
 <?php
 
-// this script is to go on the backup VM only 
-const primaryVM = "172.28.172.114";  // might need to be change bc it might be a differnt machine ip address? 
-const backVM = ""; // i chose this bc im going to make it match with the backup vm 
-
-const heartBeatURL = "http://172.28.172.114/healthCheck.php";  
+const primaryVM = "172.28.172.114";  
+const backVM    = "";    // HAVE TO CHANE TO FIX/FIT THIS 
+const heartBeatURL = "http://" . primaryVM . "/health_check.php";
+const statusFile    = "/tmp/hsStatus"; 
 
 // for the usewrs time 
-const heartBeatTime = 4;
-const heartBeatRetry = 3;
+const heartBeatTime = 4; 
+const timeCheck     = 2; 
+const timeFailture  = 3; 
 
-const timeCheck = 2; 
-const timeFailture = 3;
-
-const statusFile = "/tmp/hsStatus";
 // shell scripts / the file paths 
-const db = 'sudo /usr/local/bin/db.sh';
-const dbTakeover = 'sudo /usr/local/bin/dbTakeover.sh';
+const db = 'sudo /usr/local/bin/db.sh';         
+const dbTakeover = 'sudo /usr/local/bin/dbTakeover.sh'; 
 
-function logMessage($msg) {
-    echo date("Y-m-d H:i:s") . " — " . $msg . "\n";
+function logMessage(string $message): void {
+    echo date("Y-m-d H:i:s") . " --- " . $message . "\n";
 }
 
-
-function checkCurrentIP(): string 
-{
+function checkCurrentIP(): string {
     
     if (!file_exists(statusFile)) {
-        logMessage("Status file is missing, so using primary " . primaryVM);
+        logMessage("status file is missing so using primary " . primaryVM);
         return primaryVM;
     }
     
@@ -36,21 +30,20 @@ function checkCurrentIP(): string
     return $ip ?: primaryVM;
 }
 
-function setCurrentIP (string $ip) :bool 
-{
-    $success = file_put_contents(statusFile, $ip);
-    if ($success === false) 
-    {
+function setCurrentIP (string $ip) :bool {
     
-        logMessage ("something is wrong the file could not be written"); 
+    $success = file_put_contents(statusFile, $ip);
+
+    if ($success === false) {
+        logMessage("something is wrong the file could not be written"); 
         return false;
     }
-    logMessage ("the file could be written");
+    logMessage("the file could be written");
     return true;
 }
 
-function isPrimaryOkay(): bool 
-{
+function isPrimaryOkay(): bool {
+    
     $curlStuff = curl_init(heartBeatURL); 
     curl_setopt($curlStuff, CURLOPT_RETURNTRANSFER, true); 
     curl_setopt($curlStuff, CURLOPT_TIMEOUT, timeCheck); 
@@ -61,34 +54,75 @@ function isPrimaryOkay(): bool
     return $httpCode === 200;
 }
 
+function run_shell_command(string $command): void {
+    
+    logMessage("executing: $command");
+    exec($command, $output, $returnVar);
+
+    if ($returnVar !== 0) {
+        logMessage("command failed (code $returnVar): " . implode("\n", $output));
+    } else {
+        logMessage("command successful");
+    }
+}
+
 /* below is where the main function will be, 
 // this functions is in charge of the curl, 
 the shell will run and also the primary vms and ips will be checked or reverted etc 
 */
 function mainStuff()
 {
-    $currentIP = checkCurrentIP();
     $fails = 0;
 
+    if (!extension_loaded('curl')) {
+        logMessage("error: the curl extension is not loaded cannot perform heartbeat checks");
+        return;
+    }
+    logMessage("hsb monitor started checking primary: " . primaryVM);
+
     while (true) {
+        $currentActiveIP = checkCurrentIP();
 
-        if (isPrimaryOkay()) {
-            if ($currentIP !== primaryVM) {
-                logMessage("real primary is back");
-                setCurrentIP(primaryVM);
-                shell_exec(db);
-            }
-            $fails = 0;
-        } else {
-            $fails++;
+        if ($currentActiveIP === primaryVM) {
+            
+            if (isPrimaryOkay()) {
+                $fails = 0;
+                logMessage("primary is ok fails reset");
+            } else {
+                $fails++;
+                logMessage("primary failed check fails: $fails / " . timeFailture);
 
-            if ($fails >= heartBeatRetry) {
-                if ($currentIP !== backVM) {
-                    logMessage("the primary is now reverted");
-                    setCurrentIP(backVM);
-                    shell_exec(dbTakeover);
+                if ($fails >= timeFailture) {
+                    
+                    logMessage("primary down starting the failover"); 
+                    
+                    run_shell_command(db); 
+
+                    if (setCurrentIP(backVM)) {
+                        logMessage("failover complete this is now active");
+                    }
+                    $fails = 0; 
                 }
             }
+
+        } elseif ($currentActiveIP === backVM) {
+            
+            if (isPrimaryOkay()) {
+                
+                logMessage("primary recovered starting failback sequence"); 
+
+                run_shell_command(dbTakeover); 
+                
+                logMessage("db reverted to replica waiting for primary to reclaim role");
+
+            } else {
+                logMessage("active and healthy (primary vm still down or not fully recovered)");
+            }
+
+        } else {
+            
+            logMessage("warning: status file is inconsistent resetting to default primary ip");
+            setCurrentIP(primaryVM);
         }
 
         sleep(heartBeatTime);
@@ -96,5 +130,5 @@ function mainStuff()
 }
 
 mainStuff();
-?>
 
+?>
