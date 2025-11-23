@@ -39,8 +39,9 @@ not sure if needed anymore with the config scripts
 
 */
 
-function sendStatus(string $bundle_name, int $version, string $status, string $cluster){
-    try{
+function sendStatus(string $bundle_name, int $version, string $status, string $cluster)
+{
+    try {
         $client = new rabbitMQClient(__DIR__ . '/host.ini', 'deployStatus');
 
         $status_map = [
@@ -50,29 +51,30 @@ function sendStatus(string $bundle_name, int $version, string $status, string $c
             'status' => $status, // passed or failed
             'cluster' => $cluster //qa or prod
         ];
-        
+
         $response = $client->send_request($status_map);
         echo "status sent to deployment:\n";
         var_dump($response);
-    } catch(Exception $e){
-        echo "failed to send status to deployment: ". $e->getMessage;
+    } catch (Exception $e) {
+        echo "failed to send status to deployment: " . $e->getMessage;
     }
 }
 
-function installBundle(array $req){
+function installBundle(array $req)
+{
     $bundle_name = $req['bundle_name'] ?? '';
     $version = $req['version'] ?? '';
     $tar = $req['tar_name'] ?? ($req['path'] ?? '');
     $cluster = $req['cluster'] ?? 'QA'; // temporary until we get deploy script to send the cluster
 
-    if (!$bundle_name || !$version || !$tar){
+    if (!$bundle_name || !$version || !$tar) {
         return ['status' => 'fail', 'message' => 'missing install requirements'];
     }
 
     $bundleDir = "/var/www/bundles";
-    $bundleFile = $bundleDir . "/". $tar;
+    $bundleFile = $bundleDir . "/" . $tar;
 
-    if (!file_exists($bundleFile)){ // bundle needs to exist to be installed
+    if (!file_exists($bundleFile)) { // bundle needs to exist to be installed
         echo "bundle not found: $bundleFile\n";
         return ['status' => 'fail', 'message' => 'bundle missing'];
     }
@@ -87,19 +89,34 @@ function installBundle(array $req){
     */
 
     // making a temporary directory and setting permissions
-    $tmp = "/tmp/deployment_extract" . uniqid(); 
-    mkdir($tmp, 0755, true); 
-    
+    $tmp = "/tmp/deployment_extract" . uniqid();
+    mkdir($tmp, 0755, true);
+
     // extract bundle/tar
     $cmd = "tar -xzf" . escapeshellarg($bundleFile) . "-C" . escapeshellarg($tmp);
     exec($cmd, $output, $result);
 
-    if ($result !== 0){
+    if ($result !== 0) {
         echo "bundle extraction failed\n";
         sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'tar extraction failed'];
     }
 
+    // REA's version of running configure.sh --> run ./configure.sh
+    // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
+    echo "Running configure.sh script...\n";
+    exec("/var/www/bundles/configure.sh",$configOutput,$configResultCode);
+    if ($configResultCode !== 0){
+        echo "bundle configure installation failed\n";
+        sendStatus($bundle_name, $version, "failed", $cluster);
+        return ['status' => 'fail', 'message' => 'configure script failed'];
+    }
+    exec("rm /var/www/bundles/configure.sh"); // to removve the configure script after running it maybe ??
+
+
+
+    /*
+    // AIDA's
     //configure bundle/tar 
     $configFile = __DIR__. "/bundleconfig.json";
     $config = json_decode(file_get_contents($configFile),true);
@@ -133,6 +150,7 @@ function installBundle(array $req){
     echo "bundle test success\n";
     sendStatus($bundle_name, $version, "passed", $cluster);
     return ['status' => 'fail', 'message' => 'bundle installed'];
+    */
 
 }
 
@@ -143,21 +161,25 @@ function installBundle(array $req){
 */
 
 // decides which function to run
-function requestProcessor($req) {
-  echo "Received install request:\n";
+function requestProcessor($req)
+{
+    echo "--------------------------\n";
+    echo "Received install request:\n";
     var_dump($req);
     flush();
-  
-  if (!isset($req['type'])) {
-    return ['status'=>'fail','message'=>'no type'];
-  }
 
-  switch ($req['type']) {
-    case 'install_bundle': return installBundle($req);
-    // will need to add other cases for the other deployment functions when files are put into 1 full bundler script
+    if (!isset($req['type'])) {
+        return ['status' => 'fail', 'message' => 'no type'];
+    }
 
-    default: return ['status'=>'fail','message'=>'unknown type'];
-  }
+    switch ($req['type']) {
+        case 'install_bundle':
+            return installBundle($req);
+        // will need to add other cases for the other deployment functions when files are put into 1 full bundler script
+
+        default:
+            return ['status' => 'fail', 'message' => 'unknown type'];
+    }
 }
 
 echo "Installer ready, waiting for requests\n";
@@ -171,7 +193,7 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
     echo "Bundler server starting for ALL deployment queues...\n";
-    $sections = ['deployQA','deployProd','deployVersion','deployStatus']; // may need to add / change..? unsure
+    $sections = ['deployQA', 'deployProd', 'deployVersion', 'deployStatus']; // may need to add / change..? unsure
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
@@ -187,7 +209,8 @@ if ($which === 'all') { // to run all queues when scripts are together later
     }
 
     // parent waits for all children
-    while (pcntl_wait($status) > 0) {}
+    while (pcntl_wait($status) > 0) {
+    }
 } else {
     echo "Bundler server starting for queue section: {$which}\n";
     $server = new rabbitMQServer($iniPath, $which);

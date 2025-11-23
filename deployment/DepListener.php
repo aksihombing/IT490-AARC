@@ -57,7 +57,7 @@ function doAddBundle(array $req)
 
   $bundle_name = $req['bundle_name'] ?? '';
   $version = (int) ($req['version'] ?? 0);
-  
+
 
   if (empty($bundle_name) || $version <= 0) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
@@ -99,7 +99,7 @@ function doAddBundle(array $req)
 function doStatusUpdate(array $req)
 { //after the installer scripts is done installing and testing a bundle, it will send a message with the result passed or failed.
   echo "Processing 'status_update'\n";
-  
+
   $db = db();
   if ($db === null) {
     return ['status' => 'fail', 'message' => 'db connection error'];
@@ -113,7 +113,7 @@ function doStatusUpdate(array $req)
   if (empty($bundle_name) || $version <= 0 || !in_array($status, ['passed', 'failed'])) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
-  
+
 
   $cluster = getClusterInfo($sender_ip);
   if ($cluster === null) {
@@ -128,7 +128,7 @@ function doStatusUpdate(array $req)
   $stmt->close();
   $db->close();
 
-   $filename = $version . "_" . $bundle_name . ".tar.gz";// same question about the file extension
+  $filename = $version . "_" . $bundle_name . ".tar.gz";// same question about the file extension
 
   doDeployBundle([
     'bundle_status' => $status,
@@ -156,29 +156,28 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 
   //need a map to route bundles based on where they are going frontend/backend/dmz
 
-  
+
   switch ($bundle_status) { // VERIFY IF UPPERCASE OR LOWERCASE
     case 'new':
       $destination_cluster = 'QA';// new bundles always go to qa first
       break;
     case 'passed':
-      if ($starting_cluster === 'QA'){// passed the test (after statusupdate from QA)
-      $destination_cluster = 'Prod';
-       } 
-       else {
+      if ($starting_cluster === 'QA') {// passed the test (after statusupdate from QA)
+        $destination_cluster = 'Prod';
+      } else {
         echo "Bundle $bundle_name v$version pased on to Production. Deplotment done.\n";
         return;
-       }
-       break;
+      }
+      break;
     case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
-      if ($starting_cluster === 'Prod'){
+      if ($starting_cluster === 'Prod') {
         echo "Bundle $bundle_name v$version failed in Production. Rolling back.\n";
-      doRollback([ 
-        'bundle_name' => $bundle_name
-      ]);
-    } else {
+        doRollback([
+          'bundle_name' => $bundle_name
+        ]);
+      } else {
         echo "Bundle $bundle_name v$version failed in QA. Deployment stopping.\n";
-    }
+      }
       return;
     default:
       echo "error: having trouble processing the status'\n";
@@ -198,32 +197,32 @@ function doDeployBundle(array $deployInfo) // base made by Rea
     echo "VM Name is : $vm_name\n";
     return;
   }
-// getting the vm ip from the bundle name and destination cluster
+  // getting the vm ip from the bundle name and destination cluster
 //using the get host functions and the queue name is constructing the message to be sent, so that it knows which queue to go to based on the cluster and vm name
-    $queue_name = "deploy" . $destination_cluster . $vm_name;
-    $vm_ip = getVmIp($bundle_name, $destination_cluster);
-    if ($vm_ip === null) {
-      echo "Error: Unable to find VM IP for bundle '$bundle_name' in cluster '$destination_cluster'\n";
-      return;
-    }
-
-
-    sendBundle([
-      'queue_name' => $queue_name,
-      'destination_cluster' => $destination_cluster,
-      'vm_ip' => $vm_ip,
-      'path' => $path,
-      'bundle_name' => $bundle_name,
-      'version' => $version
-    ]);
+  $queue_name = "deploy" . $destination_cluster . $vm_name;
+  $vm_ip = getVmIp($bundle_name, $destination_cluster);
+  if ($vm_ip === null) {
+    echo "Error: Unable to find VM IP for bundle '$bundle_name' in cluster '$destination_cluster'\n";
+    return;
   }
 
 
+  sendBundle([
+    'queue_name' => $queue_name,
+    'destination_cluster' => $destination_cluster,
+    'vm_ip' => $vm_ip,
+    'path' => $path,
+    'bundle_name' => $bundle_name,
+    'version' => $version
+  ]);
+}
 
 
 
 
- 
+
+
+
 
 
 
@@ -256,7 +255,7 @@ function sendBundle(array $deployInfo)
   $client->send_request($request);
   echo "Install sent\n";
 
-  
+
 
 
 }
@@ -268,16 +267,17 @@ function doRollback(array $rollbackReq)
   //$destination_cluster = $rollbackReq['destination_cluster'];
 
   //$destination_vm = $rollbackReq['destination_vm'];
-    $bundle_name = $rollbackReq['bundle_name'];
+  $bundle_name = $rollbackReq['bundle_name'];
 
   echo "Rolling back bundle: " . $rollbackReq['bundle_name'] . "\n";
 
 
-$db = db();
-if ($db === null) return;
-$stmt = $db->prepare("SELECT version FROM bundles WHERE bundle_name = ? AND status = 'passed' ORDER BY version DESC LIMIT 1");
-// finds the last good version following the query requirements 
-$stmt->bind_param('s', $bundle_name);
+  $db = db();
+  if ($db === null)
+    return;
+  $stmt = $db->prepare("SELECT version FROM bundles WHERE bundle_name = ? AND status = 'passed' ORDER BY version DESC LIMIT 1");
+  // finds the last good version following the query requirements 
+  $stmt->bind_param('s', $bundle_name);
   $stmt->execute();
   $result = $stmt->get_result()->fetch_assoc();
   $stmt->close();
@@ -296,7 +296,7 @@ $stmt->bind_param('s', $bundle_name);
 
   echo "Deploying rollback of $bundle_name to version $old_version\n";
 
-// will just call dodeploybundle with the old version infor to trigger the deployment process to Production but with the old version
+  // will just call dodeploybundle with the old version infor to trigger the deployment process to Production but with the old version
   doDeployBundle([
     'bundle_status' => 'rollback',
     'bundle_name' => $bundle_name,
@@ -320,6 +320,7 @@ $stmt->bind_param('s', $bundle_name);
 
 function requestProcessor(array $req)
 {
+  echo "--------------------------\n";
   echo "Received request:\n";
   var_dump($req);
   flush();
@@ -335,8 +336,8 @@ function requestProcessor(array $req)
       return doAddBundle($req);
     case 'status_update'://from Aida's installer script
       return doStatusUpdate($req);
-   
-   
+
+
 
 
     default:
