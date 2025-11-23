@@ -2,5 +2,5 @@
 
 <?php
 echo ("this is for health check and everything is okay");
-
+http_response_code(200);
 ?>
