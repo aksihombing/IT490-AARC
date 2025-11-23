@@ -109,7 +109,7 @@ function mainStuff()
             
             if (isPrimaryOkay()) {
                 
-                logMessage("primary recovered starting failback sequence"); 
+                logMessage("primary recovered starting failback"); 
 
                 run_shell_command(dbTakeover); 
                 
