@@ -210,6 +210,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 
     sendBundle([
       'queue_name' => $queue_name,
+      'destination_cluster' => $destination_cluster,
       'vm_ip' => $vm_ip,
       'path' => $path,
       'bundle_name' => $bundle_name,
@@ -230,13 +231,19 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 function sendBundle(array $deployInfo)
 { // helper function to prevent using a nested switch in doDeployBundle
 
-  echo "Install for" . $deployInfo['bundle_name'] . "\n";
+  echo "Install for " . $deployInfo['bundle_name'] . "\n";
   $iniPath = __DIR__ . "/host.ini";
   $filePath = $deployInfo['path'];
   $destinationIP = $deployInfo['vm_ip'];
+  $destination_cluster = $deployInfo['destination_cluster'];
+  $destination_user = strtolower("aarc-$destination_cluster");
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
-  exec("scp /var/www/bundles/$filePath aida@$destinationIP:/var/www/bundles/", $sendOutput, $sendCode); // URGENT : NEED TO CHANGE LATER !!!!
+
+  /*
+    shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); 
+  */
+  exec("scp /var/www/bundles/$filePath $destination_user@$destinationIP:~/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',

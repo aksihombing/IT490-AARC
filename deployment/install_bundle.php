@@ -51,7 +51,7 @@ function sendStatus(string $bundle_name, int $version, string $status, string $c
             'cluster' => $cluster //qa or prod
         ];
         
-        $response = $client->send_request($req);
+        $response = $client->send_request($status_map);
         echo "status sent to deployment:\n";
         var_dump($response);
     } catch(Exception $e){
@@ -62,7 +62,8 @@ function sendStatus(string $bundle_name, int $version, string $status, string $c
 function installBundle(array $req){
     $bundle_name = $req['bundle_name'] ?? '';
     $version = $req['version'] ?? '';
-    $tar = $req['tar_name'] ?? '';
+    $tar = $req['tar_name'] ?? ($req['path'] ?? '');
+    $cluster = $req['cluster'] ?? 'QA'; // temporary until we get deploy script to send the cluster
 
     if (!$bundle_name || !$version || !$tar){
         return ['status' => 'fail', 'message' => 'missing install requirements'];
@@ -90,7 +91,7 @@ function installBundle(array $req){
     mkdir($tmp, 0755, true); 
     
     // extract bundle/tar
-    $cmd = "tar -xzf". escapeshellarg($bundleFile) . "-C". escapeshellarg($tmp);
+    $cmd = "tar -xzf" . escapeshellarg($bundleFile) . "-C" . escapeshellarg($tmp);
     exec($cmd, $output, $result);
 
     if ($result !== 0){
@@ -116,7 +117,7 @@ function installBundle(array $req){
     }
 
     foreach($cmds as $c){
-        $runCmds = "cd"> escapeshellarg($tmp) . "&&". $c;
+        $runCmds = "cd" . escapeshellarg($tmp) . "&&" . $c;
         exec($runCmds, $output, $result);
 
         if ($result !== 0){
