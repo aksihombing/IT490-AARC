@@ -66,6 +66,8 @@ class rabbitMQServer
 			$exchange = new AMQPExchange($channel);
 			$exchange->setName($this->exchange);
 			$exchange->setType($this->exchange_type);
+			$exchange->setFlags(AMQP_DURABLE);
+			$exchange->declareExchange();
 			$replykey = $this->routing_key . ".response";
 
 
@@ -112,6 +114,8 @@ class rabbitMQServer
 
 			$this->conn_queue = new AMQPQueue($channel);
 			$this->conn_queue->setName($this->queue);
+			$this->conn_queue->setFlags(AMQP_DURABLE);
+			$this->conn_queue->declareQueue();
 			$this->conn_queue->bind($exchange->getName(),$this->routing_key);
 
 			$this->conn_queue->consume(array($this,'process_message'));
@@ -126,6 +130,10 @@ class rabbitMQServer
 		{
 			trigger_error("Failed to start request processor: ".$e,E_USER_ERROR); 
 		}
+	}
+	
+	function setQueue($q){
+  		$this->queue = $q;
 	}
 }
 
