@@ -111,7 +111,8 @@ function installBundle(array $req)
         sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
-    exec("rm /var/www/bundles/configure.sh"); // to removve the configure script after running it maybe ??
+    exec("rm /var/www/bundles/configure.sh"); // to removve the configure script after running it maybe ?? im not sure if we should remove the bundle from var/www/ or whever it is stored in tmp ? idk
+    
 
 
 
