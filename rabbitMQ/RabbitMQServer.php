@@ -512,7 +512,7 @@ function doInviteJoin(array $req) {$hash = $req['hash'] ?? '';
   return ['status'=>'success','message'=>'joined club successfully'];
 }
 
-function setQueue($q){
+public setQueue($q){
   $this->queue = $q;
 }
 
