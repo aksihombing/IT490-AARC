@@ -1,4 +1,4 @@
-<?
+<?php
 require_once __DIR__ . '/rabbitMQLib.inc'; //will probably need to fix path like usual
 
 $server = new rabbitMQServer(__DIR__ . "/host.ini", "logListener"); // need .ini section for this

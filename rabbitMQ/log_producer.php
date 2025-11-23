@@ -1,4 +1,4 @@
-<?
+<?php
 require_once __DIR__ . '/rabbitMQLib.inc'; //will probably need to fix path like usual
 function log_event($vm, $type, $log){
     $client = new rabbitMQClient(__DIR__ . "/host.ini", "logProducer"); // need .ini section for this
