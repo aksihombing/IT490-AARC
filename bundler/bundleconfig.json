@@ -6,7 +6,7 @@
                 "frontend/includes/logout.php",
                 "frontend/includes/register.php",
                 "frontend/includes/validate.inc.php",
-                "frontend/my_library"
+                "frontend/my_library.php"
             ],
             "commands": [
                 "echo 'Installing userFeatures'",
@@ -152,6 +152,7 @@
             ],
             "commands": [
                 "echo 'Installing apiProcess (DMZ RabbitMQ Processor)'",
+                "sed -i 's/\b172.28.219.213\b/172.29.219.213/g' /home/api/rmqAccess.ini",
                 "sudo mv api/ /home/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo systemctl restart libraryapi.service",

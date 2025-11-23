@@ -236,11 +236,15 @@ function sendBundle(array $deployInfo)
   $iniPath = __DIR__ . "/host.ini";
   $filePath = $deployInfo['path'];
   $destinationIP = $deployInfo['vm_ip'];
-  $destination_cluster = $deployInfo['destination_cluster']; // only used when we scp
-  $destination_user = strtolower("aarc-" . $destination_cluster);
+  $destination_cluster = $deployInfo['destination_cluster'];
+  $destination_user = strtolower("aarc-$destination_cluster");
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
-  shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
+
+  /*
+    shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); 
+  */
+  exec("scp /var/www/bundles/$filePath $destination_user@$destinationIP:~/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
