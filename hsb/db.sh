@@ -6,3 +6,4 @@ sudo systemctl stop mysql
 
 echo "forcing primary role on my sql" >> "$LOG_FILE"
 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'pccc' -Q "ALTER DATABASE [userdb] SET PRIMARY" >> "$LOG_FILE" 2>&1
+echo 
