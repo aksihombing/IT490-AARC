@@ -244,7 +244,7 @@ function sendBundle(array $deployInfo)
   /*
     shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); 
   */
-  exec("scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
+  exec("scp /var/www/bundles/$filePath $destination_user@$destinationIP:~/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
