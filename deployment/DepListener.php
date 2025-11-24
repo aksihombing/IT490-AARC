@@ -247,7 +247,7 @@ function sendBundle(array $deployInfo)
     'path' => $deployInfo['path'],
     'bundle_name' => $deployInfo['bundle_name'],
     'version' => $deployInfo['version'],
-    'vm_ip' => $deployInfo['vm_ip']
+    'vm_ip' => $deployInfo['vm_ip'],
     'cluster' => $deployInfo['destination_cluster']
   ];
 

@@ -165,7 +165,7 @@ WantedBy=multi-user.target */
 
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
-    exec($tmp . "/configure.sh", $configOutput, $configResultCode);
+    exec("cd $tmp ; ./configure.sh", $configOutput, $configResultCode);
     if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
         sendStatus($bundle_name, $version, "failed", $cluster);
