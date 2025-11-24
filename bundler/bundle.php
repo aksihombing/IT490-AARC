@@ -146,7 +146,7 @@ try {
         echo "Successfully received response from remote\n";
     }
     else{echo "Error: Bundle not sent\n";}
-    $client->close();*/
+    */
     if (!isset($response['status']) || $response['status'] === 'fail') {
         echo "Unable to get version number from database\n";
         exit(1);
@@ -159,12 +159,12 @@ try {
     }
     //echo "Section: $section || Bundle Name: $bundle_name\n"; //DEBUGGING
     echo "Successfully received response from remote. $bundle_name version number is $version.\n";
-    $client->close();
+    
 
 
 } catch (Exception $e) {
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
-    $client->close();
+    
     exit(1);
 }
 
@@ -228,12 +228,12 @@ try {
         exit(1);
     }
     echo "Successfully sent request to Deploy VM to update database\n"; // im assuming that it is a success
-    $client->close();
+    
 
 
 } catch (Exception $e) {
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
-    $client->close();
+    
     exit(1);
 }
 
