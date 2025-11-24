@@ -10,7 +10,7 @@
             ],
             "commands": [
                 "echo 'Installing userFeatures'",
-                "sudo mv frontend/* /var/www/aarc/",
+                "mv frontend/* /var/www/aarc/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
@@ -28,7 +28,7 @@
             ],
             "commands": [
                 "echo 'Installing clubFeatures'",
-                "sudo mv frontend/* /var/www/aarc/",
+                "mv frontend/* /var/www/aarc/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
@@ -40,16 +40,16 @@
             "paths": [
                 "frontend/includes/book.inc.php",
                 "frontend/includes/browse.inc.php",
-                "frontend/includes/my_library.inc.php",
+                "frontend/includes/my_library.php",
                 "frontend/includes/recent.inc.php",
-                "frontend/includes/search.inc.php",
+                "frontend/includes/search.php",
                 "frontend/book.php",
                 "frontend/browse.php",
                 "frontend/search.php"
             ],
             "commands": [
                 "echo 'Installing bookFeatures'",
-                "sudo mv frontend/* /var/www/aarc/",
+                "mv frontend/* /var/www/aarc/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
@@ -66,7 +66,7 @@
             ],
             "commands": [
                 "echo 'Installing baseFeatures'",
-                "sudo mv frontend/* /var/www/aarc/",
+                "mv frontend/* /var/www/aarc/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
@@ -80,7 +80,7 @@
             ],
             "commands": [
                 "echo 'Installing frontendProcess'",
-                "sudo mv rabbitMQ/* /var/www/aarc/",
+                "mv rabbitMQ/* /var/www/aarc/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
@@ -96,7 +96,7 @@
             ],
             "commands": [
                 "echo 'Installing userData'",
-                "sudo mv backend/ /home/",
+                "mv backend/ /home/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo mysql -u 'userAdmin' -paarc490 'userdb' < '/home/backend/sql_db/userdb.sql'",
                 "echo '-----Installation complete-----'",
@@ -109,7 +109,7 @@
             ],
             "commands": [
                 "echo 'Installing bookData'",
-                "sudo mv backend/ /home/",
+                "mv backend/ /home/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo mysql -u 'apiAdmin' -paarc490 'apidb' < '/home/backend/api_db/library_cache.sql'",
                 "if [ $? -ne 0 ]; then echo 'Failed to updated library_cache table.'; exit 1; fi",
@@ -130,7 +130,7 @@
             ],
             "commands": [
                 "echo 'Installing databaseProcess (Backend RabbitMQ Processor)'",
-                "sudo mv backend/ /home/",
+                "mv backend/ /home/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo systemctl restart rabbitmqserver.service",
                 "if [ $? -ne 0 ]; then echo 'Failed to restart rabbitmqserver.service.'; exit 1; fi",
@@ -152,7 +152,7 @@
             ],
             "commands": [
                 "echo 'Installing apiProcess (DMZ RabbitMQ Processor)'",
-                "sudo mv api/ /home/",
+                "mv api/ /home/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo systemctl restart libraryapi.service",
                 "if [ $? -ne 0 ]; then echo 'Failed to restart libraryapi.service.'; exit 1; fi",
