@@ -57,7 +57,7 @@ function sendStatus(string $bundle_name, int $version, string $status, string $c
         $client = new rabbitMQClient(__DIR__ . '/host.ini', 'deployStatus');
 
         $status_map = [
-            'type' => 'send_status',
+            'type' => 'status_update',
             'bundle_name' => $bundle_name,
             'version' => $version,
             'status' => $status, // passed or failed
@@ -165,13 +165,13 @@ WantedBy=multi-user.target */
 
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
-    exec("/var/www/bundles/configure.sh", $configOutput, $configResultCode);
+    exec("$tmp/configure.sh", $configOutput, $configResultCode);
     if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
         sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
-    exec("rm /var/www/bundles/configure.sh"); // to removve the configure script after running it maybe ?? im not sure if we should remove the bundle from var/www/ or whever it is stored in tmp ? idk
+    exec("rm $tmp/configure.sh"); // to removve the configure script after running it maybe ?? im not sure if we should remove the bundle from var/www/ or whever it is stored in tmp ? idk
 
     // end of Rea's Draft
 
