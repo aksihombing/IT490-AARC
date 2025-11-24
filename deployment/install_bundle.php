@@ -39,6 +39,18 @@ not sure if needed anymore with the config scripts
 
 */
 
+
+/* WHAT GETS SENT TO THE INSTALL LISTENER FROM DEPLOY SENDBUNDLE():
+  $request = [
+    'type' => 'install_bundle',
+    'path' => $deployInfo['path'],
+    'bundle_name' => $deployInfo['bundle_name'],
+    'version' => $deployInfo['version'],
+    'vm_ip' => $deployInfo['vm_ip']
+  ];
+
+*/
+
 function sendStatus(string $bundle_name, int $version, string $status, string $cluster)
 {
     try {
@@ -66,6 +78,9 @@ function installBundle(array $req)
     $version = $req['version'] ?? '';
     $tar = $req['tar_name'] ?? ($req['path'] ?? '');
     $cluster = $req['cluster'] ?? 'QA'; // temporary until we get deploy script to send the cluster
+    $cluster_user = strtolower("aarc-$cluster"); // to know current cluster users
+    //$vm_ip = $req['vm_ip'] ?? trim(shell_exec("hostname -I | awk '{print $1}'"));
+
 
     if (!$bundle_name || !$version || !$tar) {
         return ['status' => 'fail', 'message' => 'missing install requirements'];
@@ -102,18 +117,63 @@ function installBundle(array $req)
         return ['status' => 'fail', 'message' => 'tar extraction failed'];
     }
 
-    // REA's version of running configure.sh --> run ./configure.sh
+    // rea's edit --> check the vm_ip or current cluster
+    // the goal is to update the ip address and/or daemon filepath before configure.sh is ran, i think
+    $cluster_rmq = null;
+    switch ($cluster) { // assign
+        case "QA":
+            $cluster_rmq = "172.29.219.213";
+            break;
+        case "Prod":
+            $cluster_rmq = "172.30.219.213"; // WILL NEED TO CHANGE WHEN PROD LAYER IS BUILT
+            break;
+    }
+
+    /* example of the .service scripts located int the daemon folder : [Unit]
+Description=Backround process for fetching data from library API
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/Library_API.php
+
+User=rea-sihombing
+
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target */
+
+    switch ($bundle_name) {
+        case "frontendProcess":
+            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
+            break;
+        case "backendProcess":
+            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
+            // UPDATE DAEMON
+            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
+            // [WIP] UPDATE CRON FILEPATH TOO !!
+            break;
+        case "apiProcess":
+            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
+            // UPDATE DAEMON
+            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
+            break;
+    }
+
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
-    exec("/var/www/bundles/configure.sh",$configOutput,$configResultCode);
-    if ($configResultCode !== 0){
+    exec("/var/www/bundles/configure.sh", $configOutput, $configResultCode);
+    if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
         sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
     exec("rm /var/www/bundles/configure.sh"); // to removve the configure script after running it maybe ?? im not sure if we should remove the bundle from var/www/ or whever it is stored in tmp ? idk
-    
 
+    // end of Rea's Draft
 
 
     /*
