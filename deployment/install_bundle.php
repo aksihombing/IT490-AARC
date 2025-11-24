@@ -108,7 +108,7 @@ function installBundle(array $req)
     mkdir($tmp, 0755, true);
 
     // extract bundle/tar
-    $cmd = "tar -xzf" . escapeshellarg($bundleFile) . "-C" . escapeshellarg($tmp);
+    $cmd = "tar -xzf " . escapeshellarg($bundleFile) . " -C " . escapeshellarg($tmp);
     exec($cmd, $output, $result);
 
     if ($result !== 0) {
