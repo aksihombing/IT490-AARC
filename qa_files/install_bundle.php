@@ -236,7 +236,6 @@ function requestProcessor($req)
     switch ($req['type']) {
         case 'install_bundle':
             return installBundle($req);
-        // will need to add other cases for the other deployment functions when files are put into 1 full bundler script
 
         default:
             return ['status' => 'fail', 'message' => 'unknown type'];
@@ -246,38 +245,21 @@ function requestProcessor($req)
 echo "Installer ready, waiting for requests\n";
 flush();
 
-// multi-queue capable version of the queue
+// removed multi queue logic because install shpuld only be listening on one queue per vm?
+// so when the installer is being run, we need to specify the queue it references in the host.ini
+// ex: php install_bundle.php deployQAbackend
 
-// uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
-$which = $argv[1] ?? 'deployQAbackend';
+if (!isset($argv[1])){
+    echo "need to specify queue to listen on. ex: php install_bundle.php deployQAbackend\n";
+    exit(1);
+}
+
+$which = argv[1];
 $iniPath = __DIR__ . "/host.ini";
 
-if ($which === 'all') { // to run all queues when scripts are together later
-    echo "Bundler server starting for ALL deployment queues...\n";
-    $sections = ['deployQA', 'deployProd', 'deployVersion', 'deployStatus']; // may need to add / change..? unsure
-
-    foreach ($sections as $section) {
-        $pid = pcntl_fork(); // process control fork; creats child process 
-        if ($pid == -1) {
-            die("Failed to fork for {$section}\n");
-        } elseif ($pid === 0) {
-            // child process
-            echo "Listening on {$section}\n";
-            $server = new rabbitMQServer($iniPath, $section);
-            $server->process_requests('requestProcessor');
-            exit(0);
-        }
-    }
-
-    // parent waits for all children
-    while (pcntl_wait($status) > 0) {
-    }
-} else {
-    echo "Bundler server starting for queue section: {$which}\n";
-    $server = new rabbitMQServer($iniPath, $which);
-    echo "Connecting to queue: {$which}\n";
-    flush();
-    $server->process_requests('requestProcessor');
-    echo "Bundler server stopped for {$which}\n";
-}
+echo "Installer starting for qeue: {$which}\n";
+$server = new rabbitMQServer($iniPath, $which);
+echo "Connecting to queue: {$which}\n";
+flush();
+$server->process_requests('requestProcessor');
 ?>
