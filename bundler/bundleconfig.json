@@ -80,7 +80,7 @@
             ],
             "commands": [
                 "echo 'Installing frontendProcess'",
-                "sudo cp -r rabbitMQ/ /var/www/aarc/",
+                "sudo cp -r rabbitMQ/* /var/www/rabbitMQ/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
