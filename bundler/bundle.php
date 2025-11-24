@@ -161,7 +161,6 @@ try {
     echo "Successfully received response from remote. $bundle_name version number is $version.\n";
 
 
-
 } catch (Exception $e) {
     echo "Failure to send bundle to deployment listener script: " . ($e->getMessage());
     exit(1);
