@@ -6,6 +6,10 @@ require_once __DIR__ . '/get_host_info.inc';
 // https://www.php.net/manual/en/function.shell-exec.php
 // https://www.php.net/manual/en/function.exec.php
 
+//https://www.geeksforgeeks.org/linux-unix/sed-command-in-linux-unix-with-examples/
+ // --> we used sed to update the ip addresses of api/rmqAccess.ini , backend/rabbitMQ/host.ini , rabbitMQ/host.ini (for the frontend, since var/www/rabbitMQ is ran adjacent to the var/www/aarc) 
+ // might need to use sed for the daemon files as well ??
+
 // HELPER FUNCTIONS -------------------------
 function getBundleInfo(string $section, string $bundle_name, string $bundle_attribute)
 {
