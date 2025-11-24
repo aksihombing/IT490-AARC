@@ -108,17 +108,15 @@ function doStatusUpdate(array $req)
   $bundle_name = $req['bundle_name'] ?? '';
   $version = (int) ($req['version'] ?? 0);
   $status = $req['status'] ?? '';
-  $sender_ip = $req['sender_ip'] ?? '';
+  $cluster = $req['cluster'] ?? '';
+  
 
   if (empty($bundle_name) || $version <= 0 || !in_array($status, ['passed', 'failed'])) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
 
 
-  $cluster = getClusterInfo($sender_ip);
-  if ($cluster === null) {
-    return ['status' => 'fail', 'message' => '$sender_ip not found in clusters.ini'];
-  }
+
 
   $stmt = $db->prepare("UPDATE bundles SET status = ? WHERE bundle_name = ? AND version = ?");// this records the result of the installation test by updatinf the fields in the db
   $stmt->bind_param('ssi', $status, $bundle_name, $version);
@@ -249,7 +247,8 @@ function sendBundle(array $deployInfo)
     'path' => $deployInfo['path'],
     'bundle_name' => $deployInfo['bundle_name'],
     'version' => $deployInfo['version'],
-    'vm_ip' => $deployInfo['vm_ip']
+    'vm_ip' => $deployInfo['vm_ip'],
+    'cluster' => $deployInfo['destination_cluster']
   ];
 
   $client->send_request($request);

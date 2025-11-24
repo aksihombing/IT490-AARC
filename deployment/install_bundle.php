@@ -148,40 +148,24 @@ WantedBy=multi-user.target */
 
     switch ($bundle_name) {
         case "frontendProcess":
-            exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
-            if ($sedResultCode !== 0) {
-                return ['status' => 'fail', 'message' => 'String Editor failed.'];
-            }
-
+            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini");
             break;
         case "backendProcess":
-            exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
-            if ($sedResultCode !== 0) {
-                return ['status' => 'fail', 'message' => 'String Editor failed.'];
-            }
+            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
             // UPDATE DAEMON
-            exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
-            if ($sedResultCode !== 0) {
-                return ['status' => 'fail', 'message' => 'String Editor failed.'];
-            }
+            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
             // [WIP] UPDATE CRON FILEPATH TOO !!
             break;
         case "apiProcess":
-            exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/api/rmqAccess.ini", $sedOutput, $sedResultCode);
-            if ($sedResultCode !== 0) {
-                return ['status' => 'fail', 'message' => 'String Editor failed.'];
-            }
+            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
             // UPDATE DAEMON
-            exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
-            if ($sedResultCode !== 0) {
-                return ['status' => 'fail', 'message' => 'String Editor failed.'];
-            }
+            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
             break;
     }
 
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
-    exec($tmp . "/configure.sh", $configOutput, $configResultCode);
+    exec("cd $tmp ; ./configure.sh", $configOutput, $configResultCode);
     if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
         sendStatus($bundle_name, $version, "failed", $cluster);
