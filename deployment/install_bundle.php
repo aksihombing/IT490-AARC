@@ -148,18 +148,34 @@ WantedBy=multi-user.target */
 
     switch ($bundle_name) {
         case "frontendProcess":
-            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini");
+            exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
+            if ($sedResultCode !== 0) {
+                return ['status' => 'fail', 'message' => 'String Editor failed.'];
+            }
+
             break;
         case "backendProcess":
-            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
+            exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
+            if ($sedResultCode !== 0) {
+                return ['status' => 'fail', 'message' => 'String Editor failed.'];
+            }
             // UPDATE DAEMON
-            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
+            exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
+            if ($sedResultCode !== 0) {
+                return ['status' => 'fail', 'message' => 'String Editor failed.'];
+            }
             // [WIP] UPDATE CRON FILEPATH TOO !!
             break;
         case "apiProcess":
-            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
+            exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/api/rmqAccess.ini", $sedOutput, $sedResultCode);
+            if ($sedResultCode !== 0) {
+                return ['status' => 'fail', 'message' => 'String Editor failed.'];
+            }
             // UPDATE DAEMON
-            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
+            exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini", $sedOutput, $sedResultCode);
+            if ($sedResultCode !== 0) {
+                return ['status' => 'fail', 'message' => 'String Editor failed.'];
+            }
             break;
     }
 
