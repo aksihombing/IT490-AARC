@@ -40,9 +40,9 @@
             "paths": [
                 "frontend/includes/book.inc.php",
                 "frontend/includes/browse.inc.php",
-                "frontend/includes/my_library.php",
+                "frontend/includes/my_library.inc.php",
                 "frontend/includes/recent.inc.php",
-                "frontend/includes/search.php",
+                "frontend/includes/search.inc.php",
                 "frontend/book.php",
                 "frontend/browse.php",
                 "frontend/search.php"
