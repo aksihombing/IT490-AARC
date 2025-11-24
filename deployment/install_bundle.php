@@ -171,7 +171,10 @@ WantedBy=multi-user.target */
         sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
-    exec("rm $tmp/configure.sh"); // to removve the configure script after running it maybe ?? im not sure if we should remove the bundle from var/www/ or whever it is stored in tmp ? idk
+    echo "Successful configure.sh install\n";
+    sendStatus($bundle_name, $version, "passed", $cluster);
+    return ['status' => 'success', 'message' => 'Bundle installed'];
+    
 
     // end of Rea's Draft
 
