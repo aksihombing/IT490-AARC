@@ -148,7 +148,7 @@ WantedBy=multi-user.target */
 
     switch ($bundle_name) {
         case "frontendProcess":
-            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
+            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini");
             break;
         case "backendProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
@@ -165,7 +165,7 @@ WantedBy=multi-user.target */
 
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
-    exec("$tmp/configure.sh", $configOutput, $configResultCode);
+    exec($tmp . "/configure.sh", $configOutput, $configResultCode);
     if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
         sendStatus($bundle_name, $version, "failed", $cluster);
