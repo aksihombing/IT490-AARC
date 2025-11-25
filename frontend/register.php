@@ -35,7 +35,6 @@ if ($email === '' || $username === '' || $password === '') {
 // below the line of code will need to be changed and add it to
 // the backend so the hasing can be done
 
-$hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
 
 
 
