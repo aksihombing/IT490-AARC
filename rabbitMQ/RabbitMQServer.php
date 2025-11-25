@@ -14,6 +14,9 @@ require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
 
+//move the line of code to backend so the hasing can be done closest to the backend
+$hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
+
 // connects to the local sql database
 function db() {
   $host = 'localhost'; 
