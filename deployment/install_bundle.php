@@ -77,7 +77,7 @@ function installBundle(array $req)
     $bundle_name = $req['bundle_name'] ?? '';
     $version = $req['version'] ?? '';
     $tar = $req['tar_name'] ?? ($req['path'] ?? '');
-    $cluster = $req['cluster'] ?? 'QA'; // temporary until we get deploy script to send the cluster
+    $cluster = $req['cluster'] ?? ''; // temporary until we get deploy script to send the cluster
     $cluster_user = strtolower("aarc-$cluster"); // to know current cluster users
     //$vm_ip = $req['vm_ip'] ?? trim(shell_exec("hostname -I | awk '{print $1}'"));
 
@@ -252,12 +252,32 @@ flush();
 // multi-queue capable version of the queue
 
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
-$which = $argv[1] ?? 'deployQAbackend';
+
+// BUILD QUEUE NAME TO LISTEN ON
+$hostname = null;
+$whichHost = [
+    'frontend',
+    'backend',
+    'dmz'
+];
+foreach ($whichHost as $host) {
+    $shellcmd = "hostname | grep $host";
+    exec($shellcmd, $output, $returnCode);
+    if ($returnCode === 0) {
+        break;
+    }
+    $hostname = ucfirst($host); // make first letter uppercase again lol
+}
+
+
+$whichCluster = 'deploy' . $cluster . $hostname;
+$which = $argv[1] ?? $hostname ?? 'deployQA';
 $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
     echo "Bundler server starting for ALL deployment queues...\n";
-    $sections = ['deployQA', 'deployProd', 'deployVersion', 'deployStatus']; // may need to add / change..? unsure
+    $sections = ['deployQAfrontend', 'deployQAbackend', 'deployQAdmz', 
+    'deployProdfrontend', 'deployProdbackend', 'deployProddmz', ]; // may need to add / change..? unsure
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
