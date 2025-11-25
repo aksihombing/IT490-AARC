@@ -269,9 +269,24 @@ foreach ($whichHost as $host) {
     $hostname = ucfirst($host); // make first letter uppercase again lol
 }
 
+// WHICH CLUSTER ?
+$clustername = null;
+$whichCluster = [
+    '172.29'=> 'QA',
+    '172.30' => 'Prod'
+];
+foreach ($whichCluster as $cluster) {
+    $shellcmd = "hostname -I | grep $cluster";
+    exec($shellcmd, $output, $returnCode);
+    if ($returnCode === 0) {
+        break;
+    }
+    $clustername = ucfirst($cluster); // make first letter uppercase again lol
+}
 
-$whichCluster = 'deploy' . $cluster . $hostname;
-$which = $argv[1] ?? $hostname ?? 'deployQA';
+
+$whichQueue = 'deploy' . $cluster . $hostname;
+$which = $argv[1] ?? $whichQueue ?? 'deployVersion';
 $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
