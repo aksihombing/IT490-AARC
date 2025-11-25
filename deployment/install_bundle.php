@@ -174,7 +174,7 @@ WantedBy=multi-user.target */
     echo "Successful configure.sh install\n";
     sendStatus($bundle_name, $version, "passed", $cluster);
     return ['status' => 'success', 'message' => 'Bundle installed'];
-    
+
 
     // end of Rea's Draft
 
@@ -254,6 +254,22 @@ flush();
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
 
 // BUILD QUEUE NAME TO LISTEN ON
+
+// WHICH CLUSTER ?
+$clustername = null;
+$whichCluster = [
+    '172.29' => 'QA',
+    '172.30' => 'Prod'
+];
+foreach ($whichCluster as $cluster) {
+    $shellcmd = "hostname -I | grep $cluster";
+    exec($shellcmd, $output, $returnCode);
+    if ($returnCode === 0) {
+        $clustername = $cluster;
+        break;
+    }
+}
+
 $hostname = null;
 $whichHost = [
     'frontend',
@@ -264,35 +280,28 @@ foreach ($whichHost as $host) {
     $shellcmd = "hostname | grep $host";
     exec($shellcmd, $output, $returnCode);
     if ($returnCode === 0) {
+        $hostname = $host;
         break;
     }
-    $hostname = ucfirst($host); // make first letter uppercase again lol
-}
-
-// WHICH CLUSTER ?
-$clustername = null;
-$whichCluster = [
-    '172.29'=> 'QA',
-    '172.30' => 'Prod'
-];
-foreach ($whichCluster as $cluster) {
-    $shellcmd = "hostname -I | grep $cluster";
-    exec($shellcmd, $output, $returnCode);
-    if ($returnCode === 0) {
-        break;
-    }
-    $clustername = ucfirst($cluster); // make first letter uppercase again lol
 }
 
 
-$whichQueue = 'deploy' . $cluster . $hostname;
+
+$whichQueue = 'deploy' . $clustername . $hostname;
+echo "QUEUE:" . $whichQueue; //DEBUGGING
 $which = $argv[1] ?? $whichQueue ?? 'deployVersion';
 $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
     echo "Bundler server starting for ALL deployment queues...\n";
-    $sections = ['deployQAfrontend', 'deployQAbackend', 'deployQAdmz', 
-    'deployProdfrontend', 'deployProdbackend', 'deployProddmz', ]; // may need to add / change..? unsure
+    $sections = [
+        'deployQAfrontend',
+        'deployQAbackend',
+        'deployQAdmz',
+        'deployProdfrontend',
+        'deployProdbackend',
+        'deployProddmz',
+    ]; // may need to add / change..? unsure
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
