@@ -15,5 +15,5 @@ function log_process($req){
 }
 
 echo "Listening on queue: $queue_name\n";
-$server->process_requests("log_process",$queue_name);
+$server->process_requests("log_process");
 ?>
