@@ -43,7 +43,6 @@ require_once('includes/my_library.inc.php');
 
           <p><?php echo htmlspecialchars($book['author']) ?></p>
 
-          <p><strong>ISBN:</strong> <?php echo htmlspecialchars($book['isbn']) ?></p>
 
           <p><strong>Published:</strong> <?php echo htmlspecialchars($book['publish_year']) ?></p>
 
@@ -73,8 +72,6 @@ require_once('includes/my_library.inc.php');
 
             <p><?php echo htmlspecialchars($r_book['author']) ?></p>
 
-           <!-- <p><strong>ISBN:</strong> < ? php echo htmlspecialchars($r_book['isbn']) ? ></p> -->
-            <!-- removed ISBN from showing -->
 
             <p><strong>Published:</strong> <?php echo htmlspecialchars($r_book['publish_year']) ?></p>
           </div> <!-- end card -->
