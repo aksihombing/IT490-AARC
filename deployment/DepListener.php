@@ -36,8 +36,11 @@ function doVersionRequest(array $req)
   $stmt->bind_param('s', $bundle_name);// selects the highest version number for the specific bundle
   $stmt->execute();
   $result = $stmt->get_result()->fetch_assoc();
+  //$max_version = $result['max_v'] ?? 0 + 1; it takes the highest version it found (0 if it found none)  and adds 1 to it and that will become the new version number
 
-  $max_version = $result['max_v'] ?? 0 + 1; // it takes the highest version it found (0 if it found none)  and adds 1 to it and that will become the new version number
+  // https://www.php.net/manual/en/language.operators.precedence.php
+  // changed to just return the current max because the bundler is already adding +1
+  $max_version = (int)($result['max_v'] ?? 0); 
   $stmt->close();
   $db->close();
   return ['status' => 'success', 'version' => $max_version]; // sends it back to the bundle php script
@@ -247,7 +250,7 @@ function sendBundle(array $deployInfo)
     'path' => $deployInfo['path'],
     'bundle_name' => $deployInfo['bundle_name'],
     'version' => $deployInfo['version'],
-    'vm_ip' => $deployInfo['vm_ip']
+    'vm_ip' => $deployInfo['vm_ip'],
     'cluster' => $deployInfo['destination_cluster']
   ];
 
