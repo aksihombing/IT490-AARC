@@ -150,7 +150,7 @@ WantedBy=multi-user.target */
         case "frontendProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini");
             break;
-        case "backendProcess":
+        case "databaseProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
             // UPDATE DAEMON
             shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
@@ -254,7 +254,7 @@ if (!isset($argv[1])){
     exit(1);
 }
 
-$which = argv[1];
+$which = $argv[1];
 $iniPath = __DIR__ . "/host.ini";
 
 echo "Installer starting for qeue: {$which}\n";
