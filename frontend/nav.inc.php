@@ -33,6 +33,8 @@ $username = $userData['username'] ?? 'User';
     }
 </style>
 -->
+
+<!-- https://getbootstrap.com/docs/5.3/components/navbar/ -->
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
         <a class="navbar-brand" href="index.php">AARC Library</a>
