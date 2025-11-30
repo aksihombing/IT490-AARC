@@ -44,6 +44,8 @@ require_once('includes/search.inc.php');
         <h2>Results:</h2>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
             <!-- 1 card on mobile, 2 cards on small screens, 3 cards on medium, 4 cards on large (per row); uses grid breakpoint for grid-3 -https://getbootstrap.com/docs/5.3/layout/grid/
+                https://getbootstrap.com/docs/5.0/utilities/position/
+                
                 -->
             <?php foreach ($bookSearchResults as $book):
                 // WORK IN PROGRESS BC IDK WHAT IM DOING !!!
@@ -53,42 +55,47 @@ require_once('includes/search.inc.php');
                 ?>
 
                 <div class="col"> <!-- columnss -->
-                    <div class="card h-100"> <!-- design per card, height=100 -->
-
+                    <div class="card h-100"> <!-- design per card, height=100% -->
                         <!-- book image -->
-                        <?php if (!empty($book['cover_url'])): ?>
-                            <img src="
+                        <div class="position-relative">
+                            <?php if (!empty($book['cover_url'])): ?>
+                                <img src="
                         <?php echo htmlspecialchars($book['cover_url']); ?>" alt="Book Cover" class="card-img-top">
-                        <?php endif; ?> <!-- SHOULD ADD "ELSE" for when book cover is null-->
+                            <?php else: ?>
+                                <img src="images/gray.jpg" class="card-img-top" alt="No book cover available">
+                                <div class="position-absolute top-50 start-50 text-white px-2 py-1">No Book Cover Available
+                                </div>
+                            <?php endif; ?> <!-- SHOULD ADD " ELSE" for when book cover is null-->
+                            </div>
 
-                        <!-- book info -->
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <!-- display title but also stretch each book link across the entire card so that it is all clickable. 
+                            <!-- book info -->
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <!-- display title but also stretch each book link across the entire card so that it is all clickable. 
                              https://getbootstrap.com/docs/5.3/helpers/stretched-link/
                         -->
-                                <a href="index.php?content=book&olid=<?php echo $olid; ?>"
-                                    class="stretched-link text-decoration-none">
-                                    <?php echo htmlspecialchars($book['title']); ?>
-                                </a>
-                            </h5>
-                            <!-- other details -->
-                            <p class="card-text mb-1">
-                                <?php echo htmlspecialchars($book['author']); ?>
-                            </p>
-                            <p class="card-text text-muted">
-                                <?php echo htmlspecialchars($book['publish_year']); ?>
-                            </p>
-                        </div>
+                                    <a href="index.php?content=book&olid=<?php echo $olid; ?>"
+                                        class="stretched-link text-decoration-none">
+                                        <?php echo htmlspecialchars($book['title']); ?>
+                                    </a>
+                                </h5>
+                                <!-- other details -->
+                                <p class="card-text mb-1">
+                                    <?php echo htmlspecialchars($book['author']); ?>
+                                </p>
+                                <p class="card-text text-muted">
+                                    <?php echo htmlspecialchars($book['publish_year']); ?>
+                                </p>
+                            </div>
 
-                    </div><!-- end card body -->
+                        </div><!-- end card body -->
 
-                </div><!-- end card col -->
+                    </div><!-- end card col -->
 
-            <?php endforeach; ?>
+                <?php endforeach; ?>
 
-        </div> <!-- END OF OVERALL CARD DISPLAYS-->
-    <?php endif; ?>
+            </div> <!-- END OF OVERALL CARD DISPLAYS-->
+        <?php endif; ?>
 </body>
 
 </html>
