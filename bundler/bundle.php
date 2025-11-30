@@ -18,6 +18,8 @@ function getBundleInfo(string $section, string $bundle_name, string $bundle_attr
     // parse section (changed it from the ini parse to json parse bc idk how to parse ini sorry)
     $path_decoded = json_decode(file_get_contents($path), true);
 
+    
+
     if (!$path_decoded) {
         echo "Failed to parse path : $path\n";
         exit(1);
@@ -147,12 +149,9 @@ try {
         echo "Unable to get version number from database\n";
         exit(1);
     }
-    // previous_version + 1
-    if ($version !== 1) {
-        $version = $response['version'] + 1;
-    } else {
-        $version = $response['version'];
-    }
+    // previous max version from deploy db + 1
+    $version = ((int)$response['version']) + 1;
+
     //echo "Section: $section || Bundle Name: $bundle_name\n"; //DEBUGGING
     echo "Successfully received response from remote. $bundle_name version number is $version.\n";
 
