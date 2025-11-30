@@ -15,12 +15,11 @@ require_once('includes/search.inc.php');
 
 <body>
     <div class="container m-5">
-        <h2>Search:</h2>
         <!-- searchbar -->
         <form name="search" action="index.php" method="GET">
             <input type="hidden" name="content" value="search">
             <div class="form-group">
-                <label for="query">Username:</label>
+                <label for="query">Search the AARC Library:</label>
                 <input type="text" class="form-control" id="query" name="query" placeholder="Enter title or author name"
                     value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
             </div>

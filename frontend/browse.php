@@ -62,10 +62,10 @@ require_once('includes/browse.inc.php');
 
     <div class="pagination">
         <?php if ($page > 1): ?>
-            <a class="btn btn-dark" role="button" href="index.php?content=browse&page=<?php echo $page - 1; ?>">Previous</a>
+            <a class="btn btn-dark mx-2" role="button" href="index.php?content=browse&page=<?php echo $page - 1; ?>">Previous</a>
         <?php endif; ?>
 
-        <a class="btn btn-dark" role="button" href="index.php?content=browse&page=<?php echo $page + 1; ?>">Next</a>
+        <a class="btn btn-dark mx-2" role="button" href="index.php?content=browse&page=<?php echo $page + 1; ?>">Next</a>
     </div>
 
 <?php else: ?>

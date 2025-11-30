@@ -84,13 +84,12 @@ if (!isset($_SESSION['session_key'])):
 
 
 
-  <section id="welcome-section">
+  <div> <!-- TO DO : REFINE CONTAINERS -->
     <h2>Welcome!</h2>
     <p>You are logged in successfully.</p>
 
     <h3>Recent Books</h3>
     <?php if (!empty($recentBooks)): ?>
-      <h2>Results:</h2>
       <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
         <?php foreach ($recentBooks as $book):
           $olid = urlencode($book['olid']);
@@ -141,5 +140,5 @@ if (!isset($_SESSION['session_key'])):
 
 
     <a class="btn btn-dark" role="button" href="/includes/logout.php">Logout</a>
-  </section>
+    </div>
 <?php endif; ?>
