@@ -4,24 +4,35 @@
 // check session state
 if (!isset($_SESSION['session_key'])):
   ?>
-  <section id="auth-section">
-    <h2>Register New User</h2>
+  <!-- https://getbootstrap.com/docs/4.4/components/forms/ -->
+  <!-- REGISTER -->
+  <div class="container m-5">
+    <h2>Register</h2>
+    <small class="form-text text-muted">Create a new account.</small>
     <form name="register" action="/includes/register.php" method="post">
-      <label for="emailAddress">Email:</label>
-      <input type="email" id="emailAddress" name="emailAddress" size="25" required>
-      <br>
+      <!-- email -->
+      <div class="form-group">
+        <label for="emailAddress">Email:</label>
+        <input type="email" class="form-control" id="emailAddress" name="emailAddress" aria-describedby="emailHelp"
+          required>
+      </div>
 
-      <label for="username">Username:</label>
-      <input type="text" id="username" name="username" size="25" required>
-      <br>
+      <!-- username -->
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+      </div>
 
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" size="25" required>
-      <br>
+      <!-- password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+      </div>
 
-      <input type="submit" value="Register">
+      <button type="submit" class="btn btn-dark" value="Register">Submit</button>
+
+
     </form>
-
     <?php
     if (isset($_GET['register_error'])) {
       echo "<p style='color:red;'>Registration Failed: " . htmlspecialchars($_GET['register_error']) . "</p>";
@@ -30,30 +41,35 @@ if (!isset($_SESSION['session_key'])):
       echo "<p style='color:green;'>Registration successful! You may now log in.</p>";
     }
     ?>
+  </div>
 
-    <hr>
-
-    <h2>Log In</h2>
-    <h4>For existing users</h4>
-
+  <!-- LOGIN -->
+  <div class="container m-5">
+    <h2>Login</h2>
+    <small class="form-text text-muted">Already have an account with us?</small>
     <form name="login" action="/includes/login.php" method="post">
-      <label for="loginUsername">Username:</label>
-      <input type="text" id="loginUsername" name="username" size="25" required>
-      <br>
+      <!-- username -->
+      <div class="form-group">
+        <label for="loginUsername">Username:</label>
+        <input type="text" class="form-control" id="loginUsername" name="username" required>
+      </div>
 
-      <label for="loginPassword">Password:</label>
-      <input type="password" id="loginPassword" name="password" size="25" required>
-      <br>
+      <!-- password -->
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" class="form-control" id="loginPassword" name="password" required>
+      </div>
 
-      <input type="submit" value="Login">
+      <button type="submit" class="btn btn-dark" value="Login">Submit</button>
+
     </form>
-
     <?php
     if (isset($_GET['error'])) {
       echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
     }
     ?>
-  </section>
+  </div>
+
 
 
 <?php else: ?>
@@ -72,41 +88,58 @@ if (!isset($_SESSION['session_key'])):
     <h2>Welcome!</h2>
     <p>You are logged in successfully.</p>
 
-    <br>
-    <br>
+    <h3>Recent Books</h3>
+    <?php if (!empty($recentBooks)): ?>
+      <h2>Results:</h2>
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+        <?php foreach ($recentBooks as $book):
+          $olid = urlencode($book['olid']);
+          // used for book.php GET queries
+          // echo "<p>OLID : $olid</p>";// DEBUGGING
+          ?>
 
-    <section id="recent-books">
-      <h3>Recent Books</h3>
-      <?php if (!empty($recentBooks)): ?>
-        <ul>
-          <?php foreach ($recentBooks as $book):
-            $olid = urlencode($book['olid']);
-            ?>
-            <br><br> <!-- might be best to do a css thing here but might have to wait off a bit -->
-            <li>
-              <a href="index.php?content=book&olid=<?php echo htmlspecialchars($olid); ?>
-              ">
-
-                <?php if (!empty($book['cover_url'])): ?>
-                  <br>
-                  <!--  < ?php echo "<p>OLID : $olid</p>";// DEBUGGING ?> -->
-                  <img src="<?php echo htmlspecialchars($book['cover_url']); ?>" alt="Cover" width="80">
+          <div class="col"> <!-- columnss -->
+            <div class="card h-100"> <!-- design per card, height=100% -->
+              <!-- book image -->
+              <div class="position-relative">
+                <?php if (!empty($book['cover_url']) && str_contains($book['cover_url'], 'https')): ?>
+                  <img src="
+                        <?php echo htmlspecialchars($book['cover_url']); ?>" alt="Book Cover" class="card-img-top">
+                <?php else: ?>
+                  <img src="images/gray.jpg" class="card-img-top" alt="No book cover available">
+                  <div class="position-absolute top-50 start-50 text-white px-2 py-1">No Book Cover Available
+                  </div>
                 <?php endif; ?>
-                <strong><?php echo htmlspecialchars($book['title']); ?></strong>
-                <br>
-                by <?php echo htmlspecialchars($book['author']); ?>
-                (<?php echo htmlspecialchars($book['publish_year']); ?>)
-              </a>
-            </li>
-          <?php endforeach; ?>
-        </ul>
-      <?php else: ?>
-        <p>No recent releases available right now.</p>
-      <?php endif; ?>
-    </section>
+              </div>
 
-    <br>
-    <br>
-    <p><a id="logoutbutton" href="/includes/logout.php">Logout</a></p>
+              <!-- book info -->
+              <div class="card-body">
+                <h5 class="card-title">
+                  <a href="index.php?content=book&olid=<?php echo $olid; ?>" class="stretched-link text-decoration-none">
+                    <?php echo htmlspecialchars($book['title']); ?>
+                  </a>
+                </h5>
+                <!-- other details -->
+                <p class="card-text mb-1">
+                  <?php echo htmlspecialchars($book['author']); ?>
+                </p>
+                <p class="card-text text-muted">
+                  <?php echo htmlspecialchars($book['publish_year']); ?>
+                </p>
+              </div>
+
+            </div><!-- end card body -->
+
+          </div><!-- end card col -->
+
+        <?php endforeach; ?>
+
+      </div> <!-- END OF OVERALL CARD DISPLAYS-->
+    <?php else: ?>
+      <p>No recent releases available right now.</p>
+    <?php endif; ?>
+
+
+    <a class="btn btn-dark" role="button" href="/includes/logout.php">Logout</a>
   </section>
 <?php endif; ?>

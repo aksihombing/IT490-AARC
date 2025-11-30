@@ -39,11 +39,11 @@ $username = $userData['username'] ?? 'User';
     <div class="container-fluid">
         <a class="navbar-brand" href="index.php">AARC Library</a>
         <div class="collapse navbar-collapse" id="navbardSupportedContent">
-            <ul>
-                <li class="nav-item"><a href="index.php">Home</a></li>
-                <li class="nav-item"><a href="index.php?content=browse&page=1">Browse All</a></li>
-                <li class="nav-item"><a href="index.php?content=search">Search</a></li>
-                <li class="nav-item"><a href="index.php?content=bookClub">Book Clubs</a></li>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php?content=browse&page=1">Browse All</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php?content=search">Search</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php?content=bookClub">Book Clubs</a></li>
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
