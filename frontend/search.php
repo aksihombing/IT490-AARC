@@ -14,34 +14,36 @@ require_once('includes/search.inc.php');
 </head>
 
 <body>
-    <div class="container m-5">
+    <div class="container align-self-center d-flex justify-content-center mt-4">
         <!-- searchbar -->
-        <form name="search" action="index.php" method="GET">
-            <input type="hidden" name="content" value="search">
-            <div class="form-group">
-                <label for="query">Search the AARC Library:</label>
-                <input type="text" class="form-control" id="query" name="query" placeholder="Enter title or author name"
-                    value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
-            </div>
+        <div class="border border-secondary-subtle rounded p-4 w-100" style="max-width:600px;">
+            <form name="search" action="index.php" method="GET">
+                <input type="hidden" name="content" value="search">
+                <div class="form-group col-md-12 mb-3">
+                    <label for="query">Search the AARC Library:</label>
+                    <input type="text" class="form-control" id="query" name="query"
+                        placeholder="Enter title or author name"
+                        value="<?php echo htmlspecialchars($_GET['query'] ?? ''); ?>">
+                </div>
 
 
-            <button type="submit" class="btn btn-dark">Submit</button>
-        </form>
-        <?php
-        if (isset($_GET['error'])) {
-            echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-        }
-        ?>
-        <?php if ($error): ?>
-            <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
-        <?php endif; ?>
+                <button type="submit" class="btn btn-dark">Submit</button>
+            </form>
+            <?php
+            if (isset($_GET['error'])) {
+                echo "<p class='mt-2' style='color:red;'>Search Failed: " . htmlspecialchars($_GET['error']) . "</p>";
+            }
+            ?>
+            <?php if ($error): ?>
+                <p class="mt-2 text-muted"><?php echo htmlspecialchars($error); ?></p>
+            <?php endif; ?>
+        </div>
     </div>
 
 
 
 
     <?php if (!empty($bookSearchResults)): ?>
-        <h2>Results:</h2>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
             <!-- 1 card on mobile, 2 cards on small screens, 3 cards on medium, 4 cards on large (per row); uses grid breakpoint for grid-3 -https://getbootstrap.com/docs/5.3/layout/grid/
                 https://getbootstrap.com/docs/5.0/utilities/position/
