@@ -4,7 +4,7 @@ require_once('includes/browse.inc.php');
 <html>
 <!-- BROWSING ----------------------- -->
 
-<h2>Browse Books:</h2>
+<h2>Browse the AARC Collections</h2>
 <?php if (!empty($browseBooks)): ?>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
         <!-- 1 card on mobile, 2 cards on small screens, 3 cards on medium, 4 cards on large (per row); uses grid breakpoint for grid-3 -https://getbootstrap.com/docs/5.3/layout/grid/
@@ -60,7 +60,7 @@ require_once('includes/browse.inc.php');
 
     </div> <!-- END OF OVERALL CARD DISPLAYS-->
 
-    <div class="pagination">
+    <div class="container d-flex justify-content-center mt-3 mb-3">
         <?php if ($page > 1): ?>
             <a class="btn btn-dark mx-2" role="button" href="index.php?content=browse&page=<?php echo $page - 1; ?>">Previous</a>
         <?php endif; ?>
