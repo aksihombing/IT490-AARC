@@ -36,15 +36,15 @@ if (!isset($_SESSION['session_key'])):
 
 
       </form>
+      <?php
+      if (isset($_GET['register_error'])) {
+        echo "<p class='mt-2' style='color:red;'>Registration Failed: " . htmlspecialchars($_GET['register_error']) . "</p>";
+      }
+      if (isset($_GET['register_success'])) {
+        echo "<p class='mt-2' style='color:green;'>Registration successful! You may now log in.</p>";
+      }
+      ?>
     </div>
-    <?php
-    if (isset($_GET['register_error'])) {
-      echo "<p style='color:red;'>Registration Failed: " . htmlspecialchars($_GET['register_error']) . "</p>";
-    }
-    if (isset($_GET['register_success'])) {
-      echo "<p style='color:green;'>Registration successful! You may now log in.</p>";
-    }
-    ?>
   </div>
 
   <!-- LOGIN -->
@@ -66,13 +66,13 @@ if (!isset($_SESSION['session_key'])):
         </div>
 
         <div class="form-group col-md-12">
-        <button type="submit" class="btn btn-dark" value="Login">Submit</button>
+          <button type="submit" class="btn btn-dark" value="Login">Submit</button>
         </div>
 
       </form>
       <?php
       if (isset($_GET['error'])) {
-        echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
+        echo "<p class='mt-2' style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
       }
       ?>
     </div>
@@ -93,8 +93,7 @@ if (!isset($_SESSION['session_key'])):
 
 
   <div> <!-- TO DO : REFINE CONTAINERS -->
-    <h2>Welcome!</h2>
-    <p>You are logged in successfully.</p>
+    <h2>Welcome to the AARC Library</h2>
 
     <h3>Recent Books</h3>
     <?php if (!empty($recentBooks)): ?>
@@ -146,7 +145,10 @@ if (!isset($_SESSION['session_key'])):
       <p>No recent releases available right now.</p>
     <?php endif; ?>
 
-
-    <a class="btn btn-dark" role="button" href="/includes/logout.php">Logout</a>
+   <!-- Removed logout button because i dont think its THAT necessary
+    <div class="container d-flex justify-content-center mt-3 mb-3">
+      <a class="btn btn-dark" role="button" href="/includes/logout.php">Logout</a>
+    </div> 
+    -->
   </div>
 <?php endif; ?>

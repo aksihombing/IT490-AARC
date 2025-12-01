@@ -29,15 +29,15 @@ require_once('includes/search.inc.php');
 
                 <button type="submit" class="btn btn-dark">Submit</button>
             </form>
+            <?php
+            if (isset($_GET['error'])) {
+                echo "<p class='mt-2' style='color:red;'>Search Failed: " . htmlspecialchars($_GET['error']) . "</p>";
+            }
+            ?>
+            <?php if ($error): ?>
+                <p class="mt-2 text-muted"><?php echo htmlspecialchars($error); ?></p>
+            <?php endif; ?>
         </div>
-        <?php
-        if (isset($_GET['error'])) {
-            echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-        }
-        ?>
-        <?php if ($error): ?>
-            <p style="color:red;"><?php echo htmlspecialchars($error); ?></p>
-        <?php endif; ?>
     </div>
 
 
