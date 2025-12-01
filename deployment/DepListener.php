@@ -168,14 +168,17 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       }
       break;
     case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
-      if ($starting_cluster === 'Prod') {
-        echo "Bundle $bundle_name v$version failed in Production. Rolling back.\n";
+      if ($starting_cluster === 'Prod') {// remove starting here
+        echo "Bundle $bundle_name v$version failed in Production. Rolling back.\n";// remove?
         doRollback([
           'bundle_name' => $bundle_name
         ]);
       } else {
         echo "Bundle $bundle_name v$version failed in QA. Deployment stopping.\n";
-      }
+      }// remove ends? Just a reminder to uncomment the dorollback when we want it to rollback for QA as well
+      /*doRollback([
+          'bundle_name' => $bundle_name
+        ]); */
       return;
     default:
       echo "error: having trouble processing the status'\n";
@@ -247,7 +250,7 @@ function sendBundle(array $deployInfo)
     'path' => $deployInfo['path'],
     'bundle_name' => $deployInfo['bundle_name'],
     'version' => $deployInfo['version'],
-    'vm_ip' => $deployInfo['vm_ip']
+    'vm_ip' => $deployInfo['vm_ip'],
     'cluster' => $deployInfo['destination_cluster']
   ];
 
