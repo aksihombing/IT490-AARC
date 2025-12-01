@@ -6,33 +6,37 @@ if (!isset($_SESSION['session_key'])):
   ?>
   <!-- https://getbootstrap.com/docs/4.4/components/forms/ -->
   <!-- REGISTER -->
-  <div class="container m-5">
-    <h2>Register</h2>
-    <small class="form-text text-muted">Create a new account.</small>
-    <form name="register" action="/includes/register.php" method="post">
-      <!-- email -->
-      <div class="form-group">
-        <label for="emailAddress">Email:</label>
-        <input type="email" class="form-control" id="emailAddress" name="emailAddress" aria-describedby="emailHelp"
-          required>
-      </div>
+  <div class="container align-self-center d-flex justify-content-center mt-4">
+    <div class="border border-secondary-subtle rounded p-4 w-100" style="max-width:600px;">
+      <h2>Register</h2>
+      <small class="form-text text-muted">Create a new account.</small>
+      <form name="register" action="/includes/register.php" method="post">
+        <!-- email -->
+        <div class="form-group col-md-12">
+          <label for="emailAddress">Email:</label>
+          <input type="email" class="form-control" id="emailAddress" name="emailAddress" aria-describedby="emailHelp"
+            required>
+        </div>
 
-      <!-- username -->
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input type="text" class="form-control" id="username" name="username" required>
-      </div>
+        <!-- username -->
+        <div class="form-group col-md-12">
+          <label for="username">Username:</label>
+          <input type="text" class="form-control" id="username" name="username" required>
+        </div>
 
-      <!-- password -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-      </div>
+        <!-- password -->
+        <div class="form-group col-md-12 mb-5">
+          <label for="password">Password</label>
+          <input type="password" class="form-control" id="password" name="password" required>
+        </div>
 
-      <button type="submit" class="btn btn-dark" value="Register">Submit</button>
+        <div class="col-12">
+          <button type="submit" class="btn btn-dark" value="Register">Submit</button>
+        </div>
 
 
-    </form>
+      </form>
+    </div>
     <?php
     if (isset($_GET['register_error'])) {
       echo "<p style='color:red;'>Registration Failed: " . htmlspecialchars($_GET['register_error']) . "</p>";
@@ -44,30 +48,34 @@ if (!isset($_SESSION['session_key'])):
   </div>
 
   <!-- LOGIN -->
-  <div class="container m-5">
-    <h2>Login</h2>
-    <small class="form-text text-muted">Already have an account with us?</small>
-    <form name="login" action="/includes/login.php" method="post">
-      <!-- username -->
-      <div class="form-group">
-        <label for="loginUsername">Username:</label>
-        <input type="text" class="form-control" id="loginUsername" name="username" required>
-      </div>
+  <div class="container align-self-center d-flex justify-content-center mt-4">
+    <div class="border border-secondary-subtle rounded p-4 w-100" style="max-width:600px;">
+      <h2>Login</h2>
+      <small class="form-text text-muted">Already have an account with us?</small>
+      <form name="login" action="/includes/login.php" method="post">
+        <!-- username -->
+        <div class="form-group col-md-12">
+          <label for="loginUsername">Username:</label>
+          <input type="text" class="form-control" id="loginUsername" name="username" required>
+        </div>
 
-      <!-- password -->
-      <div class="form-group">
-        <label for="loginPassword">Password</label>
-        <input type="password" class="form-control" id="loginPassword" name="password" required>
-      </div>
+        <!-- password -->
+        <div class="form-group col-md-12 mb-5">
+          <label for="loginPassword">Password</label>
+          <input type="password" class="form-control" id="loginPassword" name="password" required>
+        </div>
 
-      <button type="submit" class="btn btn-dark" value="Login">Submit</button>
+        <div class="form-group col-md-12">
+        <button type="submit" class="btn btn-dark" value="Login">Submit</button>
+        </div>
 
-    </form>
-    <?php
-    if (isset($_GET['error'])) {
-      echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
-    }
-    ?>
+      </form>
+      <?php
+      if (isset($_GET['error'])) {
+        echo "<p style='color:red;'>Login Failed: " . htmlspecialchars($_GET['error']) . "</p>";
+      }
+      ?>
+    </div>
   </div>
 
 
@@ -140,5 +148,5 @@ if (!isset($_SESSION['session_key'])):
 
 
     <a class="btn btn-dark" role="button" href="/includes/logout.php">Logout</a>
-    </div>
+  </div>
 <?php endif; ?>
