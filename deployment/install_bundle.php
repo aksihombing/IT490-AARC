@@ -157,11 +157,13 @@ WantedBy=multi-user.target */
             // [WIP] UPDATE CRON FILEPATH TOO !!
             break;
         case "apiProcess":
-            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
+            shell_exec("sed -i 's/172.28.219.213/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
             // UPDATE DAEMON
-            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
+            shell_exec("sed -i \'s|rea-sihombing/Project/IT490-AARC|$cluster_user|g\' $tmp/api/daemon/libraryapi.service");// --> changes ExecStart filepath
+            shell_exec("sed -i \'s|rea-sihombing|$cluster_user|g\' $tmp/api/daemon/libraryapi.service"); // --> changes User name
             break;
     }
+    // sed delimiters : https://stackoverflow.com/questions/5864146/using-different-delimiters-in-sed-commands-and-range-addresses
 
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
