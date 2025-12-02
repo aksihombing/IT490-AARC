@@ -261,11 +261,11 @@ $whichCluster = [
     '172.29' => 'QA',
     '172.30' => 'Prod'
 ];
-foreach ($whichCluster as $cluster) {
-    $shellcmd = "hostname -I | grep $cluster";
+foreach ($whichCluster as $clusterIP => $clusterIP_name) {
+    $shellcmd = "hostname -I | grep $clusterIP";
     exec($shellcmd, $output, $returnCode);
     if ($returnCode === 0) {
-        $clustername = $cluster;
+        $clustername = $clusterIP_name;
         break;
     }
 }
@@ -288,7 +288,7 @@ foreach ($whichHost as $host) {
 
 
 $whichQueue = 'deploy' . $clustername . $hostname;
-echo "QUEUE:" . $whichQueue; //DEBUGGING
+//echo "QUEUE:" . $whichQueue; //DEBUGGING
 $which = $argv[1] ?? $whichQueue ?? 'deployVersion';
 $iniPath = __DIR__ . "/host.ini";
 

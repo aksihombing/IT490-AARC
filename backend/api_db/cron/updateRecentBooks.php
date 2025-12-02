@@ -82,7 +82,7 @@ try {
     foreach ($books as $book) { // FOREACH BOOK START
         $olid = $book['olid'] ?? null; // string
         $title = $book['title'] ?? 'Unknown title'; // string
-        $author = $book['author']?? 'Unknown author'; //string
+        $author = $book['author'] ?? 'Unknown author'; //string
         $isbn = $book['isbn'] ?? [];
         $book_desc = $book['book_desc'];
         $publish_year = $book['publish_year'] ?? []; // string
