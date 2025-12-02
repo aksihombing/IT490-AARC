@@ -159,7 +159,7 @@ WantedBy=multi-user.target */
         case "apiProcess":
             shell_exec("sed -i 's/172.28.219.213/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
             // UPDATE DAEMON
-            shell_exec("sed -i 's|rea-sihombing/Project/IT490-AARC|$cluster_user|g' $tmp/api/daemon/libraryapi.service");// --> changes ExecStart filepath
+            shell_exec("sed -i 's|rea-sihombing/Project/IT490-AARC/||g' $tmp/api/daemon/libraryapi.service");// --> changes ExecStart filepath
             shell_exec("sed -i 's|rea-sihombing|$cluster_user|g' $tmp/api/daemon/libraryapi.service"); // --> changes User name
             break;
     }
