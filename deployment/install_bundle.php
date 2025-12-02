@@ -165,13 +165,16 @@ WantedBy=multi-user.target */
 
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
-    exec($tmp . "/configure.sh", $configOutput, $configResultCode);
+    exec("cd $tmp ; ./configure.sh", $configOutput, $configResultCode);
     if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
         sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
-    exec("rm $tmp/configure.sh"); // to removve the configure script after running it maybe ?? im not sure if we should remove the bundle from var/www/ or whever it is stored in tmp ? idk
+    echo "Successful configure.sh install\n";
+    sendStatus($bundle_name, $version, "passed", $cluster);
+    return ['status' => 'success', 'message' => 'Bundle installed'];
+    
 
     // end of Rea's Draft
 
