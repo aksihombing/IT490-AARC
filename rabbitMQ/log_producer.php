@@ -1,7 +1,7 @@
-<?
+<?php
 require_once __DIR__ . '/rabbitMQLib.inc'; //will probably need to fix path like usual
 function log_event($vm, $type, $log){
-    $client = new rabbitMQClient(__DIR__ . "/host.ini", "logProducer"); // need .ini section for this
+    $client = new rabbitMQClient(__DIR__ . "/host.ini", "logProducer"); 
 
     $log_map = [
         'timestamp' => date("D M j G:i:s"), //timestamp formatted  Sat Mar 10 17:16:18 https://www.php.net/manual/en/function.date.php
@@ -10,7 +10,7 @@ function log_event($vm, $type, $log){
         'log' => $log,
     ];
 
-    $client->publish($log_map, "logs.fanout");
+    $client->publish($log_map);
 
     return true;
 }
