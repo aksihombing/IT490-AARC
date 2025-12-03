@@ -77,7 +77,7 @@ function installBundle(array $req)
     $bundle_name = $req['bundle_name'] ?? '';
     $version = $req['version'] ?? '';
     $tar = $req['tar_name'] ?? ($req['path'] ?? '');
-    $cluster = $req['cluster'] ?? 'QA'; // temporary until we get deploy script to send the cluster
+    $cluster = $req['cluster'] ?? ''; // temporary until we get deploy script to send the cluster
     $cluster_user = strtolower("aarc-$cluster"); // to know current cluster users
     //$vm_ip = $req['vm_ip'] ?? trim(shell_exec("hostname -I | awk '{print $1}'"));
 
@@ -157,9 +157,11 @@ WantedBy=multi-user.target */
             // [WIP] UPDATE CRON FILEPATH TOO !!
             break;
         case "apiProcess":
-            shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
+            shell_exec("sed -i 's/172.28.219.213/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
+
             // UPDATE DAEMON
-            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
+            shell_exec("sed -i 's|rea-sihombing/Project/IT490-AARC/||g' $tmp/api/daemon/libraryapi.service");// --> changes ExecStart filepath
+            shell_exec("sed -i 's|rea-sihombing|$cluster_user|g' $tmp/api/daemon/libraryapi.service"); // --> changes User name
             break;
     }
 
@@ -252,7 +254,43 @@ flush();
 // multi-queue capable version of the queue
 
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
-$which = $argv[1] ?? 'deployQAbackend';
+
+// BUILD QUEUE NAME TO LISTEN ON -----------------
+// WHICH CLUSTER ?
+$clustername = null;
+$whichCluster = [
+    '172.29' => 'QA',
+    '172.30' => 'Prod'
+];
+foreach ($whichCluster as $clusterIP => $clusterIP_name) {
+    $shellcmd = "hostname -I | grep $clusterIP";
+    exec($shellcmd, $output, $returnCode);
+    if ($returnCode === 0) {
+        $clustername = $clusterIP_name;
+        break;
+    }
+}
+
+$hostname = null;
+$whichHost = [
+    'frontend',
+    'backend',
+    'dmz'
+];
+foreach ($whichHost as $host) {
+    $shellcmd = "hostname | grep $host";
+    exec($shellcmd, $output, $returnCode);
+    if ($returnCode === 0) {
+        $hostname = $host;
+        break;
+    }
+}
+
+
+
+$whichQueue = 'deploy' . $clustername . $hostname;
+//echo "QUEUE:" . $whichQueue; //DEBUGGING
+$which = $argv[1] ?? $whichQueue ?? 'deployVersion';
 $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
