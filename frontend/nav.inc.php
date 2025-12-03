@@ -5,37 +5,8 @@ $username = $userData['username'] ?? 'User';
 ?>
 
 <html>
-<!-- SCRAPPED NAV BAR
-<style>
-    nav ul {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background-color: #6C5A49;
-        border-radius: 10px;
-    }
-
-    nav ul li {
-        float: left;
-    }
-
-    nav ul li a {
-        display: block;
-        color: white;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-    }
-
-    nav ul li a:hover {
-        background-color: #5A4536;
-    }
-</style>
--->
-
 <!-- https://getbootstrap.com/docs/5.3/components/navbar/ -->
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
+<nav class="navbar navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="index.php">AARC Library</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -43,7 +14,7 @@ $username = $userData['username'] ?? 'User';
             <span class="navbar-toggler-icon"></span>
         </button> <!-- default responsive hamburger icon -->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="index.php?content=browse&page=1">Browse All</a></li>
                 <li class="nav-item"><a class="nav-link" href="index.php?content=search">Search</a></li>
