@@ -30,3 +30,22 @@ all dev has bundler script
 
 
 - rollback ? is this rolling back changes in production in case it fails/breaks? or should rollback just be on QA
+
+
+
+
+
+
+-------------------------------
+
+- where do we rollback?  QA and production?
+both
+
+- should we be sending a "status success" from QA to automatically push it to production, or just send if it failed
+successful install doesnt mean it successfully passed testing!!!!!
+
+- where are we manually sending a status success request?
+only dev
+
+- if we are unable to get deployment fully working, what other of the common deliverables are possible?
+"everything else"

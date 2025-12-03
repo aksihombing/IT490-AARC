@@ -174,6 +174,7 @@ WantedBy=multi-user.target */
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
     echo "Successful configure.sh install\n";
+    // BUG : sendStatus not being run, so the DEV bundler remains open since it was not able to receive the return message.
     sendStatus($bundle_name, $version, "passed", $cluster);
     return ['status' => 'success', 'message' => 'Bundle installed'];
 
