@@ -2,7 +2,7 @@
 require_once __DIR__ . '/rabbitMQLib.inc'; //will probably need to fix path like usual
 
 $server = new rabbitMQServer(__DIR__ . "/host.ini", "logListener"); // need .ini section for this
-$queue_name = "logs.backend"; //change for each vm
+$queue_name = "logs.dmz"; //change for each vm
 $server->setQueue($queue_name);
 function log_process($req){
     $log = json_encode($req);
