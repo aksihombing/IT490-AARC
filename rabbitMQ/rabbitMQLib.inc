@@ -131,6 +131,10 @@ class rabbitMQServer
 			trigger_error("Failed to start request processor: ".$e,E_USER_ERROR); 
 		}
 	}
+
+	function setQueue($queue_name){
+		$this->queue = $queue_name;
+	}
 }
 
 
