@@ -24,7 +24,7 @@ echo '<div class="container mt-5">';
 if ($res['status']==='success') {
   echo '<div class="alert alert-success mb-2" role="alert"> you’ve successfully joined the book club!</div><a href=index.php?content=bookClub class="btn btn-dark">Back to Book Clubs</a>';
 } else {
-  echo '<div class="alert alert-danger mb-2" role="alert"> failed to join club: ".$res['message'].". please try again</div><a href="index.php?content=bookClub" class="btn btn-dark">Back to Book Clubs</a>';
+  echo "<div class='alert alert-danger mb-2' role='alert'> failed to join club: ".$res['message'] .". please try again</div><a href='index.php?content=bookClub' class='btn btn-dark'>Back to Book Clubs</a>";
 }
 
 ?>
