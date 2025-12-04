@@ -11,7 +11,7 @@
   <script src="bootstrap-5.3.8/dist/js/bootstrap.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="baseStyle.css">
+
 
 </head>
 <body>

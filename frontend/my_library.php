@@ -27,7 +27,7 @@ require_once('includes/my_library.inc.php');
 
 
   
-  <link rel="stylesheet" href="baseStyle.css">
+
 </head>
 
 <body>
