@@ -243,6 +243,7 @@ function sendBundle(array $deployInfo)
   $request = [
     'type' => 'install_bundle',
     'path' => $deployInfo['path'],
+    'tar_name' => $deployInfo['path'],
     'bundle_name' => $deployInfo['bundle_name'],
     'version' => $deployInfo['version'],
     'vm_ip' => $deployInfo['vm_ip'],
