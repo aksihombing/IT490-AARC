@@ -71,6 +71,7 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
   echo "Connecting to queue: {$which}\n";
   flush();
   $server->process_requests('requestProcessor');
+  log_event('dmz', 'warning', 'Auth server stopped for {$which}');
   echo "Auth server stopped for {$which}\n";
 }
 

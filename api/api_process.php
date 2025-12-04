@@ -2,6 +2,7 @@
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 require_once __DIR__ . '/api_endpoints.php';
+require_once __DIR__ . '/log_producer.php';
 // curl_get() + simple_sanitize() + api_search()
 // decides which function to run
 
@@ -14,6 +15,7 @@ function doBookSearch(array $req)
   $search_api = api_search($req);
 
   if ($search_api['status'] === 'fail') {
+    log_event('dmz', 'fail', 'doBookSearch ' . $req['query']);
     return [
       "status" => "fail",
       "message" => "No results found"
@@ -23,6 +25,7 @@ function doBookSearch(array $req)
   $books = $search_api['data'];
   // $addedCount = 0; // could count how many books were added for debugging if needed
 
+  log_event('dmz', 'success', 'doBookSearch: ' . $req['query']);
   return [
     'status' => 'success',
     'data' => $books,
@@ -46,6 +49,7 @@ function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
   // not found in cache -- fallback method
   $api_olid_search = api_olid_details($olid); // will use api_olid_details as a fallback
   if ($api_olid_search['status'] === 'fail' || empty($api_olid_search['data'])) {
+    log_event('dmz', 'fail', 'doBookDetails unable to gather api_olid_details');
     return [
       'status' => 'fail',
       'message' => 'Unable to find book details from API'
@@ -55,6 +59,7 @@ function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
   $book_details = $api_olid_search['data'];
   // $addedCount = 0; /s/ could count how many books were added for debugging if needed
 
+  log_event('dmz', 'success', 'doBookDetails: ' . $olid);
   return [
     'status' => 'success',
     'data' => $book_details
@@ -139,7 +144,7 @@ function doBookRecommend(array $req)
   arsort($subjectWeights); // sort weighted subject array
 
   $topSubjects = array_slice(array_keys($subjectWeights), 0, 5); // get top 5 subjects, which are stored as keys in the array
-  echo "ALL Top Subjects: ". implode(',' , $topSubjects) . "\n"; // DEBUGGING
+  echo "ALL Top Subjects: " . implode(',', $topSubjects) . "\n"; // DEBUGGING
   $topSubject1 = $topSubjects[0]; // the anchor
   //echo "Top Subject: {$topSubject1}\n"; // DEBUGGING
   $secondarySubjects = array_slice($topSubjects, 1); // remove the first one
@@ -174,7 +179,8 @@ function doBookRecommend(array $req)
       if ($matchCount > 0) {
         $rec_olid = str_replace('/works/', '', $oneBook['key'] ?? '');
 
-        if (in_array($rec_olid, $olids, true)) continue;
+        if (in_array($rec_olid, $olids, true))
+          continue;
         // need to skip a possible recommendation if its already in the array of olids from user's library
 
         $recommendedBooks[] = [
@@ -202,6 +208,7 @@ function doBookRecommend(array $req)
     return ['status' => 'fail', 'message' => 'no recommendation found'];
   }
 
+  log_event('dmz', 'success', 'doBookRecommend: Matched [' . $olids . '] with ' . count($recommendedBooks) . ' books. Top subjects: ' . $topSubjects);
 
   return [
     'status' => 'success',
