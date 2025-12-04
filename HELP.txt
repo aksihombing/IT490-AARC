@@ -1,64 +1,70 @@
 need to ask prof:
 
-- midterm challenges + grace?
+Q: midterm challenges + grace?
 grades based on if youre on the right track.
 i hope im on the right track.
 
-- what are the last two exercises?
+Q: what are the last two exercises?
 5 - systemd, deployment, and clustering
 6 - deliverable checkpoint
 
 
-- how are exercises being graded?
----> did you do it or not?
+Q: how are exercises being graded?
+A: did you do it or not?
 
 
-- deployment flow
+Q: deployment flow
 
 all dev has bundler script
     > bundle.sh uses tarball
     > we connect to deployment vm to ask the version of the bundle name via PHP RMQ script
     > in bundle.sh, we update the tar_name to include number of next version? i.e. 02_tar_name.tar.gz
     > how do we send the tar through scp to get to qa?
----> dispatcher
+A: dispatcher
 
-- how to mark status on a package from the QA level? are we running another shell script to ssh into deploy VM to update the database's status for the bundle? > then if deploy processor finds that the status is updated to passed, it sends it into prod?
----> make cli utility (shell script) to send messages to send fromdev or dploy
+Q: how to mark status on a package from the QA level? are we running another shell script to ssh into deploy VM to update the database's status for the bundle? > then if deploy processor finds that the status is updated to passed, it sends it into prod?
+A: make cli utility (shell script) to send messages to send fromdev or dploy
 
-- are we keeping a copy of the bundle in the deploy vm? the database should have a filepath to the specific tar that was scp'd then??
----> keep filepath in database 
-
-
-- rollback ? is this rolling back changes in production in case it fails/breaks? or should rollback just be on QA
+Q: are we keeping a copy of the bundle in the deploy vm? the database should have a filepath to the specific tar that was scp'd then??
+A: keep filepath in database 
 
 
-
+Q: rollback ? is this rolling back changes in production in case it fails/breaks? or should rollback just be on QA
+A: both
 
 
 
--------------------------------
 
-- where do we rollback?  QA and production?
+
+---------------------------------------------------------------------------------------------------
+
+Q: where do we rollback?  QA and production?
 both
 
-- should we be sending a "status success" from QA to automatically push it to production, or just send if it failed
+Q: should we be sending a "status success" from QA to automatically push it to production, or just send if it failed
 successful install doesnt mean it successfully passed testing!!!!!
 
 
-- where are we manually sending a status success request?
+Q: where are we manually sending a status success request?
 only dev
 
-- if we are unable to get deployment fully working, what other of the common deliverables are possible?
+Q: if we are unable to get deployment fully working, what other of the common deliverables are possible?
 "everything else"
 
 
----------------------------------
+---------------------------------------------------------------------------------------------------
 
-- if installation fails in QA, should we be automatically marking the bundle as failed in deployment db?
-
-
-
-- are we logging onto QA at all???
+Q: if installation fails in QA, should we be automatically marking the bundle as "failed testing" in deployment db?
+A: yes.
 
 
-- can we marked something that was previously marked as "passed" to "failed"? (i.e. it passed QA but we see that despite the successful install, there are errors)?
+Q: are we logging onto QA at all??? or are we just logging onto the frontend server to make sure the website is working
+A: yes, but we just should not have to open the terminal to edit files
+
+
+Q: can we marked something that was previously marked as "passed" to "failed"? (i.e. it passed QA but we see that despite the successful install, there are errors)?
+A: depends on how we want to approach it!
+
+
+Q: should updateStatus from DEV also specify which version to update? or are we assuming it is in reference to the "newest" version?
+A: its good to specify version number. or, at the very least, it should let the user know what the latest versions are.
