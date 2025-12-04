@@ -154,7 +154,7 @@ WantedBy=multi-user.target */
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
             // UPDATE DAEMON
             shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
-            // [WIP] UPDATE CRON FILEPATH TOO !!
+            shell_exec("sed -i 's|aida|backend/api_db|g' $tmp/config.sh"); // --> change filepath for cron within config script
             break;
         case "apiProcess":
             shell_exec("sed -i 's/172.28.219.213/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
