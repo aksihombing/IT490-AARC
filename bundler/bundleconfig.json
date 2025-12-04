@@ -92,7 +92,7 @@
     "Backend": {
         "userData": {
             "paths": [
-                "backend/sql_db/"
+                "../backend/sql_db/"
             ],
             "commands": [
                 "echo 'Installing userData'",
@@ -105,7 +105,7 @@
         },
         "bookData": {
             "paths": [
-                "backend/api_db"
+                "../backend/api_db"
             ],
             "commands": [
                 "echo 'Installing bookData'",
@@ -126,7 +126,7 @@
         },
         "databaseProcess": {
             "paths": [
-                "backend/rabbitMQ"
+                "../backend/rabbitMQ"
             ],
             "commands": [
                 "echo 'Installing databaseProcess (Backend RabbitMQ Processor)'",
