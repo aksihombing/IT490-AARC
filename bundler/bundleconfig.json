@@ -74,7 +74,7 @@
                 "exit 0"
             ]
         },
-        "frontendProcess" : {
+        "frontendProcess": {
             "paths": [
                 "rabbitMQ/"
             ],
@@ -132,6 +132,10 @@
                 "echo 'Installing databaseProcess (Backend RabbitMQ Processor)'",
                 "sudo cp -r backend/ /home/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
+                "crontab -l | grep 'updateRecentBooks.php'",
+                "if [ $? -eq 1 ]; then echo 'Cron job updateRecenBooks.php already exists.'; exit 1; fi",
+                "crontab -l; echo '0 10 * * * /usr/bin/php /home/aida/cron/updateRecentBooks.php >> /home/aida/cron/recentBooks.log.txt 2>&1' | crontab -",
+                "if [ $? -ne 0 ]; then echo 'Failed to install cronjob.'; exit 1; fi",
                 "sudo systemctl restart rabbitmqserver.service",
                 "if [ $? -ne 0 ]; then echo 'Failed to restart rabbitmqserver.service.'; exit 1; fi",
                 "echo '-----Installation complete-----'",

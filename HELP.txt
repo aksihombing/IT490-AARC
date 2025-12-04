@@ -54,9 +54,11 @@ only dev
 
 ---------------------------------
 
-if installation fails in QA, should we be automatically marking the bundle as failed in deployment db?
+- if installation fails in QA, should we be automatically marking the bundle as failed in deployment db?
 
 
 
-are we logging onto QA at all???
+- are we logging onto QA at all???
 
+
+- can we marked something that was previously marked as "passed" to "failed"? (i.e. it passed QA but we see that despite the successful install, there are errors)?
