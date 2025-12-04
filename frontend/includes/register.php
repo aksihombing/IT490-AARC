@@ -4,8 +4,8 @@
 // pulled from Chizzy's branch
 
 session_start();
-require_once __DIR__ . '/../../rabbitMQ/rabbitMQLib.inc';  
-require_once __DIR__ . '/../../rabbitMQ/get_host_info.inc'; 
+require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';  
+require_once __DIR__ . '/../rabbitMQ/get_host_info.inc'; 
 // changed above to expand to absolute path
 
 
@@ -32,7 +32,9 @@ if ($email === '' || $username === '' || $password === '') {
 
 // hash the password before sending through server and datbase
 
-$hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
+// below the line of code will need to be changed and add it to
+// the backend so the hasing can be done
+
 
 
 
@@ -46,19 +48,19 @@ $request = [
 
 try {
   // connect to rmq
-  $client = new rabbitMQClient(__DIR__ . "/../../host.ini", "AuthRegister"); // changed to reflect the new section name
+  $client = new rabbitMQClient("host.ini", "AuthRegister"); // changed to reflect the new section name
 
   // sending the registration request
   $response = $client->send_request($request); // changed to correct variable name
 
   // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
-    header("Location: /index.php?register_success=1");
+    header("Location: index.php?register_success=1");
     exit;
   } 
   else {
     $msg = is_array($response) ? urlencode($response['message'] ?? 'Unknown error') : 'No response from server';
-    header("Location: /index.php?register_error=$msg");
+    header("Location: index.php?register_error=$msg");
     exit;
     }
 }
