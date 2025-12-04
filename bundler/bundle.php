@@ -216,7 +216,8 @@ try {
     $request = [
         'type' => 'add_bundle',
         'bundle_name' => $bundle_name,
-        'version' => $version
+        'version' => $version,
+        'tar_name' => $tar_name
     ];
     // build + send request
     $response = $client->send_request($request);
