@@ -10,6 +10,12 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 require_once(__DIR__ . '/rabbitMQLib.inc');
 require_once(__DIR__ . '/get_host_info.inc');
 
+// Checking if we have too little (or too many) arguments.
+
+if ($argc < 3 || $argc > 3) {
+	echo "Invalid Number of arguments. Check command and try again.";
+	exit(0);
+}
 // These are the variables Aida's DepListener.php script needs.
 $bundle = $argv[1];
 $version = (int) $argv[2]; 	// Arguments are strings by default.
