@@ -30,6 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $bookSearchResults = $response['data'];
             } else {
                 $error = $response['message'] ?? 'Unknown error from server.';
+                log_event("frontend", "error", "Error with returning search results: " . ($error));
+
             }
         } catch (Exception $e) {
             $error = "Error connecting to search service: " . $e->getMessage();
