@@ -79,6 +79,7 @@ function getRecommendation(array $library_books)
 
     if (($response['status'] === 'success') && isset($response['data']) && is_array($response['data'])) { // checks success, if data is set, and if data is array
       $rec_bookdata = $response['data'];
+      log_event("frontend", "success", "Successfully returned user's personal library books.");
       return $rec_bookdata;
       /*return [
         'olid' => $rec_bookdata['olid'],
@@ -90,9 +91,12 @@ function getRecommendation(array $library_books)
       ];*/
 
     } else {
+      log_event("frontend", "success", "Successfully returned user's personal library books.");
       return []; // if theres no books in library ?
     }
+
   } catch (Exception $e) {
+    log_event("frontend", "error", "Error connecting to personal library service: " . ($e->getMessage()));
     return "Error connecting to personal library service: " . $e->getMessage(); // idk what to return here
   }
 }

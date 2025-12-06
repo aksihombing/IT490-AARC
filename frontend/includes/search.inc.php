@@ -33,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
         } catch (Exception $e) {
             $error = "Error connecting to search service: " . $e->getMessage();
+            log_event("frontend", "error", "Error connecting to RMQ for searching function: " . ($error));
+
         }
     }
 }
