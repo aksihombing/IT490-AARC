@@ -1,5 +1,4 @@
 <?php
-
 // HELPER FUNCTIONS ------------------------------
 function curl_get(string $url)
 { // curl_get helper
@@ -153,6 +152,7 @@ function api_search(array $req)
 
   } // END FOREACH BOOK
 
+  //log_event('dmz', 'success', 'Search for ' . $searchResults);
   return [
     'status' => 'success',
     'data' => $searchResults,
