@@ -4,6 +4,7 @@
 session_start();
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
 require_once(__DIR__ . '/../../rabbitMQ/get_host_info.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
 
 header('Content-Type: application/json');
 
@@ -12,6 +13,7 @@ $club_id = (int)($_GET['club_id'] ?? $_POST['club_id'] ?? 0);
 
 if (!$action || !$club_id) {
   echo json_encode(['status' => 'fail', 'message' => 'Missing action or club_id']);
+  log_event("frontend", "error", "events_functions.php missing action or club_id");
   exit;
 }
 
@@ -36,8 +38,10 @@ try {
           ];
         }
         echo json_encode(['status' => 'success', 'events' => $events]);
+        log_event("frontend", "success and info", "events_functions.php listed events for club_id: " . $club_id);
       } else {
         echo json_encode(['status' => 'fail', 'message' => 'no events found']);
+        log_event("frontend", "fail/info", "events_functions.php no events found for club_id: " . $club_id);
       }
       break;
 
@@ -48,6 +52,7 @@ try {
 
       if (!$title || !$date) {
         echo json_encode(['status' => 'fail', 'message' => 'missing title or date']);
+        log_event("frontend", "error", "events_functions.php missing title or date for club_id: " . $club_id);
         exit;
       }
 
@@ -66,6 +71,7 @@ try {
       $event_id = $_POST['event_id'] ?? 0;
       if (!$event_id) {
         echo json_encode(['status' => 'fail', 'message' => 'missing event_id']);
+        log_event("frontend", "error", "events_functions.php missing event_id for club_id: " . $club_id);
         exit;
       }
 
@@ -76,5 +82,6 @@ try {
     }
   } catch (Exception $e) {
   echo json_encode(['status' => 'fail', 'message' => 'Exception: ' . $e->getMessage()]);
+  log_event("frontend","error","events_functions.php Exception: " . $e->getMessage());
 }
 ?>
