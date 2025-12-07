@@ -3,7 +3,7 @@
 
 // Error reporting stuff. Idk everyone else is doing it.
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1;
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL & ~E_DEPRECATED);
 
 // System-specific variables
@@ -18,9 +18,9 @@ $cluster = $argv[4]; // Do we need this one?
 
 $req = [
 	'type' => 'status_update',
-	'bundle_name' = $bundle
-	'version' = $version
-	'cluster' = $cluster // do we need?
+	'bundle_name' => $bundle,
+	'version' => $version,
+	'cluster' => $cluster // do we need?
 	];
 
 try {
