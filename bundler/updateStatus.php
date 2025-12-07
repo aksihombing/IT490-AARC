@@ -14,7 +14,7 @@ require_once(__DIR__ . '/get_host_info.inc');
 $bundle = $argv[1];
 $version = (int) $argv[2]; 	// Arguments are strings by default.
 $status = $argv[3];
-$cluster = $argv[4]; // Do we need this one?
+$cluster = 'dev'; // Do we need this one?
 
 $req = [
 	'type' => 'status_update',
