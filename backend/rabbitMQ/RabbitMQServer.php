@@ -37,10 +37,10 @@ function db() {
 function doRegister(array $req) {
   $email = $req['email'] ?? '';
   $username = $req['username'] ?? '';
-  $hash = $req['password'] ?? '';
+  $password = $req['password'] ?? '';
 
 // validate entered fields
-  if ($email==='' || $username==='' || $hash==='') {
+  if ($email==='' || $username==='' || $password==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
 
