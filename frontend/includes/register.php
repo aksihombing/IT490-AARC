@@ -42,7 +42,7 @@ $request = [
   'type' => 'register',
   'email' => $email,
   'username' => $username,
-  'password' => $hashedPassword,
+  'password' => $password,
 ];
 
 
