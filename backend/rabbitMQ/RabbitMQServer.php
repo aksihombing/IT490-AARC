@@ -810,7 +810,7 @@ function doBookCollect(array $req)
                 $req['type'] = 'api_book_search';
                 // had to update type so that the library listener LISTENS for this request type
 
-                $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibrarySearch");
+                $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibraryCollect");
 
                 // update request 'type' to api_book_search or api_book_details
                 $DMZresponse = $client->send_request($req); // response from dmz
@@ -840,7 +840,7 @@ function doBookCollect(array $req)
                 $req['type'] = 'api_book_details';
                 // had to update type so that the library listener LISTENS for this request type
 
-                $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibraryDetails");
+                $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "LibraryCollect");
 
                 // update request 'type' to api_book_search or api_book_details
                 $DMZresponse = $client->send_request($req); // response from dmz
