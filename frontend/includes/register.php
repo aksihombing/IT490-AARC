@@ -30,17 +30,11 @@ if ($email === '' || $username === '' || $password === '') {
 // reworked above bcs variables were mismatched
 
 
-// hash the password before sending through server and datbase
-
-$hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
-
-
-
 $request = [
   'type'     => 'register',
   'email'    => $email,
   'username' => $username,
-  'password' => $hashedPassword,
+  'password' => $password,
 ];
 
 
