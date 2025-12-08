@@ -1,6 +1,7 @@
 <?php
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
 require_once(__DIR__ . '/../../rabbitMQ/get_host_info.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
 
 header('Content-Type: application/json');
 
@@ -8,6 +9,7 @@ $club_id = $_GET['club_id'] ?? 0;
 
 if (!$club_id) {
   echo json_encode(['status'=>'fail','message'=>'missing club_id']);
+  log_event("frontend","error","events_functions.php missing club_id");
   exit;
 }
 

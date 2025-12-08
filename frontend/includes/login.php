@@ -3,6 +3,7 @@
 session_start();
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
 require_once(__DIR__ . '/../../rabbitMQ/get_host_info.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
 // another option is to use .htaccess to configure a "block" or prevent access to specific files directly.
 
 
@@ -20,6 +21,7 @@ $password = $_POST['password'] ?? '';
 if ($username === '' || $password === '') {
   http_response_code(400);
   echo json_encode("Login Failed: Missing credentials. All fields required.");
+  log_event("frontend", "error", "Login failed: missing credentials.");
   exit;
 }
 
@@ -42,6 +44,7 @@ try {
 
     header("Location: /index.php");
     echo json_encode("Login Success.");
+    log_event("frontend", "success", "User " . $_SESSION['username'] . " logged in successfully.");
     exit;
   } 
   else {
@@ -52,5 +55,6 @@ try {
 } 
 catch (Exception $e) {
   echo "Error connecting to RabbitMQ: " . $e->getMessage();
+  log_event("frontend", "error", "Login failed: Exception: " . $e->getMessage());
 }
 ?>

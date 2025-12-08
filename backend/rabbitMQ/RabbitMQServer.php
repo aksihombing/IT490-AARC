@@ -12,6 +12,7 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 
 require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
+require_once __DIR__ . '/log_producer.php';
 //require_once __DIR__ . '/library_process.php';
 
 // connects to the local sql database
@@ -36,10 +37,10 @@ function db() {
 function doRegister(array $req) {
   $email = $req['email'] ?? '';
   $username = $req['username'] ?? '';
-  $hash = $req['password'] ?? '';
+  $password = $req['password'] ?? '';
 
 // validate entered fields
-  if ($email==='' || $username==='' || $hash==='') {
+  if ($email==='' || $username==='' || $password==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
 
@@ -52,17 +53,21 @@ function doRegister(array $req) {
   $stmt->store_result();
 
   if ($stmt->num_rows > 0) {
+    log_event("backend","warning","doRegister failed: user or email exists");
     return ['status'=>'fail','message'=>'user or email exists'];
   }
   $stmt->close();
 
+  $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
+
 // inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
-  $stmt->bind_param("sss", $username, $email, $hash);
+  $stmt->bind_param("sss", $username, $email, $hashedPassword);
   if (!$stmt->execute()) {
     return ['status'=>'fail','message'=>'db insert failed'];
   }
 
+  log_event("backend","info","New user registered: {$username}");
   return ['status'=>'success'];
 }
 
@@ -70,25 +75,19 @@ function doLogin(array $req) {
   $username = $req['username'] ?? '';
   $password = $req['password'] ?? '';
 
- if ($username==='' || $password==='') {
+  if ($username==='' || $password==='') {
     return ['status'=>'fail','message'=>'missing fields'];
   }
   $conn = db();
 
 
   $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
-
-  if (!$stmt) {
-        error_log("doLogin preparing SELECT failed: " . $conn->error);
-        return ['status'=>'fail','message'=>'server error'];
-    }
-  
   $stmt->bind_param("s", $username);
 
-  if (!$stmt->execute()) {
-        error_log("doLogin execute SELECT failed: " . $stmt->error);
-        return ['status'=>'fail','message'=>'server error'];
-    }
+  if (!$stmt->execute()){
+    log_event("backend","warning","doLogin execute SELECT failed: " . $stmt->error);
+    return ['status'=>'fail','message'=>'server error'];
+  }
   
   $stmt->store_result();
 
@@ -96,43 +95,43 @@ function doLogin(array $req) {
     // checks if theres a row in the db with from the query result
     $stmt->bind_result($uid,$dbUser,$dbHash);
     $stmt->fetch();
-    error_log("doLogin fetching user: uid={$uid}, username={$dbUser}");
-
     $conn->query("DELETE FROM sessions WHERE user_id = $uid");
     
     if (password_verify($password,$dbHash)){
      // create a session key, should be secure ?
       $session = bin2hex(random_bytes(32));
       $exp = (new DateTime('+7 days'))->format('Y-m-d H:i:s');
-      error_log("doLogin password ok, generating session: key={$session}, expires={$exp}");
 
       // stores the session in the db. change variable name in case it caused problems
       $stmt2 = $conn->prepare("INSERT INTO sessions (user_id, session_key, expires_at) VALUES (?, ?, ?)");
-            if (!$stmt2) {
-                error_log("doLogin preparing insert into sessions failed: " . $conn->error);
-            } else {
-                $stmt2->bind_param("iss", $uid, $session, $exp);
-                if (!$stmt2->execute()) {
-                    error_log("doLogin execute insert into session failed: " . $stmt2->error);
-                } else {
-                    error_log("doLogin Session inserted for uid={$uid}, session_key={$session}");
-                }
-            }
-
-            return [
-                'status' => 'success',
-                'uid' => $uid,
-                'username' => $dbUser,
-                'session_key' => $session
-            ];
+      if (!$stmt2) {
+        error_log("doLogin preparing insert into sessions failed: " . $conn->error);
+        log_event("backend","error","db login error: " . $stmt->error);
+      } else {
+        $stmt2->bind_param("iss", $uid, $session, $exp);
+        if (!$stmt2->execute()) {
+          error_log("doLogin execute insert into session failed: " . $stmt2->error);
+          log_event("backend","error","db login error: " . $stmt->error);
         } else {
-            error_log("doLogin invalid password for user {$username}");
-            return ['status'=>'fail', 'message'=>'invalid password'];
+          error_log("doLogin Session inserted for uid={$uid}, session_key={$session}");
         }
+      }
+      log_event("backend","info","Login success for user {$dbUser}, session={$session}");
+
+      return [
+        'status' => 'success',
+        'uid' => $uid,
+        'username' => $dbUser,
+        'session_key' => $session
+      ];
     } else {
-        error_log("doLogin user not found: {$username}");
-        return ['status'=>'fail', 'message'=>'user not found'];
+      log_event("backend","warning","Login failed, invalid password for {$username}");
+      return ['status'=>'fail', 'message'=>'invalid password'];
     }
+  } else {
+    log_event("backend","warning","Login failed user not found: {$username}");
+    return ['status'=>'fail', 'message'=>'user not found'];
+  }
 }
 
 function doValidate(array $req) {
@@ -153,17 +152,20 @@ function doValidate(array $req) {
   if (!$stmt->fetch()) return ['status'=>'fail','message'=>'not found'];
   if ($exp && strtotime($exp) < time()) {
     // session is expired so deletes
+    log_event("backend","warning","Session expired for session_key={$sid}");
     $del = $conn->prepare("DELETE FROM sessions WHERE session_key=?");
     $del->bind_param("s",$sid);
     $del->execute();
     return ['status'=>'fail','message'=>'expired'];
   }
-
+  log_event("backend","info","Session validated for user: {$uname}");
   return ['status'=>'success','user'=>['id'=>$uid,'username'=>$uname,'email'=>$email]];
 }
 
 function doLogout(array $req) {
   $sid = $req['session_key'] ?? '';
+  log_event("backend","info","Logout request for session {$sid}");
+
   if ($sid==='') return ['status'=>'fail','message'=>'missing session'];
 
   $conn = db();
@@ -182,6 +184,8 @@ function doLogout(array $req) {
 function doReviewsList(array $req)
 {
   $works_id = trim($req['works_id'] ?? '');
+  log_event("backend","info","Review list request for works_id={$works_id}");
+
   if ($works_id === '')
     return ['status' => 'fail', 'message' => 'missing works_id'];
 
@@ -190,7 +194,7 @@ function doReviewsList(array $req)
   $conn = db();
 
   $stmt = $conn->prepare("
-    SELECT r.user_id, u.username, r.rating, r.comment, r.created_at
+    SELECT r.user_id, u.username, r.rating, r.body, r.created_at
     FROM reviews r
     JOIN users u ON u.id = r.user_id
     WHERE r.works_id = ?
@@ -223,6 +227,8 @@ function doReviewsCreate(array $req)
   $works_id = trim($req['works_id'] ?? '');
   $rating = (int) ($req['rating'] ?? 0);
   $body = trim($req['body'] ?? ($req['comment'] ?? ''));
+
+  log_event("backend","info","Create review request: user={$user_id}, works_id={$works_id}, rating={$rating}");
 
   if ($user_id <= 0 || $works_id === '' || $rating < 1 || $rating > 5) {
     return ['status' => 'fail', 'message' => 'missing or invalid fields'];
@@ -261,6 +267,9 @@ function doReviewsCreate(array $req)
 
 function doLibraryList(array $req) {
   $user_id = (int)($req['user_id'] ?? 0);
+
+  log_event("backend","info","Library list request for user_id={$user_id}");
+
   if ($user_id <= 0) {
     return ['status' => 'fail', 'message' => 'missing user_id'];
   }
@@ -296,6 +305,9 @@ function doLibraryList(array $req) {
 function doLibraryAdd(array $req) {
   $uid  = (int)($req['user_id'] ?? 0);
   $work = trim($req['works_id'] ?? '');
+
+  log_event("backend","info","Library add request: user={$uid}, work={$work}");
+
   if ($uid <= 0 || $work === '') return ['status'=>'fail','message'=>'missing user_id or works_id'];
 
   $conn = db();
@@ -314,6 +326,10 @@ function doLibraryRemove(array $req)
 {
   $uid = (int) ($req['user_id'] ?? 0);
   $work = $req['works_id'] ?? '';
+
+  log_event("backend","info","Library remove request: user={$uid}, work={$work}");
+
+
   if (!$uid || $work === '')
     return ['status' => 'fail', 'message' => 'missing user_id or works_id'];
 
@@ -339,6 +355,8 @@ function doCreateClub(array $req) {
   $name = $req['club_name'] ?? '';
   $desc = $req['description'] ?? '';
 
+  log_event("backend","info","Create club request: owner={$owner_id}, name={$name}");
+
   if (!$owner_id || $name === '') {
     return ['status' => 'fail', 'message' => 'form is missing required fields'];
   }
@@ -359,6 +377,8 @@ function doCreateClub(array $req) {
 function doInviteMember(array $req) {
   $club_id = $req['club_id'] ?? 0;
   $user_id = $req['user_id'] ?? 0;
+
+  log_event("backend","info","Invite club member request: club={$club_id}, user={$user_id}");
 
   if (!$club_id || !$user_id) {
     return ['status' => 'fail', 'message' => 'missing parameters'];
@@ -395,6 +415,8 @@ function doCreateEvent(array $req) {
   $date = $req['event_date'] ?? null;
   $desc = $req['description'] ?? '';
 
+  log_event("backend","info","Create event request: club={$club_id}, title={$title}");
+
   if (!$club_id || $title === '') {
     return ['status' => 'fail', 'message' => 'form is missing required fields'];
   }
@@ -415,6 +437,8 @@ function doCreateEvent(array $req) {
 function doListEvents(array $req) {
   $club_id = $req['club_id'] ?? 0;
   if (!$club_id) return ['status' => 'fail', 'message' => 'missing club_id'];
+
+  log_event("backend","info","List events request for club={$club_id}");
 
   $conn = db();
   $stmt = $conn->prepare("SELECT event_id, title, event_date, description FROM events WHERE club_id=? ORDER BY event_date ASC");
@@ -437,6 +461,8 @@ function doCancelEvent(array $req) {
   $event_id = $req['event_id'] ?? 0;
   if (!$event_id) return ['status' => 'fail', 'message' => 'missing event_id'];
 
+  log_event("backend","info","Cancel event request for event={$event_id}");
+
   $conn = db();
   $stmt = $conn->prepare("DELETE FROM events WHERE event_id=?");
   $stmt->bind_param("i", $event_id);
@@ -451,6 +477,8 @@ function doCancelEvent(array $req) {
 function doList(array $req) {
   $user_id = $req['user_id'] ?? 0;
   if (!$user_id) return ['status' => 'fail', 'message' => 'missing user_id'];
+
+  log_event("backend","info","List clubs request ffrom user={$user_id}");
 
   $conn = db();
   // user is owner or member of club
@@ -479,6 +507,8 @@ function doInviteLink(array $req) {
   $club_id = $req['club_id'] ??0;
   if (!$club_id) return ['status'=> 'fail', 'message' => 'missing user_id'];
 
+  log_event("backend","info","Generate invite link request for club={$club_id}");
+
   $conn = db();
   $hash = bin2hex(random_bytes(16));
   
@@ -497,6 +527,8 @@ function doInviteJoin(array $req) {$hash = $req['hash'] ?? '';
   $user_id = $req['user_id'] ?? 0;
   $hash = $req['hash'] ?? '';
   if ($hash === '' || !$user_id) return ['status'=>'fail','message'=>'missing data'];
+
+  log_event("backend","info","Invite join request for user={$user_id}");
     
   $conn = db();
   $stmt = $conn->prepare("SELECT club_id FROM club_invites WHERE hash=? LIMIT 1");
@@ -550,6 +582,7 @@ function bookCache_check_query(array $req) // check cache book ONE AT A TIME
         $mysqli = apidb();
 
         echo "Checking cache for: type={$type}, query='{$query}', limit={$limit}, page={$page}\n";
+        log_event("backend","info","Cache check: type={$type}, query={$query}, page={$page}");
 
         // check for search_type, query, page_num AND check if expired.
         $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE search_type=? AND query=? AND page_num=? AND expires_at > NOW() LIMIT ?");
@@ -559,6 +592,7 @@ function bookCache_check_query(array $req) // check cache book ONE AT A TIME
 
         if ($cache_result->num_rows > 0) {
             echo "Cache HIT for {$type}={$query}\n";
+            log_event("backend","info","Cache HIT for {$type}={$query}");
             $cachedData = [];
 
             while ($row = $cache_result->fetch_assoc()) {
@@ -571,12 +605,14 @@ function bookCache_check_query(array $req) // check cache book ONE AT A TIME
             ];
             // return cache HIT
         } else {
+            log_event("backend","info","Cache MISS for {$type}={$query}");
             $mysqli->close();
             return [
                 'status' => 'fail' // could be expired OR not in cache
             ];
         }
     } catch (Exception $e) {
+        log_event("backend","error","Cache check error: " . $e->getMessage());
         return [
             'status' => 'fail',
             'message' => "Error processing request: " . $e->getMessage()
@@ -595,6 +631,8 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
         $mysqli = apidb();
 
         echo "Checking cache for: olid = {$olid}\n";
+        log_event("backend","info","Cache check OLID={$olid}");
+
 
         // check for olid, does NOT check if it is expired, but it should be fine
         $check_cache = $mysqli->prepare("SELECT * FROM library_cache WHERE olid=?");
@@ -604,6 +642,7 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
 
         if ($cache_result->num_rows > 0) {
             echo "Cache HIT for OLID {$olid}\n";
+            log_event("backend","info","Cache HIT for OLID={$olid}");
             $cachedData = $cache_result->fetch_assoc();
 
             $mysqli->close();
@@ -615,11 +654,13 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
         } else {
             $mysqli->close();
             echo "Did not find {$olid} in cache\n";
+            log_event("backend","info","Cache MISS for OLID={$olid}");
             return [
                 'status' => 'fail' // could be expired OR not in cache
             ];
         }
     } catch (Exception $e) {
+        log_event("backend","error","Cache OLID error: " . $e->getMessage());
         return [
             'status' => 'fail',
             'message' => "Error processing request: " . $e->getMessage()
@@ -634,6 +675,8 @@ function bookCache_check_olid(string $olid) // check cache book ONE AT A TIME
 function bookCache_add(array $req) // add book ONE AT A TIME
 {
     $mysqli = apidb();
+
+
     $insertToTable = $mysqli->prepare("
     INSERT INTO library_cache (
       search_type, query, page_num, olid, title, author, isbn,
@@ -679,7 +722,7 @@ function bookCache_add(array $req) // add book ONE AT A TIME
 
         // cache save
         echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
-
+        log_event("backend","info","Adding to cache: OLD={$olid}, title={$title}");
 
         $insertToTable->bind_param(
             "ssisssssidisssss",
@@ -705,6 +748,7 @@ function bookCache_add(array $req) // add book ONE AT A TIME
         $mysqli->close();
         return ['status' => 'success']; // to verify completion
     } catch (Exception $e) {
+        log_event("backend","error","Cache add error: " . $e->getMessage());
         $mysqli->close();
         return [
             'status' => 'fail',
@@ -748,6 +792,8 @@ function getRecentBooks()
 function doBookCollect(array $req)
 {
     $requestType = $req['type'] ?? null;
+    log_event("backend","info","doBookCollect request type={$requestType}");
+
     // check internal cache for details --> depends on if the request type was book_search or book_details
     $error = null; // backup error checking since so many things can go wrong
     $responseData = null;
@@ -759,6 +805,8 @@ function doBookCollect(array $req)
                 $responseData = $cache_check['data'];
             } else {
                 echo "Cache MISSED for book_search -- calling DMZ\n";
+                log_event("backend","info","Cache MISS for book_search -- calling DMZ");
+
                 $req['type'] = 'api_book_search';
                 // had to update type so that the library listener LISTENS for this request type
 
@@ -774,6 +822,7 @@ function doBookCollect(array $req)
                         bookCache_add($book); // update internal apidb with ALL books that are returned
                     }
                 } else {
+                    log_event("backend","error","DMZ search error: " . $error);
                     $error = $DMZresponse['message'] ?? 'Unknown error from server.';
                 }
             }
@@ -787,6 +836,7 @@ function doBookCollect(array $req)
                 $responseData = $cache_check['data'];
             } else {
                 echo "Cache MISSED for book_details -- calling DMZ\n";
+                log_event("backend","info","Cache MISS for book_details -- calling DMZ");
                 $req['type'] = 'api_book_details';
                 // had to update type so that the library listener LISTENS for this request type
 
@@ -801,6 +851,7 @@ function doBookCollect(array $req)
                     bookCache_add($responseData); // only one book detail is returned at a time
                 }
                 else {
+                    log_event("backend","error","DMZ details error: " . $error);
                     $error = $DMZresponse['message'] ?? 'Unknown error from server.';
                 }
             }
@@ -832,24 +883,20 @@ function doBookCollect(array $req)
 
 
 
-
-
-
-
-
-
-
-
 // --- REQUEST PROCESSOR ---
 
 // decides which function to run
 function requestProcessor($req) {
   echo "----------------------\n";
   echo "Received request:\n";
-    var_dump($req);
-    flush();
+
+  log_event("backend","info","Received request: type={$req['type']}");
+  
+  var_dump($req);
+  flush();
   
   if (!isset($req['type'])) {
+    log_event("backend","error","Unknown request type: {$req['type']}");
     return ['status'=>'fail','message'=>'no type'];
   }
 
@@ -898,7 +945,7 @@ if ($which === 'all') { // to run all queues for DB and RMQ connection
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 
         if ($pid == -1) {
-            die("Failed to fork for {$section}\n");
+            log_event("backend","error","Failed to fork proccess for {$section}");
         } elseif ($pid === 0) {
             // child process
             echo "Listening on {$section}\n";

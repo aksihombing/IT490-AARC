@@ -1,5 +1,6 @@
 <?php
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
 
 /*
 PULLED CHIZZYS CODE
@@ -49,10 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'works_id' => $olid,
       ]);
 
+       log_event("frontend","success","Loging book add to library for Book with Id: $olid with a user: $userId");
+
       header("Location: /index.php?content=book&olid=" . urlencode($olid));
+      
+          echo "<p>Book added to your library!</p>";
+
       exit;// should we reedirect after to show it works?
 
-      echo "<p>Book added to your library!</p>";
+  
+     
 
     }
 
@@ -70,13 +77,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'rating' => $rating,
         'body' => $body,
       ]);
+      log_event("frontend","success","Loging review creation for Book with Id: $olid with a user: $userId");
 
       header("Location: /index.php?content=book&olid=" . urlencode($olid));
       exit;
     }
   } catch (Exception $e) {
     $error = "Error processing request: " . $e->getMessage();
+    log_event("frontend","error","Error processing request: " . $e->getMessage());
   }
+
 }
 
 
@@ -94,14 +104,15 @@ try {
     'status' => 'error',
     'message' => 'Unable to connect to LibraryDetails' . $e->getMessage()
   ];
+  log_event("frontend","error","Unable to connect to LibraryDetails" . $e->getMessage());
 }
 
 $book = [];
 if (($response['status'] === 'success') && is_array($response)) {
   //$book = json_decode($response['data'], true); //i dont think we need to decode the json if its already returned as an array of data
   $book = $response['data'];
-}
-
+log_event("frontend","success","Loging book load for Book with Id: $olid with a user: $userId");
+} 
 
 // ------------- LIST REVIEWS
 //fetch reviews and then list reviews
@@ -116,15 +127,22 @@ try {
   //echo "<p>" . print_r($resp, true) . "</p>"; // DEBUGGING - checking response
   if ($resp['status'] === 'success' && is_array($resp['items'])) {
     $reviews = $resp['items'];
+
+    log_event("frontend","success","Loging review load for Book with Id: $olid with a user: $userId");
   }
   else {
     $error = "Failed to load reviews: " . ($resp['message'] ?? 'Unknown error');
+    log_event("frontend","error","Failed to load reviews . Error: " . ($resp['message'] ?? 'Unknown error'));
   }
 } catch (Exception $e) {
   $resp = [
     'status' => 'error',
     'message' => 'Unable to connect to ListReviews' . $e->getMessage()
+
   ];
+
+  log_event("frontend","error","Unable to connect to ListReviews" . $e->getMessage());
+  
 }
 
 ?>
