@@ -44,8 +44,6 @@ function doRegister(array $req) {
     return ['status'=>'fail','message'=>'missing fields'];
   }
 
-  $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
-
   $conn = db();
 
 // see if user already exists in db
@@ -60,9 +58,11 @@ function doRegister(array $req) {
   }
   $stmt->close();
 
+  $hashedPassword = password_hash($hash, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
+
 // inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
-  $stmt->bind_param("sss", $username, $email, $hash);
+  $stmt->bind_param("sss", $username, $email, $hashedPassword);
   if (!$stmt->execute()) {
     return ['status'=>'fail','message'=>'db insert failed'];
   }
