@@ -5,9 +5,9 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/php /home/aida/git/IT490-AARC/deployment/DepListener.php
+ExecStart=/usr/bin/php /home/aarc-deploy/deployment/DepListener.php
 
-User=aida
+User=aarc-deploy
 Restart=always
 RestartSec=1
 
