@@ -49,7 +49,7 @@ function doBookDetails(array $req) //only gets ONE BOOK'S DETAILS
   // not found in cache -- fallback method
   $api_olid_search = api_olid_details($olid); // will use api_olid_details as a fallback
   if ($api_olid_search['status'] === 'fail' || empty($api_olid_search['data'])) {
-    log_event('dmz', 'fail', 'doBookDetails unable to gather api_olid_details');
+    log_event('dmz', 'fail', 'doBookDetails unable to gather api_olid_details for ' . $olid);
     return [
       'status' => 'fail',
       'message' => 'Unable to find book details from API'
