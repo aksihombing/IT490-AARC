@@ -1,5 +1,7 @@
 <?php
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
+
 //session_start();
 
 $bookSearchResults = []; // update results while doBookSearch loop

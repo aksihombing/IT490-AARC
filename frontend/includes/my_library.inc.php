@@ -11,6 +11,7 @@ ini_set('display_errors', 1);
 
 //session_start();
 require_once __DIR__ . '/../../rabbitMQ/rabbitMQLib.inc';
+require_once __DIR__ . '/../../rabbitMQ/log_producer.php';
 
 
 $userId = $_SESSION['user_id'];// getting the user id from the session

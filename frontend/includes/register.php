@@ -6,6 +6,8 @@
 session_start();
 require_once __DIR__ . '/../rabbitMQ/rabbitMQLib.inc';
 require_once __DIR__ . '/../rabbitMQ/get_host_info.inc';
+require_once(__DIR__ . '/../rabbitMQ/log_producer.php');
+
 // changed above to expand to absolute path
 
 

@@ -2,6 +2,7 @@
 //  FOR RECENT BOOKS !! -------------
 // to load pre-loaded book data from cache db
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
 
 $recentBooks = []; // for recent books call
 
