@@ -50,7 +50,7 @@ $request = [
 
 try {
   // connect to rmq
-  $client = new rabbitMQClient(__DIR__ . "/../../host.ini", "AuthRegister"); // changed to reflect the new section name
+  $client = new rabbitMQClient(__DIR__ . "/../rabbitMQ/host.ini", "AuthRegister"); // changed to reflect the new section name
 
   // sending the registration request
   $response = $client->send_request($request); // changed to correct variable name
