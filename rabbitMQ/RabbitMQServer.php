@@ -60,7 +60,7 @@ function doRegister(array $req) {
 
 // inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
-  $stmt->bind_param("sss", $username, $email, $hash);
+  $stmt->bind_param("sss", $username, $email, $hashedPassword);
   if (!$stmt->execute()) {
     return ['status'=>'fail','message'=>'db insert failed'];
   }
