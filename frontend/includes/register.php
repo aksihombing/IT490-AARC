@@ -50,7 +50,7 @@ $request = [
 
 try {
   // connect to rmq
-  $client = new rabbitMQClient(__DIR__ . "/../../rabbitMQ/host.ini", "AuthRegister"); // changed to reflect the new section name
+  $client = new rabbitMQClient(__DIR__ . "/../../host.ini", "AuthRegister"); // changed to reflect the new section name
 
   // sending the registration request
   $response = $client->send_request($request); // changed to correct variable name
@@ -59,13 +59,13 @@ try {
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
     log_event("frontend", "success", "User successfully registered.");
 
-    header("Location: index.php?register_success=1");
+    header("Location: /index.php?register_success=1");
     exit;
   } else {
     $msg = is_array($response) ? urlencode($response['message'] ?? 'Unknown error') : 'No response from server';
     log_event("frontend", "error", $msg);
 
-    header("Location: index.php?register_error=$msg");
+    header("Location: /index.php?register_error=$msg");
     exit;
   }
 } catch (Exception $e) {
