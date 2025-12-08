@@ -676,7 +676,7 @@ function bookCache_add(array $req) // add book ONE AT A TIME
 {
     $mysqli = apidb();
 
-    log_event("backend","info","Adding to cache: OLD={$olid}, title={$title}");
+
     $insertToTable = $mysqli->prepare("
     INSERT INTO library_cache (
       search_type, query, page_num, olid, title, author, isbn,
@@ -722,7 +722,7 @@ function bookCache_add(array $req) // add book ONE AT A TIME
 
         // cache save
         echo "Saving to cache: type={$type}, query='{$query}'\n"; // debugging
-
+        log_event("backend","info","Adding to cache: OLD={$olid}, title={$title}");
 
         $insertToTable->bind_param(
             "ssisssssidisssss",
