@@ -58,7 +58,7 @@ function doRegister(array $req) {
   }
   $stmt->close();
 
-  $hashedPassword = password_hash($hash, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
+  $hashedPassword = password_hash($password, PASSWORD_BCRYPT); // BCRYPT is an algorithm for hashing, supposedly more secure than SHA256
 
 // inserts new user into database
   $stmt = $conn->prepare("INSERT INTO users (username,emailAddress,password_hash) VALUES (?,?,?)");
