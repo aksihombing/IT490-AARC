@@ -3,6 +3,8 @@ require_once __DIR__ . '/rabbitMQLib.inc';
 require_once __DIR__ . '/get_host_info.inc';
 
 require_once __DIR__ . '/api_process.php';
+require_once __DIR__ . '/log_producer.php';
+
 // api_process requires api_cache and api_endpoints
 
 // ---------------- SERVER ----------------
