@@ -109,15 +109,15 @@ function doStatusUpdate(array $req)
   $version = (int) ($req['version'] ?? 0);
   $status = $req['status'] ?? '';
   $cluster = $req['cluster'] ?? '';
-  
+
 
   if (empty($bundle_name) || $version <= 0 || !in_array($status, ['passed', 'failed'])) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
 
 
- // DEBUGGING
- echo "bundle: $bundle_name || version: $version || status: $status || cluster: $cluster";
+  // DEBUGGING
+  //echo "bundle: $bundle_name || version: $version || status: $status || cluster: $cluster";
 
   $stmt = $db->prepare("UPDATE bundles SET status = ? WHERE bundle_name = ? AND version = ?");// this records the result of the installation test by updatinf the fields in the db
   $stmt->bind_param('ssi', $status, $bundle_name, $version);
@@ -161,7 +161,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       $destination_cluster = 'QA';// new bundles always go to qa first
       break;
     case 'passed':
-      if ($starting_cluster === 'QA' ?? $starting_cluster === 'dev') {// passed the test (after statusupdate from QA)
+      if ($starting_cluster === 'QA' || $starting_cluster === 'dev') {// passed the test (after statusupdate from QA or when it is manually added from DEV)
         $destination_cluster = 'Prod';
       } else {
         echo "Bundle $bundle_name v$version pased on to Production. Deplotment done.\n";
@@ -169,13 +169,26 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       }
       break;
     case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
-     
-        echo "Bundle $bundle_name v$version failed. Rolling back.\n";// remove?
-        doRollback([
-          'bundle_name' => $bundle_name
-        ]); //changed it so that rollback is called for QA and Prod
-      
+
+      echo "Bundle $bundle_name v$version failed. Rolling back.\n";// remove?
+      doRollback([
+        'bundle_name' => $bundle_name
+      ]); //changed it so that rollback is called for QA and Prod
+
       return;
+    case 'rollback':
+      echo "Rolling back to $bundle_name v$version .\n";
+      if ($starting_cluster === 'QA') {// passed the test (after statusupdate from QA or when it is manually added from DEV)
+        $destination_cluster = 'QA';
+      } 
+      elseif ($starting_cluster === 'Prod'){
+        $destination_cluster = 'Prod';
+      }
+      else {
+        echo "Bundle $bundle_name v$version pased on to Production. Deplotment done.\n";
+        return;
+      }
+      break;
     default:
       echo "error: having trouble processing the status'\n";
       return;
@@ -242,7 +255,7 @@ function sendBundle(array $deployInfo)
   /*
     shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); 
   */
-    // -i specifies which ssh key to use... 
+  // -i specifies which ssh key to use... 
   exec("scp -i /home/aarc-deploy/.ssh/$destination_key /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
@@ -257,10 +270,9 @@ function sendBundle(array $deployInfo)
   //  $response = $bookDetailsClient->send_request
   $sendBundle_response = $client->send_request($request);
   echo "Install sent\n";
-  if ($sendBundle_response['status'] === 'success'){
+  if ($sendBundle_response['status'] === 'success') {
     echo "Successfully installed bundle.\n";
-  }
-  else {
+  } else {
     echo "Failed to install bundle.\n";
   }
 
