@@ -20,6 +20,7 @@ $req = [
 	'type' => 'status_update',
 	'bundle_name' => $bundle,
 	'version' => $version,
+	'status' => $status,
 	'cluster' => $cluster // do we need?
 ];
 
