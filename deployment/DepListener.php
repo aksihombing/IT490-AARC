@@ -116,7 +116,8 @@ function doStatusUpdate(array $req)
   }
 
 
-
+ // DEBUGGING
+ echo "bundle: $bundle_name || version: $version || status: $status || cluster: $cluster";
 
   $stmt = $db->prepare("UPDATE bundles SET status = ? WHERE bundle_name = ? AND version = ?");// this records the result of the installation test by updatinf the fields in the db
   $stmt->bind_param('ssi', $status, $bundle_name, $version);
@@ -160,7 +161,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       $destination_cluster = 'QA';// new bundles always go to qa first
       break;
     case 'passed':
-      if ($starting_cluster === 'QA') {// passed the test (after statusupdate from QA)
+      if ($starting_cluster === 'QA' ?? $starting_cluster === 'dev') {// passed the test (after statusupdate from QA)
         $destination_cluster = 'Prod';
       } else {
         echo "Bundle $bundle_name v$version pased on to Production. Deplotment done.\n";
@@ -233,7 +234,7 @@ function sendBundle(array $deployInfo)
   $destinationIP = $deployInfo['vm_ip'];
   $destination_vmname = $deployInfo['vm_name'];
   $destination_cluster = $deployInfo['destination_cluster'];
-  $destination_key = $destination_cluster . "-" . $destination_vmname;
+  $destination_key = strtolower($destination_cluster . "-" . $destination_vmname);
   $destination_user = strtolower("aarc-$destination_cluster");
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 

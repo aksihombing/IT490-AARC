@@ -21,12 +21,19 @@ $req = [
 	'bundle_name' => $bundle,
 	'version' => $version,
 	'cluster' => $cluster // do we need?
-	];
+];
 
 try {
 	$client = new rabbitMQClient(__DIR__ . '/deployQueues.ini', 'DeployVersion');
 
 	$response = $client->send_request($req);
+
+	// rea's updates --> check status of response; not sure if needed?
+	if (!isset($response['status']) || $response['status'] === 'fail') {
+		echo "Unable to updateStatus.\n";
+		exit(1);
+	}
+	echo "Successfully received response from remote. $bundle version number  $version has been updated.\n";
 } catch (Exception $e) {
 	echo 'Failure to initialize RabbitMQ client and/or failure to send status update';
 	exit(1);
