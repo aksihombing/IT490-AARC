@@ -12,7 +12,7 @@ require_once(__DIR__ . '/get_host_info.inc');
 
 // Checking if we have too little (or too many) arguments.
 
-if ($argc < 3 || $argc > 3) {
+if ($argc < 4 || $argc > 4) {
 	echo "Invalid Number of arguments. Check command and try again.";
 	exit(0);
 }
