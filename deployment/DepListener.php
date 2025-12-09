@@ -171,23 +171,29 @@ function doDeployBundle(array $deployInfo) // base made by Rea
     case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
 
       echo "Bundle $bundle_name v$version failed. Rolling back.\n";// remove?
-      doRollback([
-        'bundle_name' => $bundle_name
-      ]); //changed it so that rollback is called for QA and Prod
 
+      if ($starting_cluster === 'QA') {
+        // passed the test (after statusupdate from QA or when it is manually added from DEV)
+        $destination_cluster = 'QA';
+        doRollback([
+          'bundle_name' => $bundle_name,
+          'cluster' => $destination_cluster
+        ]); 
+        //changed it so that rollback is called for QA and Prod
+      } elseif ($starting_cluster === 'Prod') {
+        $destination_cluster = 'Prod';
+        doRollback([
+          'bundle_name' => $bundle_name,
+          'cluster' => $destination_cluster
+        ]);
+      } else {
+        echo "Failure reported from an unknown cluster (NO ROLLBACK) : $starting_cluster\n";
+      }
       return;
+
     case 'rollback':
       echo "Rolling back to $bundle_name v$version .\n";
-      if ($starting_cluster === 'QA') {// passed the test (after statusupdate from QA or when it is manually added from DEV)
-        $destination_cluster = 'QA';
-      } 
-      elseif ($starting_cluster === 'Prod'){
-        $destination_cluster = 'Prod';
-      }
-      else {
-        echo "Bundle $bundle_name v$version pased on to Production. Deplotment done.\n";
-        return;
-      }
+      $destination_cluster = $starting_cluster;
       break;
     default:
       echo "error: having trouble processing the status'\n";
@@ -288,7 +294,7 @@ function doRollback(array $rollbackReq)
 
   //$destination_vm = $rollbackReq['destination_vm'];
   $bundle_name = $rollbackReq['bundle_name'];
-
+  $rollback_cluster = $rollbackReq['cluster'];
   echo "Rolling back bundle: " . $rollbackReq['bundle_name'] . "\n";
 
 
@@ -322,7 +328,7 @@ function doRollback(array $rollbackReq)
     'bundle_name' => $bundle_name,
     'version' => $old_version,
     'path' => $old_path,
-    'cluster' => 'Prod'
+    'cluster' => $rollback_cluster
   ]);
 }
 
