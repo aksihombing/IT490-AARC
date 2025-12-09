@@ -189,7 +189,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 
   //
   if (!$vm_name) {
-    echo "Error: Uknown bundle name for '$bundle_name'\n";
+    echo "Error: Unknown bundle name for '$bundle_name'\n";
     echo "VM Name is : $vm_name\n";
     return;
   }
@@ -207,6 +207,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
     'queue_name' => $queue_name,
     'destination_cluster' => $destination_cluster,
     'vm_ip' => $vm_ip,
+    'vm_name' => $vm_name,
     'path' => $path,
     'bundle_name' => $bundle_name,
     'version' => $version
@@ -230,7 +231,9 @@ function sendBundle(array $deployInfo)
   $iniPath = __DIR__ . "/host.ini";
   $filePath = $deployInfo['path'];
   $destinationIP = $deployInfo['vm_ip'];
+  $destination_vmname = $deployInfo['vm_name'];
   $destination_cluster = $deployInfo['destination_cluster'];
+  $destination_key = $destination_cluster . "-" . $destination_vmname;
   $destination_user = strtolower("aarc-$destination_cluster");
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
@@ -238,7 +241,8 @@ function sendBundle(array $deployInfo)
   /*
     shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); 
   */
-  exec("scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
+    // -i specifies which ssh key to use... 
+  exec("scp -i /home/aarc-deploy/.ssh/$destination_key /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
