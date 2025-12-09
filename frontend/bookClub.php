@@ -27,8 +27,6 @@
   <div class="card-body">
   <h3 class="card-title h5">My Clubs</h3> <!-- bootstrap card title -->
   <ul id="clubList" class="list-group list-group-flush mt-3">
- <!--list-group for list styling, flush to remove borders and added a margin-top for spacing-->
-    
   </ul>
   </div>
   </div>
