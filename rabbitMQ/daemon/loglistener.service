@@ -5,7 +5,7 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/php /home/chizorom/git/IT490-AARC/rabbitMQ/log_listener.php
+ExecStart=/usr/bin/php /home/chizorom/IT490-AARC/rabbitMQ/log_listener.php
 
 User=chizorom
 Restart=always
