@@ -113,7 +113,7 @@ function installBundle(array $req)
 
     if ($result !== 0) {
         echo "bundle extraction failed\n";
-        sendStatus($bundle_name, $version, "failed", $cluster);
+        //sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'tar extraction failed'];
     }
 
@@ -170,12 +170,12 @@ WantedBy=multi-user.target */
     exec("cd $tmp ; ./configure.sh", $configOutput, $configResultCode);
     if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
-        sendStatus($bundle_name, $version, "failed", $cluster);
+        //sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
     echo "Successful configure.sh install\n";
     // BUG : sendStatus not being run, so the DEV bundler remains open since it was not able to receive the return message.
-    sendStatus($bundle_name, $version, "passed", $cluster);
+    //sendStatus($bundle_name, $version, "passed", $cluster);
     return ['status' => 'success', 'message' => 'Bundle installed'];
 
 

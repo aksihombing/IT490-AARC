@@ -168,14 +168,12 @@ function doDeployBundle(array $deployInfo) // base made by Rea
       }
       break;
     case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
-      if ($starting_cluster === 'Prod') {
-        echo "Bundle $bundle_name v$version failed in Production. Rolling back.\n";
+     
+        echo "Bundle $bundle_name v$version failed. Rolling back.\n";// remove?
         doRollback([
           'bundle_name' => $bundle_name
-        ]);
-      } else {
-        echo "Bundle $bundle_name v$version failed in QA. Deployment stopping.\n";
-      }
+        ]); //changed it so that rollback is called for QA and Prod
+      
       return;
     default:
       echo "error: having trouble processing the status'\n";
@@ -191,7 +189,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 
   //
   if (!$vm_name) {
-    echo "Error: Uknown bundle name for '$bundle_name'\n";
+    echo "Error: Unknown bundle name for '$bundle_name'\n";
     echo "VM Name is : $vm_name\n";
     return;
   }
@@ -209,6 +207,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
     'queue_name' => $queue_name,
     'destination_cluster' => $destination_cluster,
     'vm_ip' => $vm_ip,
+    'vm_name' => $vm_name,
     'path' => $path,
     'bundle_name' => $bundle_name,
     'version' => $version
@@ -232,7 +231,9 @@ function sendBundle(array $deployInfo)
   $iniPath = __DIR__ . "/host.ini";
   $filePath = $deployInfo['path'];
   $destinationIP = $deployInfo['vm_ip'];
+  $destination_vmname = $deployInfo['vm_name'];
   $destination_cluster = $deployInfo['destination_cluster'];
+  $destination_key = $destination_cluster . "-" . $destination_vmname;
   $destination_user = strtolower("aarc-$destination_cluster");
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
@@ -240,20 +241,27 @@ function sendBundle(array $deployInfo)
   /*
     shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); 
   */
-  exec("scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
+    // -i specifies which ssh key to use... 
+  exec("scp -i /home/aarc-deploy/.ssh/$destination_key /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
     'path' => $deployInfo['path'],
+    'tar_name' => $deployInfo['path'],
     'bundle_name' => $deployInfo['bundle_name'],
     'version' => $deployInfo['version'],
     'vm_ip' => $deployInfo['vm_ip'],
     'cluster' => $deployInfo['destination_cluster']
   ];
-
-  $client->send_request($request);
+  //  $response = $bookDetailsClient->send_request
+  $sendBundle_response = $client->send_request($request);
   echo "Install sent\n";
-
+  if ($sendBundle_response['status'] === 'success'){
+    echo "Successfully installed bundle.\n";
+  }
+  else {
+    echo "Failed to install bundle.\n";
+  }
 
 
 
