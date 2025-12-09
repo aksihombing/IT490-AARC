@@ -5,7 +5,7 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/Library_API.php
+ExecStart=/usr/bin/php /home/rea-sihombing/Project/IT490-AARC/api/log_listener.php
 
 User=rea-sihombing
 Restart=always
