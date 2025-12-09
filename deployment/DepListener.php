@@ -172,7 +172,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 
       echo "Bundle $bundle_name v$version failed. Rolling back.\n";// remove?
 
-      if ($starting_cluster === 'QA') {
+      if ($starting_cluster === 'QA' || $starting_cluster === 'dev') {
         // passed the test (after statusupdate from QA or when it is manually added from DEV)
         $destination_cluster = 'QA';
         doRollback([
