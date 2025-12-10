@@ -108,7 +108,7 @@ require_once('includes/my_library.inc.php');
             <strong>Published:</strong> <?php echo htmlspecialchars($r_book['publish_year']) ?>
           </p>
           </div> <!-- end card body  -->
-</div> <!-- end card  -->
+ <!-- end card  -->
           </div> <!-- end col -->
           </div>
 
