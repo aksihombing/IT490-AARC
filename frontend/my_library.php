@@ -56,7 +56,7 @@ require_once('includes/my_library.inc.php');
        <?php endif; ?>
 <div class="card-body">
   <h4 class="card-title">
-          <a href="index.php?content=book&olid=<?php echo htmlspecialchars($book['olid']); ?>" class="stretched-link text-decoration-none">
+          <a href="index.php?content=book&olid=<?php echo htmlspecialchars($book['olid']); ?>" class="text-decoration-none">
               <?php echo htmlspecialchars($book['title']); ?>
             </a></h4>
 <!-- added the stretched link -->
@@ -97,7 +97,7 @@ require_once('includes/my_library.inc.php');
     <div class="card-body">
     <h4 class="card-title">
             <a href="index.php?content=book&olid=<?php echo htmlspecialchars($r_book['olid']); ?>"
-              class="stretched-link text-decoration-none">
+              class="text-decoration-none">
                 <?php echo htmlspecialchars($r_book['title']) ?>
               </a></h4>
 
