@@ -208,7 +208,7 @@ function doBookRecommend(array $req)
     return ['status' => 'fail', 'message' => 'no recommendation found'];
   }
 
-  log_event('dmz', 'success', 'doBookRecommend: Matched [' . $olids . '] with ' . count($recommendedBooks) . ' books. Top subjects: ' . $topSubjects);
+  log_event('dmz', 'success', 'doBookRecommend: Matched [' . implode(', ' , $olids) . '] with ' . count($recommendedBooks) . ' books. Top subjects: ' . implode(', ' , $topSubjects));
 
   return [
     'status' => 'success',
