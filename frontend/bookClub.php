@@ -10,7 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   echo "Use POST";
   exit;
 }
-
+$sql = "SELECT * FROM accounts WHERE username = ?";
+$myQuery = $pdo->prepare($sql);
+$myQuery->execute([$username]);
+$result = $myQuery->fetch();
 // above im adding sessions so hopefully it can connect and display the users info
 ?> 
 <!doctype html>
