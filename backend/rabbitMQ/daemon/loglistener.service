@@ -1,14 +1,13 @@
 [Unit]
-Description=Backround process for fetching data from library API
+Description=Background process for processing distributed log notifications
 After=network.target
 StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/php /home/aida/git/IT490-AARC/api/Library_API.php
+ExecStart=/usr/bin/php /home/aida/git/IT490-AARC/api/log_listener.php
 
 User=aida
-
 Restart=always
 RestartSec=1
 
