@@ -7,7 +7,12 @@
   <link rel="stylesheet" href="bootstrap-5.3.8/dist/css/bootstrap.css">
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
     integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-    crossorigin="anonymous"></script>
+    crossorigin="anonymous">
+  </script>
+
+  <script src="js/daypilot/daypilot-all.min.js" type="text/javascript"></script>
+  <link type="text/css" rel="stylesheet" href="themes/scheduler_8.css" />    
+
   <script src="bootstrap-5.3.8/dist/js/bootstrap.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -82,6 +87,9 @@
   </form>
   </div>
   </div>
+
+  <h2>List View of Events Booked</h2>
+  
 </section>
 
 <div id="output" style="margin-top:1rem;color:#333;"></div>

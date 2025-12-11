@@ -14,6 +14,7 @@ if (!isset($_SESSION['login'])) {
   <title>Book Club Calendar</title>
   <link rel="stylesheet" href="baseStyle.css">
   <script src="/daypilot-html5/js/daypilot/daypilot-all.min.js"></script>
+
   <link rel="stylesheet" href="/themes/scheduler_8.css">
 </head>
 <body>
