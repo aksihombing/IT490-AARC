@@ -91,7 +91,12 @@
   <h2>List View of Events Booked</h2>
     <article>
     <h2><?=$result["username"]?>'s profile:</h2>
+    <h2>Below is the user's information</h2>
     <h3>The club ID is: <?=$result['club_id']?></h3>
+    <h3>The title: <?=$result['title']?></h3>
+    <h3>The event date is: <?=$result['event_date']?></h3>
+    <h3>The  <?=$result['club_id']?></h3>
+
 </article>
 </section>
 
