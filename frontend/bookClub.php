@@ -95,7 +95,7 @@
     <h3>The club ID is: <?=$result['club_id']?></h3>
     <h3>The title: <?=$result['title']?></h3>
     <h3>The event date is: <?=$result['event_date']?></h3>
-    <h3>The  <?=$result['club_id']?></h3>
+    <h3>The description of the event created is: <?=$result['description']?></h3>
 
 </article>
 </section>
