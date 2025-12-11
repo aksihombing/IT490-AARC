@@ -1,18 +1,16 @@
 [Unit]
-Description=Background process for processing RabbitMQ messages
+Description=Backround process for fetching data from library API
 After=network.target
 StartLimitIntervalSec=0
 
-
 [Service]
 Type=simple
-ExecStart=/usr/bin/php /home/aida/git/IT490-AARC/backend/rabbitMQ/RabbitMQServer.php
+ExecStart=/usr/bin/php /home/aida/git/IT490-AARC/api/Library_API.php
 
 User=aida
 
 Restart=always
 RestartSec=1
-
 
 [Install]
 WantedBy=multi-user.target
