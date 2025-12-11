@@ -151,7 +151,7 @@ WantedBy=multi-user.target */
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini");
 
             // loglistener.service
-            shell_exec("sed -i 's|chizorom/aarc/IT490-AARC/||g' $tmp/rabbitMQ/daemon/loglistener.service");
+            shell_exec("sed -i 's|/home/chizorom/IT490-AARC/|/var/www/|g' $tmp/rabbitMQ/daemon/loglistener.service");
             shell_exec("sed -i 's|chizorom|$cluster_user|g' $tmp/rabbitMQ/daemon/loglistener.service");
 
             break;
