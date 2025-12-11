@@ -158,7 +158,12 @@ WantedBy=multi-user.target */
         case "backendProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
             // UPDATE DAEMON
-
+/* if [ $? -eq 0 ]; then echo 'Cron job updateRecentBooks.php already exists.';
+else
+    crontab -l 2>/dev/null; echo '0 10 * * * /usr/bin/php /home/aida/cron/updateRecentBooks.php >> /home/aida/cron/recentBooks.log.txt 2>&1' | crontab -
+    if [ $? -ne 0 ]; then echo 'Failed to install cronjob.'; exit 1; fi
+    echo 'Cron job updateRecenBooks.php added.'
+fi*/
             // change filepath for cron within config script
             shell_exec("sed -i 's|aida|backend/api_db|g' $tmp/config.sh");
 
