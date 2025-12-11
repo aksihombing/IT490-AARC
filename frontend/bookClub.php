@@ -1,3 +1,18 @@
+<?php
+
+
+session_start();
+require_once __DIR__ . '../../rabbitMQ/rabbitMQLib.inc';  
+require_once __DIR__ . '../../rabbitMQ/get_host_info.inc'; 
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  http_response_code(405);
+  echo "Use POST";
+  exit;
+}
+
+// above im adding sessions so hopefully it can connect and display the users info
+?> 
 <!doctype html>
 
 <html>
