@@ -1,6 +1,6 @@
 #!/bin/bash
 
-scp -r deployment/ chizorom@172.28.121.220:/home/chizorom/
+scp -r deployment/ aarc-deploy@172.28.121.220:/home/aarc-deploy/
 if [ $? -ne 0 ]; then
     echo "Failed to SCP."
     exit 1
