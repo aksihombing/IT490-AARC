@@ -149,18 +149,35 @@ WantedBy=multi-user.target */
     switch ($bundle_name) {
         case "frontendProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini");
+
+            // loglistener.service
+            shell_exec("sed -i 's|chizorom/aarc/IT490-AARC/||g' $tmp/rabbitMQ/daemon/loglistener.service");
+            shell_exec("sed -i 's|chizorom|$cluster_user|g' $tmp/rabbitMQ/daemon/loglistener.service");
+
             break;
         case "backendProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
             // UPDATE DAEMON
-            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
-            shell_exec("sed -i 's|aida|backend/api_db|g' $tmp/config.sh"); // --> change filepath for cron within config script
+
+            // change filepath for cron within config script
+            shell_exec("sed -i 's|aida|backend/api_db|g' $tmp/config.sh");
+
+            // update rabbitmqserver.service
+            shell_exec("sed -i 's|aida/git/IT490-AARC/||g' $tmp/rabbitMQ/daemon/rabbitmqserver.service");
+            shell_exec("sed -i 's|aida|$cluster_user|g' $tmp/rabbitMQ/daemon/rabbitmqserver.service");
+            // loglistener.service
+            shell_exec("sed -i 's|aida/git/IT490-AARC/||g' $tmp/rabbitMQ/daemon/loglistener.service");
+            shell_exec("sed -i 's|aida|$cluster_user|g' $tmp/rabbitMQ/daemon/loglistener.service");
+
             break;
         case "apiProcess":
             shell_exec("sed -i 's/172.28.219.213/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
             // UPDATE DAEMON
             shell_exec("sed -i 's|rea-sihombing/Project/IT490-AARC/||g' $tmp/api/daemon/libraryapi.service");// --> changes ExecStart filepath
             shell_exec("sed -i 's|rea-sihombing|$cluster_user|g' $tmp/api/daemon/libraryapi.service"); // --> changes User name
+            // for loglistener
+            shell_exec("sed -i 's|rea-sihombing/Project/IT490-AARC/||g' $tmp/api/daemon/loglistener.service");
+            shell_exec("sed -i 's|rea-sihombing|$cluster_user|g' $tmp/api/daemon/loglistener.service");
             break;
     }
     // sed delimiters : https://stackoverflow.com/questions/5864146/using-different-delimiters-in-sed-commands-and-range-addresses

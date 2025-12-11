@@ -84,6 +84,8 @@
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
+                "sudo systemctl restart loglistener.service",
+                "if [ $? -ne 0 ]; then echo 'Failed to restart loglistener.service.'; exit 1; fi",
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]
@@ -141,6 +143,8 @@
                 "fi",
                 "sudo systemctl restart rabbitmqserver.service",
                 "if [ $? -ne 0 ]; then echo 'Failed to restart rabbitmqserver.service.'; exit 1; fi",
+                "sudo systemctl restart loglistener.service",
+                "if [ $? -ne 0 ]; then echo 'Failed to restart loglistener.service.'; exit 1; fi",
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]
@@ -149,13 +153,7 @@
     "DMZ": {
         "apiProcess": {
             "paths": [
-                "api/api_endpoints.php",
-                "api/api_process.php",
-                "api/get_host_info.inc",
-                "api/Library_API.php",
-                "api/rabbitMQLib.inc",
-                "api/rmqAccess.ini",
-                "api/daemon"
+                "api/"
             ],
             "commands": [
                 "echo 'Installing apiProcess (DMZ RabbitMQ Processor)'",
@@ -163,6 +161,8 @@
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo systemctl restart libraryapi.service",
                 "if [ $? -ne 0 ]; then echo 'Failed to restart libraryapi.service.'; exit 1; fi",
+                "sudo systemctl restart loglistener.service",
+                "if [ $? -ne 0 ]; then echo 'Failed to restart loglistener.service.'; exit 1; fi",
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]
