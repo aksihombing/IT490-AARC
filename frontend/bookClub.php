@@ -89,7 +89,10 @@
   </div>
 
   <h2>List View of Events Booked</h2>
-  
+    <article>
+    <h2><?=$result["username"]?>'s profile:</h2>
+    <h3>The club ID is: <?=$result['club_id']?></h3>
+</article>
 </section>
 
 <div id="output" style="margin-top:1rem;color:#333;"></div>
