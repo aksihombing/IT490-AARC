@@ -38,5 +38,11 @@ do
   rabbitmqadmin -V $VHOST -u $USER -p "$PASS" declare binding source=club.direct destination_type=queue destination=$q routing_key=$q
 done
 
-# log exchange
+# log exchange/queues NO ROUTING KEY
 rabbitmqadmin -V $VHOST -u $USER -p "$PASS" declare exchange name=logs.fanout type=fanout durable=true
+
+for q in logs.frontend logs.backend logs.dmz;
+do
+  rabbitmqadmin -V $VHOST -u $USER -p "$PASS" declare queue name=$q durable=true
+  rabbitmqadmin -V $VHOST -u $USER -p "$PASS" declare binding source=logs.fanout destination_type=queue destination=$q
+done
