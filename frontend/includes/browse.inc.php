@@ -3,6 +3,7 @@
 //  FOR RECENT BOOKS !! -------------
 // to load pre-loaded book data from cache db
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
 
 
 // FOR GENERAL BROWSING
@@ -25,10 +26,12 @@ try {
 
     if ($browseResponse['status'] === 'success') {
         $browseBooks = $browseResponse['data'];
+        log_event("frontend", "info", "Browse books loaded successfully " . $page);
     }
 
 } catch (Exception $e) {
     echo "<p style='color:red;'>Error loading featured books: " . htmlspecialchars($e->getMessage()) . "</p>";
+    log_event("frontend", "error", "Error connecting: " . ($e->getMessage()));
 }
 
 

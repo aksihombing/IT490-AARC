@@ -4,8 +4,10 @@
 // pulled from Chizzy's branch
 
 session_start();
-require_once __DIR__ . '/../../rabbitMQ/rabbitMQLib.inc';  
-require_once __DIR__ . '/../../rabbitMQ/get_host_info.inc'; 
+require_once __DIR__ . '/../../rabbitMQ/rabbitMQLib.inc';
+require_once __DIR__ . '/../../rabbitMQ/get_host_info.inc';
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
+
 // changed above to expand to absolute path
 
 
@@ -17,9 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   exit;
 }
 
-$email    = $_POST['emailAddress'] ?? '';
-$username = $_POST['username']     ?? '';
-$password = $_POST['password']     ?? '';
+$email = $_POST['emailAddress'] ?? '';
+$username = $_POST['username'] ?? '';
+$password = $_POST['password'] ?? '';
 
 // checking all of the fields are filled
 if ($email === '' || $username === '' || $password === '') {
@@ -30,9 +32,20 @@ if ($email === '' || $username === '' || $password === '') {
 // reworked above bcs variables were mismatched
 
 
+<<<<<<< HEAD
+=======
+// hash the password before sending through server and datbase
+
+// below the line of code will need to be changed and add it to
+// the backend so the hasing can be done
+
+
+
+
+>>>>>>> 70198d636dde90a2174845a71a3cf0babde41ad9
 $request = [
-  'type'     => 'register',
-  'email'    => $email,
+  'type' => 'register',
+  'email' => $email,
   'username' => $username,
   'password' => $password,
 ];
@@ -47,15 +60,19 @@ try {
 
   // response handling
   if (is_array($response) && ($response['status'] ?? '') === 'success') {
+    log_event("frontend", "success", "User successfully registered.");
+
     header("Location: /index.php?register_success=1");
     exit;
-  } 
-  else {
+  } else {
     $msg = is_array($response) ? urlencode($response['message'] ?? 'Unknown error') : 'No response from server';
+    log_event("frontend", "error", $msg);
+
     header("Location: /index.php?register_error=$msg");
     exit;
-    }
-}
-catch (Exception $e) {
+  }
+} catch (Exception $e) {
+  log_event("frontend", "error", "Error connecting to RMQ for user registration: " . ($e->getMessage()));
+
   echo "Error connecting to RabbitMQ: " . $e->getMessage();
 }

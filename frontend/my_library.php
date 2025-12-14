@@ -18,16 +18,17 @@ require_once('includes/my_library.inc.php');
 <head>
   <meta charset="utf-8">
   <title>My Library</title>
+  <!-- 
   <link rel="stylesheet" href="bootstrap-5.3.8/dist/css/bootstrap.css">
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
     integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
     crossorigin="anonymous"></script>
   <script src="bootstrap-5.3.8/dist/js/bootstrap.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
+-->
 
   
-  <link rel="stylesheet" href="baseStyle.css">
+
 </head>
 
 <body>
@@ -55,7 +56,7 @@ require_once('includes/my_library.inc.php');
        <?php endif; ?>
 <div class="card-body">
   <h4 class="card-title">
-          <a href="index.php?content=book&olid=<?php echo htmlspecialchars($book['olid']); ?>" class="stretched-link text-decoration-none">
+          <a href="index.php?content=book&olid=<?php echo htmlspecialchars($book['olid']); ?>" class="text-decoration-none">
               <?php echo htmlspecialchars($book['title']); ?>
             </a></h4>
 <!-- added the stretched link -->
@@ -96,7 +97,7 @@ require_once('includes/my_library.inc.php');
     <div class="card-body">
     <h4 class="card-title">
             <a href="index.php?content=book&olid=<?php echo htmlspecialchars($r_book['olid']); ?>"
-              class="stretched-link text-decoration-none">
+              class="text-decoration-none">
                 <?php echo htmlspecialchars($r_book['title']) ?>
               </a></h4>
 
@@ -107,7 +108,7 @@ require_once('includes/my_library.inc.php');
             <strong>Published:</strong> <?php echo htmlspecialchars($r_book['publish_year']) ?>
           </p>
           </div> <!-- end card body  -->
-</div> <!-- end card  -->
+ <!-- end card  -->
           </div> <!-- end col -->
           </div>
 

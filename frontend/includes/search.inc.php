@@ -1,5 +1,7 @@
 <?php
 require_once(__DIR__ . '/../../rabbitMQ/rabbitMQLib.inc');
+require_once(__DIR__ . '/../../rabbitMQ/log_producer.php');
+
 //session_start();
 
 $bookSearchResults = []; // update results while doBookSearch loop
@@ -30,9 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $bookSearchResults = $response['data'];
             } else {
                 $error = $response['message'] ?? 'Unknown error from server.';
+                log_event("frontend", "error", "Error with returning search results: " . ($error));
+
             }
         } catch (Exception $e) {
             $error = "Error connecting to search service: " . $e->getMessage();
+            log_event("frontend", "error", "Error connecting to RMQ for searching function: " . ($error));
+
         }
     }
 }
