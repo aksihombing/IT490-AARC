@@ -89,6 +89,20 @@
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]
+        },
+        "frontendLib": {
+            "paths": [
+                "frontend/bootstrap-5.3.8/",
+                "frontend/images/"
+            ],
+            "commands": [
+                "echo 'Installing frontendLib'",
+                "sudo cp -r frontend/* /var/www/aarc/",
+                "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
+                "sudo service apache2 restart",
+                "echo '-----Installation complete-----'",
+                "exit 0"
+            ]
         }
     },
     "Backend": {
