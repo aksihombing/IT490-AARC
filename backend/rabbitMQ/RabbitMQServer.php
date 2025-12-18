@@ -463,7 +463,7 @@ function doListEvents(array $req){
 
   $conn = db();
   $stmt = $conn->prepare("SELECT e.eventID, e.title, e.description, e.startTime, e.endTime, ea.rsvpStatus 
-                                 FROM EventAttendees ea JOIN events e ON e.eventID = ea.eventID WHERE eq.userID = ? 
+                                 FROM EventAttendees ea JOIN events e ON e.eventID = ea.eventID WHERE ea.userID = ? 
                                  AND ea.rsvpStatus = 'going' ORDER BY e.startTime ASC"); // this will probably need tweaking
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
