@@ -930,9 +930,12 @@ function requestProcessor($req) {
       switch ($req['action']){
         case 'create.club': return doCreateClub($req);
         case 'create.event': return doCreateEvent($req);
-        case 'create.list': return doListEvents($req);
+        case 'create.list': return doList($req);
         case 'create.rsvp': return doRSVPEvent($req);
+        case 'create.event.list': return doListEvents($req);
       }
+    case 'club.invite_link': return doInviteLink($req);
+    case 'club.join_link' : return doInviteJoin($req);
     
     // for book api stuff
     case 'recent_books' : return getRecentBooks();
