@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         if ($action === 'create_club'){
         $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
         $res = $client->send_request([
-            'type' => 'club.create',
+            'type' => 'create.club',
             'user_id' => $userId,
             'club_name' => $_POST['club_name'] ?? '',
             'description' => $_POST['description'] ?? ''
