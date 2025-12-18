@@ -35,6 +35,10 @@ class rabbitMQServer
 		{
 			$this->auto_delete = $this->machine[$server]["AUTO_DELETE"];
 		}
+
+		$this->exchange = $this->machine[$server]["EXCHANGE"];
+		$this->queue = $this->machine[$server]["QUEUE"];
+
 		if (isset($this->machine[$server]["ROUTING_KEY"])) {
     		$this->routing_key = $this->machine[$server]["ROUTING_KEY"];
 		}
@@ -126,6 +130,10 @@ class rabbitMQServer
 		{
 			trigger_error("Failed to start request processor: ".$e,E_USER_ERROR); 
 		}
+	}
+
+	function setQueue($queue_name){
+		$this->queue = $queue_name;
 	}
 }
 
@@ -227,7 +235,6 @@ class rabbitMQClient
 
 			$response = $this->response_queue[$uid];
 			unset($this->response_queue[$uid]);
-
 
 			// close queues
 			$callback_queue->cancel(); // stop consume 
