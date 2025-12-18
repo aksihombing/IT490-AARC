@@ -347,9 +347,9 @@ function doLibraryRemove(array $req)
 }
 
 
-// AIDA'S FUNCTIONS -- club request handlers
+// AIDA'S FUNCTIONS 
 
-// ---- create club ----- 
+// create club 
 function doCreateClub(array $req){
   $owner_id = $req['user_id'] ?? 0;
   $name = $req['club_name'] ?? '';
@@ -370,7 +370,7 @@ function doCreateClub(array $req){
 }
 
 
-// ---- invite member to club ----- 
+// invite member to club
 
 function doInviteMember(array $req){
   $club_id = $req['club_id'] ?? 0;
@@ -381,7 +381,7 @@ function doInviteMember(array $req){
   }
 
   $conn = db();
-  // avoids duplicate club members hopefully. similar to our register logic
+  // trying to avoid adding a duplicate club member to the table
   $check = $conn->prepare("SELECT member_id FROM club_members WHERE club_id=? AND user_id=?");
   $check->bind_param("ii", $club_id, $user_id);
   $check->execute();
@@ -391,7 +391,7 @@ function doInviteMember(array $req){
     return ['status' => 'fail', 'message' => 'user is already a member'];
   }
 
-  // inserts user into club db ""
+  // inserts user into club db "" 
   $stmt = $conn->prepare("INSERT INTO club_members (club_id, user_id) VALUES (?, ?)");
   $stmt->bind_param("ii", $club_id, $user_id);
   if (!$stmt->execute()){
@@ -402,7 +402,7 @@ function doInviteMember(array $req){
 }
 
 
-// ---- create club event ----- 
+// create club event  
 
 function doCreateEvent(array $req){
   $creatorUserID = $req['user_id'] ?? 0;
@@ -416,7 +416,7 @@ function doCreateEvent(array $req){
   }
 
   $conn = db();
-  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, event_date, description) VALUES (?, ?, ?, ?, ?)");
+  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, startTime, description) VALUES (?, ?, ?, ?, ?)");
   $stmt->bind_param("iisss", $creatorUserID, $club_id, $title, $date, $desc);
   if (!$stmt->execute()){
     return ['status' => 'fail', 'message' => $stmt->error];
@@ -425,7 +425,7 @@ function doCreateEvent(array $req){
   return ['status' => 'success', 'event_id' => $conn->insert_id];
 }
 
-// ---- rsvp for event -----
+//  rsvp for event 
 
 function doRSVPEvent(array $req){
   $eventID = ($req['eventID'] ?? $req['event_id'] ?? 0);
@@ -433,7 +433,10 @@ function doRSVPEvent(array $req){
   $status = $req['status'] ?? '';
 
   if (!$eventID || !$userID || !in_array($status, ['going','not_going'])){
-    return ['status' => 'fail', 'message' => 'invalid rsvp form'];
+    return [
+      'status' => 'fail', 
+      'message' => 'invalid rsvp form'
+    ];
   }
 
   $conn = db();
@@ -441,21 +444,28 @@ function doRSVPEvent(array $req){
   $stmt->bind_param("iis", $eventID, $userID, $status);
   $stmt->execute();
 
-  return ['status'=>'success'];
+  return [
+    'status'=>'success'
+  ];
 
 }
 
-// ---- list club events ----- 
+//  list club events  
 
 function doListEvents(array $req){
   $user_id = $req['user_id'] ?? 0;
-  if (!user_id){
-    return ['status' => 'fail', 'message' => 'missing user_id'];
+  if (!$user_id){
+    return [
+      'status' => 'fail', 
+      'message' => 'missing user_id'
+    ];
   }
 
   $conn = db();
-  $stmt = $conn->prepare("SELECT e.eventID, e.title, e.description, e.location, e.startTime, e.endTime, ea.rsvpStatus FROM events e LEFT JOIN EventAttendees ea ON e.eventID = ea.eventID and ea.userID = ? WHERE ea.club_id = ? AND ea.rsvpStatus = 'going' ORDER BY e.startTime ASC");
-  $stmt->bind_param("i", user_id);
+  $stmt = $conn->prepare("SELECT e.eventID, e.title, e.description, e.location, e.startTime, e.endTime, ea.rsvpStatus 
+                                 FROM events e LEFT JOIN EventAttendees ea ON e.eventID = ea.eventID and ea.userID = ? 
+                                 AND ea.rsvpStatus = 'going' ORDER BY e.startTime ASC"); // this will porbably need tweaking
+  $stmt->bind_param("i", $user_id);
   $stmt->execute();
   $result = $stmt->get_result();
 
@@ -464,11 +474,14 @@ function doListEvents(array $req){
     $events[] = $row;
   }
 
-  return ['status' => 'success', 'events' => $events];
+  return [
+    'status' => 'success', 
+    'events' => $events
+  ];
 }
 
 
-// ---- cancel club event ----- 
+//  cancel club event  
 
 function doCancelEvent(array $req){
   $event_id = $req['event_id'] ?? 0;
@@ -484,7 +497,7 @@ function doCancelEvent(array $req){
   return ['status' => 'success', 'message' => 'event cancelled'];
 }
 
-// ---- list clubs -----
+//  list clubs for specific user
 function doList(array $req){
   $user_id = $req['user_id'] ?? 0;
   if (!$user_id) return ['status' => 'fail', 'message' => 'missing user_id'];
@@ -506,7 +519,7 @@ function doList(array $req){
   return ['status' => 'success', 'clubs' => $clubs];
 }
 
-// ---- generate  invite link -----
+//  generate  invite link 
 function doInviteLink(array $req){
   $club_id = $req['club_id'] ??0;
   if (!$club_id) return ['status'=> 'fail', 'message' => 'missing user_id'];
@@ -524,7 +537,7 @@ function doInviteLink(array $req){
   return ['status'=>'success','link'=>$link];
 }
 
-// ---- invite link join -----
+//  invite link join club
 function doInviteJoin(array $req){
   $user_id = $req['user_id'] ?? 0;
   $hash = $req['hash'] ?? '';
@@ -538,6 +551,7 @@ function doInviteJoin(array $req){
   if (!$stmt->fetch()) return ['status'=>'fail','message'=>'invalid or expired link'];
   $stmt->close();
 
+  # adding user to club from link
   $join = $conn->prepare("INSERT INTO club_members(club_id,user_id) VALUES (?,?)");
   $join->bind_param("ii", $club_id, $user_id);
   if (!$join->execute()) return ['status'=>'fail','message'=>$join->error];
