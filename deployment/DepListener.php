@@ -37,11 +37,18 @@ function doVersionRequest(array $req)
   $stmt->execute();
   $result = $stmt->get_result()->fetch_assoc();
 
+  //https://www.w3schools.com/php/php_operators.asp
+  //https://www.php.net/manual/en/language.operators.comparison.php
+
   $max_version = $result['max_v'] ?? 0 + 1; // it takes the highest version it found (0 if it found none)  and adds 1 to it and that will become the new version number
   $stmt->close();
   $db->close();
   return ['status' => 'success', 'version' => $max_version]; // sends it back to the bundle php script
 }
+
+//https://www.w3schools.com/php/php_mysql_prepared_statements.asp
+//https://accuweb.cloud/resource/articles/prevent-sql-injection-in-php-with-prepared-statements
+//https://www.php.net/manual/en/mysqli.quickstart.prepared-statements.php
 
 // the dev cluster's bundle php will need to send a request TO this function
 function doAddBundle(array $req)
@@ -57,11 +64,13 @@ function doAddBundle(array $req)
 
   $bundle_name = $req['bundle_name'] ?? '';
   $version = (int) ($req['version'] ?? 0);
-  
+
 
   if (empty($bundle_name) || $version <= 0) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
+
+
 
   $stmt = $db->prepare("INSERT INTO bundles (bundle_name, version) VALUES (?,?)");// creates a new row for the bundle and this bundle is given a status of new by default
   $stmt->bind_param('si', $bundle_name, $version);
@@ -93,13 +102,15 @@ function doAddBundle(array $req)
 
   }
 }
-
+//https://www.php.net/manual/en/mysqli-stmt.bind-param.php
+//https://www.php.net/manual/en/function.in-array.php
+//
 
 // this is updated FROM THE QA layer to update the status of a bundle
 function doStatusUpdate(array $req)
 { //after the installer scripts is done installing and testing a bundle, it will send a message with the result passed or failed.
   echo "Processing 'status_update'\n";
-  
+
   $db = db();
   if ($db === null) {
     return ['status' => 'fail', 'message' => 'db connection error'];
@@ -108,17 +119,15 @@ function doStatusUpdate(array $req)
   $bundle_name = $req['bundle_name'] ?? '';
   $version = (int) ($req['version'] ?? 0);
   $status = $req['status'] ?? '';
-  $sender_ip = $req['sender_ip'] ?? '';
+  $cluster = $req['cluster'] ?? '';
+  
 
   if (empty($bundle_name) || $version <= 0 || !in_array($status, ['passed', 'failed'])) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
-  
 
-  $cluster = getClusterInfo($sender_ip);
-  if ($cluster === null) {
-    return ['status' => 'fail', 'message' => '$sender_ip not found in clusters.ini'];
-  }
+
+
 
   $stmt = $db->prepare("UPDATE bundles SET status = ? WHERE bundle_name = ? AND version = ?");// this records the result of the installation test by updatinf the fields in the db
   $stmt->bind_param('ssi', $status, $bundle_name, $version);
@@ -127,8 +136,11 @@ function doStatusUpdate(array $req)
 
   $stmt->close();
   $db->close();
+  //https://reqbin.com/code/php/f8wnvcuw/php-string-concatenation-example
+  //https://stackoverflow.com/questions/32522935/how-to-concatenate-filename-and-extension-string
 
-   $filename = $version . "_" . $bundle_name . ".tar.gz";// same question about the file extension
+
+  $filename = $version . "_" . $bundle_name . ".tar.gz";// same question about the file extension
 
   doDeployBundle([
     'bundle_status' => $status,
@@ -156,75 +168,74 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 
   //need a map to route bundles based on where they are going frontend/backend/dmz
 
-  
+//https://www.geeksforgeeks.org/php/php-switch-statement/
+//https://stackoverflow.com/questions/7801175/conditional-switch-statements-in-php
+
   switch ($bundle_status) { // VERIFY IF UPPERCASE OR LOWERCASE
     case 'new':
       $destination_cluster = 'QA';// new bundles always go to qa first
       break;
     case 'passed':
-      if ($starting_cluster === 'QA'){// passed the test (after statusupdate from QA)
-      $destination_cluster = 'Prod';
-       } 
-       else {
-        echo "Bundle $bundle_name vers$version pased on to Production. Deplotment done.\n";
+      if ($starting_cluster === 'QA') {// passed the test (after statusupdate from QA)
+        $destination_cluster = 'Prod';
+      } else {
+        echo "Bundle $bundle_name v$version pased on to Production. Deplotment done.\n";
         return;
-       }
-       break;
+      }
+      break;
     case 'failed':// if failed in prod do rollback, if it fails in qa it will just stop
-      if ($starting_cluster === 'Prod'){
-        echo "Bundle $bundle_name vers$version failed in Production. Rolling back.\n";
-      doRollback([ 
-        'bundle_name' => $bundle_name
-      ]);
-    } else {
-        echo "Bundle $bundle_name vers$version failed in QA. Deployment stopping.\n";
-    }
+     
+        echo "Bundle $bundle_name v$version failed. Rolling back.\n";// remove?
+        doRollback([
+          'bundle_name' => $bundle_name
+        ]); //changed it so that rollback is called for QA and Prod
+      
       return;
     default:
       echo "error: having trouble processing the status'\n";
       return;
   }
 
-  echo "Deploying bundle $bundle_name vers$version to $destination_cluster\n";
+  echo "Deploying bundle $bundle_name v$version to $destination_cluster\n";
   // figuring out which vm to send it to baased on the bundle name and destination cluster
 
   //using the clusters ini to connect bundle names to vm names
   $clusters_ini = parse_ini_file(__DIR__ . "/clusters.ini", true);
   $vm_name = $clusters_ini['BundleDestinations'][$bundle_name] ?? null;
 
-  //
+  
   if (!$vm_name) {
-    echo "Error: Uknown bundle name for '$bundle_name'\n";
+    echo "Error: Unknown bundle name for '$bundle_name'\n";
     echo "VM Name is : $vm_name\n";
     return;
   }
-// getting the vm ip from the bundle name and destination cluster
+  // getting the vm ip from the bundle name and destination cluster
 //using the get host functions and the queue name is constructing the message to be sent, so that it knows which queue to go to based on the cluster and vm name
-    $queue_name = "deploy" . $destination_cluster . $vm_name;
-    $vm_ip = getVmIp($bundle_name, $destination_cluster);
-    if ($vm_ip === null) {
-      echo "Error: Unable to find VM IP for bundle '$bundle_name' in cluster '$destination_cluster'\n";
-      return;
-    }
-
-
-
-    sendBundle([
-      'queue_name' => $queue_name,
-      'destination_cluster' => $destination_cluster,
-      'vm_ip' => $vm_ip,
-      'path' => $path,
-      'bundle_name' => $bundle_name,
-      'version' => $version
-    ]);
+  $queue_name = "deploy" . $destination_cluster . $vm_name;
+  $vm_ip = getVmIp($bundle_name, $destination_cluster);
+  if ($vm_ip === null) {
+    echo "Error: Unable to find VM IP for bundle '$bundle_name' in cluster '$destination_cluster'\n";
+    return;
   }
 
 
+  sendBundle([
+    'queue_name' => $queue_name,
+    'destination_cluster' => $destination_cluster,
+    'vm_ip' => $vm_ip,
+    'vm_name' => $vm_name,
+    'path' => $path,
+    'bundle_name' => $bundle_name,
+    'version' => $version
+  ]);
+}
 
 
 
 
- 
+
+
+
 
 
 
@@ -236,7 +247,9 @@ function sendBundle(array $deployInfo)
   $iniPath = __DIR__ . "/host.ini";
   $filePath = $deployInfo['path'];
   $destinationIP = $deployInfo['vm_ip'];
+  $destination_vmname = $deployInfo['vm_name'];
   $destination_cluster = $deployInfo['destination_cluster'];
+  $destination_key = $destination_cluster . "-" . $destination_vmname;
   $destination_user = strtolower("aarc-$destination_cluster");
   $client = new rabbitMQClient($iniPath, $deployInfo['queue_name']);
 
@@ -244,23 +257,27 @@ function sendBundle(array $deployInfo)
   /*
     shell_exec("sudo sshpass -p 'aarc' scp /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); 
   */
-  exec("scp /var/www/bundles/$filePath destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
+    // -i specifies which ssh key to use... 
+  exec("scp -i /home/aarc-deploy/.ssh/$destination_key /var/www/bundles/$filePath $destination_user@$destinationIP:/var/www/bundles/"); // URGENT : NEED TO CHANGE LATER !!!!
 
   $request = [
     'type' => 'install_bundle',
     'path' => $deployInfo['path'],
+    'tar_name' => $deployInfo['path'],
     'bundle_name' => $deployInfo['bundle_name'],
     'version' => $deployInfo['version'],
-    'vm_ip' => $deployInfo['vm_ip']
+    'vm_ip' => $deployInfo['vm_ip'],
+    'cluster' => $deployInfo['destination_cluster']
   ];
 
   $client->send_request($request);
   echo "Install sent\n";
 
-  
+
 
 
 }
+
 
 function doRollback(array $rollbackReq)
 { // helper function to do a rollback
@@ -268,16 +285,17 @@ function doRollback(array $rollbackReq)
   //$destination_cluster = $rollbackReq['destination_cluster'];
 
   //$destination_vm = $rollbackReq['destination_vm'];
-    $bundle_name = $rollbackReq['bundle_name'];
+  $bundle_name = $rollbackReq['bundle_name'];
 
   echo "Rolling back bundle: " . $rollbackReq['bundle_name'] . "\n";
 
 
-$db = db();
-if ($db === null) return;
-$stmt = $db->prepare("SELECT version FROM bundles WHERE bundle_name = ? AND status = 'passed' ORDER BY version DESC LIMIT 1");
-// finds the last good version following the query requirements 
-$stmt->bind_param('s', $bundle_name);
+  $db = db();
+  if ($db === null)
+    return;
+  $stmt = $db->prepare("SELECT version FROM bundles WHERE bundle_name = ? AND status = 'passed' ORDER BY version DESC LIMIT 1");
+  // finds the last good version following the query requirements 
+  $stmt->bind_param('s', $bundle_name);
   $stmt->execute();
   $result = $stmt->get_result()->fetch_assoc();
   $stmt->close();
@@ -296,7 +314,7 @@ $stmt->bind_param('s', $bundle_name);
 
   echo "Deploying rollback of $bundle_name to version $old_version\n";
 
-// will just call dodeploybundle with the old version infor to trigger the deployment process to Production but with the old version
+  // will just call dodeploybundle with the old version infor to trigger the deployment process to Production but with the old version
   doDeployBundle([
     'bundle_status' => 'rollback',
     'bundle_name' => $bundle_name,
@@ -320,6 +338,7 @@ $stmt->bind_param('s', $bundle_name);
 
 function requestProcessor(array $req)
 {
+  echo "--------------------------\n";
   echo "Received request:\n";
   var_dump($req);
   flush();
@@ -335,7 +354,8 @@ function requestProcessor(array $req)
       return doAddBundle($req);
     case 'status_update'://from Aida's installer script
       return doStatusUpdate($req);
-   
+
+
 
 
     default:
@@ -354,7 +374,7 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues for DB and RMQ connection
   echo "Deployment server starting for all queues...\n";
-  $sections = ['deployVersion', 'deployStatus'];
+  $sections = ['deployVersion', 'deployStatus', 'deployQAfrontend', 'deployQAbackend', 'deployQAdmz', 'deployProdfrontend', 'deployProdbackend', 'deployProddmz'];
 
   foreach ($sections as $section) {
     $pid = pcntl_fork(); // process control fork; creats child process 

@@ -3,7 +3,7 @@ function db() {
   $host = '172.28.109.126
   '; // need local ip, NEED TO CHANGE
   $user = 'testUser'; // needdatabase user
-  $pass = '12345'; // need database password
+  $pass = ''; // need database password
   $name = 'testdb'; // needdatabase name
 
   $mysqli = new mysqli($host, $user, $pass, $name);
@@ -13,7 +13,7 @@ function db() {
   return $mysqli;
 }
 
-// ---------
+
 
 function doLogin(array $req) {
   $username = $req['username'] ?? '';
