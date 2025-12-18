@@ -408,16 +408,17 @@ function doCreateEvent(array $req){
   $creatorUserID = $req['user_id'] ?? 0;
   $club_id = $req['club_id'] ?? 0;
   $title = $req['title'] ?? '';
-  $date = $req['event_date'] . ' 00:00:00';
+  $start = $req['start_time'] ?? '';
+  $end = $req['end_time'] ?? '';
   $desc = $req['description'] ?? '';
 
-  if (!$club_id || $title === ''){
+  if (!$club_id || $title === '' || $start === '' || $end === ''){
     return ['status' => 'fail', 'message' => 'form is missing required fields'];
   }
 
   $conn = db();
-  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, startTime, description) VALUES (?, ?, ?, ?, ?)");
-  $stmt->bind_param("iisss", $creatorUserID, $club_id, $title, $date, $desc);
+  $stmt = $conn->prepare("INSERT INTO events (creatorUserID, club_id, title, description, startTime, endTime) VALUES (?, ?, ?, ?, ?, ?)");
+  $stmt->bind_param("iissss", $creatorUserID, $club_id, $title, $desc, $start, $end);
   if (!$stmt->execute()){
     return ['status' => 'fail', 'message' => $stmt->error];
   }
