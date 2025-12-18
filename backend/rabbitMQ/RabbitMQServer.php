@@ -408,7 +408,7 @@ function doCreateEvent(array $req){
   $creatorUserID = $req['user_id'] ?? 0;
   $club_id = $req['club_id'] ?? 0;
   $title = $req['title'] ?? '';
-  $date = $req['event_date'] ?? null;
+  $date = $req['event_date'] . ' 00:00:00';
   $desc = $req['description'] ?? '';
 
   if (!$club_id || $title === ''){
@@ -462,9 +462,9 @@ function doListEvents(array $req){
   }
 
   $conn = db();
-  $stmt = $conn->prepare("SELECT e.eventID, e.title, e.description, e.location, e.startTime, e.endTime, ea.rsvpStatus 
-                                 FROM events e LEFT JOIN EventAttendees ea ON e.eventID = ea.eventID and ea.userID = ? 
-                                 AND ea.rsvpStatus = 'going' ORDER BY e.startTime ASC"); // this will porbably need tweaking
+  $stmt = $conn->prepare("SELECT e.eventID, e.title, e.description, e.startTime, e.endTime, ea.rsvpStatus 
+                                 FROM EventAttendees ea JOIN events e ON e.eventID = ea.eventID WHERE eq.userID = ? 
+                                 AND ea.rsvpStatus = 'going' ORDER BY e.startTime ASC"); // this will probably need tweaking
   $stmt->bind_param("i", $user_id);
   $stmt->execute();
   $result = $stmt->get_result();
@@ -929,6 +929,7 @@ function requestProcessor($req) {
     case 'club.list': return doList($req);
     case 'club.events.create': return doCreateEvent($req);
     case 'club.events.list': return doListEvents($req);
+    case 'club.events.rsvp': return doRSVPEvent($req);
     case 'club.events.cancel': return doCancelEvent($req);
     case 'club.invite_link': return doInviteLink($req);
     case 'club.join_link' : return doInviteJoin($req);
