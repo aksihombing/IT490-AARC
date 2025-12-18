@@ -40,14 +40,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
                 'user_id' => $userId,
                 'club_id' => $_POST['club_id'],
                 'title' => $_POST['title'],
-                'event_date' => $_POST['event_date'],
+                'start_time' => $_POST['start_time'] ?? '',
+                'end_time' => $_POST['end_time'] ?? '',
                 'description' => $_POST['description'] ?? ''
             ]);
 
             $message = $res['message'] ?? 'event created';
         }
-
-        //event rsvp logic
+        
+        /* event rsvp logic
         if ($action === 'rsvp') {
             $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
             $res = $client->send_request([
@@ -59,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
             ]);
 
             $message = $res['message'] ?? 'rsvp confirmed';
-        }
+        } */
 
     } catch (Exception $e){
         $error = $e->getMessage();
@@ -87,7 +88,7 @@ try{
 
 
 
-//loading rsvp list (events booked)
+//loading event list 
 try{
     $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
     $res = $client->send_request([

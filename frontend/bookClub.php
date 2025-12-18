@@ -32,8 +32,8 @@
           <?php foreach ($clubs as $c): ?>
             <li class="list-group-item">
               <strong><?= htmlspecialchars($c['name']) ?></strong>
-              <?php if (!empty($c['description'])):
-                htmlspecialchars($c['description']) ?>
+              <?php if (!empty($c['description'])): ?>
+                <?=htmlspecialchars($c['description']) ?>
               <?php endif; ?>
             </li>
           <?php endforeach; ?>
@@ -111,21 +111,25 @@
     </div>
   </div>
 
-  <h2>List of Events Booked</h2>
-  <article>
+  
+  <h2>Upcoming Club Events</h2>
     <?php if (empty($events)): ?>
-      <p class="text-muted">You have not RSVPed for any events yet!</p>
+      <p class="text-muted">No upcoming club events</p>
     <?php else: ?>
       <?php foreach ($events as $e): ?>
         <div class="border rounded p-2 mb-2">
           <strong><?= htmlspecialchars($e['title']) ?></strong><br>
-          <?= htmlspecialchars(date('Y-m-d H:i', strtotime($e['startTime']))) ?><br>
+          <em><?= htmlspecialchars($e['club_name']) ?></em><br>
+          <?= htmlspecialchars(date('Y-m-d H:i', strtotime($e['startTime']))) ?>
+          <?php if (!empty($e['endTime'])): ?>
+            <?= htmlspecialchars(date('H:i', strtotime($e['endTime']))) ?>
+          <?php endif; ?><br>
           <?= htmlspecialchars($e['description'] ?? '') ?>
         </div>
       <?php endforeach; ?>
     <?php endif; ?>
-  </article>
 </section>
+      
 
 <div id="output" style="margin-top:1rem;color:#333;"></div>
 
