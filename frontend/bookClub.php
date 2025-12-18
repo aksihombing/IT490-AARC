@@ -89,15 +89,17 @@
           <label class="form-label">Title:</label>
           <input name="title" class="form-control" required>
         </div>
+
         <div class="col-md-6">
           <label class="form-label">Start Time:</label>
-          <input type="datetime-local" name="start_time" class="form-control" required>
+          <input type="datetime-local" name="start_time" required>
         </div>
 
         <div class="col-md-6">
           <label class="form-label">End Time:</label>
-          <input type="datetime-local" name="end_time" class="form-control" required>
+          <input type="datetime-local" name="end_time" required>
         </div>
+
         <div class="col-12">
           <label class="form-label">Description:</label>
           <textarea name="description" class="form-control"></textarea>
