@@ -37,11 +37,18 @@ function doVersionRequest(array $req)
   $stmt->execute();
   $result = $stmt->get_result()->fetch_assoc();
 
+  //https://www.w3schools.com/php/php_operators.asp
+  //https://www.php.net/manual/en/language.operators.comparison.php
+
   $max_version = $result['max_v'] ?? 0 + 1; // it takes the highest version it found (0 if it found none)  and adds 1 to it and that will become the new version number
   $stmt->close();
   $db->close();
   return ['status' => 'success', 'version' => $max_version]; // sends it back to the bundle php script
 }
+
+//https://www.w3schools.com/php/php_mysql_prepared_statements.asp
+//https://accuweb.cloud/resource/articles/prevent-sql-injection-in-php-with-prepared-statements
+//https://www.php.net/manual/en/mysqli.quickstart.prepared-statements.php
 
 // the dev cluster's bundle php will need to send a request TO this function
 function doAddBundle(array $req)
@@ -62,6 +69,8 @@ function doAddBundle(array $req)
   if (empty($bundle_name) || $version <= 0) {
     return ['status' => 'fail', 'message' => 'missing bundle_name'];
   }
+
+
 
   $stmt = $db->prepare("INSERT INTO bundles (bundle_name, version) VALUES (?,?)");// creates a new row for the bundle and this bundle is given a status of new by default
   $stmt->bind_param('si', $bundle_name, $version);
@@ -93,7 +102,9 @@ function doAddBundle(array $req)
 
   }
 }
-
+//https://www.php.net/manual/en/mysqli-stmt.bind-param.php
+//https://www.php.net/manual/en/function.in-array.php
+//
 
 // this is updated FROM THE QA layer to update the status of a bundle
 function doStatusUpdate(array $req)
@@ -125,6 +136,9 @@ function doStatusUpdate(array $req)
 
   $stmt->close();
   $db->close();
+  //https://reqbin.com/code/php/f8wnvcuw/php-string-concatenation-example
+  //https://stackoverflow.com/questions/32522935/how-to-concatenate-filename-and-extension-string
+
 
   $filename = $version . "_" . $bundle_name . ".tar.gz";// same question about the file extension
 
@@ -154,6 +168,8 @@ function doDeployBundle(array $deployInfo) // base made by Rea
 
   //need a map to route bundles based on where they are going frontend/backend/dmz
 
+//https://www.geeksforgeeks.org/php/php-switch-statement/
+//https://stackoverflow.com/questions/7801175/conditional-switch-statements-in-php
 
   switch ($bundle_status) { // VERIFY IF UPPERCASE OR LOWERCASE
     case 'new':
@@ -187,7 +203,7 @@ function doDeployBundle(array $deployInfo) // base made by Rea
   $clusters_ini = parse_ini_file(__DIR__ . "/clusters.ini", true);
   $vm_name = $clusters_ini['BundleDestinations'][$bundle_name] ?? null;
 
-  //
+  
   if (!$vm_name) {
     echo "Error: Unknown bundle name for '$bundle_name'\n";
     echo "VM Name is : $vm_name\n";

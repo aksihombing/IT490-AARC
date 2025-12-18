@@ -37,6 +37,9 @@ function getHostInfo(array $extra = NULL)
     return $machine;
 }
 
+//https://www.php.net/manual/en/function.parse-ini-file.php
+//https://www.w3schools.com/php/func_filesystem_parse_ini_file.asp
+
 function getClusterInfo($ip) {
     $clusterPath = __DIR__ . "/clusters.ini";
     if (!file_exists($clusterPath)) return null;
