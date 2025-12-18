@@ -924,15 +924,16 @@ function requestProcessor($req) {
     case 'library.review.create': return doReviewsCreate($req);
     case 'library.personal.list': return doLibraryList($req);
     case 'library.personal.add': return doLibraryAdd($req);
-    case 'club.create': return doCreateClub($req);
-    case 'club.invite': return doInviteMember($req);
-    case 'club.list': return doList($req);
-    case 'club.events.create': return doCreateEvent($req);
-    case 'club.events.list': return doListEvents($req);
-    case 'club.events.rsvp': return doRSVPEvent($req);
-    case 'club.events.cancel': return doCancelEvent($req);
-    case 'club.invite_link': return doInviteLink($req);
-    case 'club.join_link' : return doInviteJoin($req);
+
+    //have to do switch case because i only have one club queue and dont want to make more 
+    case 'club.create':
+      switch ($req['action']){
+        case 'create.club': return doCreateClub($req);
+        case 'create.event': return doCreateEvent($req);
+        case 'create.list': return doListEvents($req);
+        case 'create.rsvp': return doRSVPEvent($req);
+      }
+    
     // for book api stuff
     case 'recent_books' : return getRecentBooks();
     case 'book_search' : return doBookCollect($req);
