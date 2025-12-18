@@ -18,46 +18,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 
         //create club form logic
         if ($action === 'create_club'){
-        $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
-        $res = $client->send_request([
-            'type' => 'create.club',
-            'user_id' => $userId,
-            'club_name' => $_POST['club_name'] ?? '',
-            'description' => $_POST['description'] ?? ''
-        ]);
+            $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
+            $res = $client->send_request([
+                'type' => 'club.create',
+                'action' => 'create.club',
+                'user_id' => $userId,
+                'club_name' => $_POST['club_name'] ?? '',
+                'description' => $_POST['description'] ?? ''
+            ]);
 
-        $message = $res['message'] ?? 'club created';
+            $message = $res['message'] ?? 'club created';
         }
 
 
         // create event logic
         if ($action === 'create_event'){
-        $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
-        $res = $client->send_request([
-            'type' => 'club.create',
-            'action' => 'create.event',
-            'user_id' => $userId,
-            'club_id' => $_POST['club_id'],
-            'title' => $_POST['title'],
-            'event_date' => $_POST['event_date'],
-            'description' => $_POST['description'] ?? ''
-        ]);
+            $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
+            $res = $client->send_request([
+                'type' => 'club.create',
+                'action' => 'create.event',
+                'user_id' => $userId,
+                'club_id' => $_POST['club_id'],
+                'title' => $_POST['title'],
+                'event_date' => $_POST['event_date'],
+                'description' => $_POST['description'] ?? ''
+            ]);
 
-        $message = $res['message'] ?? 'event created';
+            $message = $res['message'] ?? 'event created';
         }
 
         //event rsvp logic
         if ($action === 'rsvp') {
-        $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
-        $res = $client->send_request([
-            'type' => 'club.create',
-            'action' => 'create.rsvp',
-            'event_id' => $_POST['event_id'],
-            'user_id' => $userId,
-            'status' => $_POST['status']
-        ]);
+            $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
+            $res = $client->send_request([
+                'type' => 'club.create',
+                'action' => 'create.rsvp',
+                'event_id' => $_POST['event_id'],
+                'user_id' => $userId,
+                'status' => $_POST['status']
+            ]);
 
-        $message = $res['message'] ?? 'rsvp confirmed';
+            $message = $res['message'] ?? 'rsvp confirmed';
         }
 
     } catch (Exception $e){

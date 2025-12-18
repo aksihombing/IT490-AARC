@@ -90,8 +90,13 @@
           <input name="title" class="form-control" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Date:</label>
-          <input type="date" name="event_date" class="form-control" required>
+          <label class="form-label">Start Time:</label>
+          <input type="datetime-local" name="start_time" class="form-control" required>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">End Time:</label>
+          <input type="datetime-local" name="end_time" class="form-control" required>
         </div>
         <div class="col-12">
           <label class="form-label">Description:</label>
