@@ -466,7 +466,7 @@ function doListEvents(array $req){
 
   $conn = db();
   $stmt = $conn->prepare("SELECT e.eventID, e.title, e.description, e.startTime, e.endTime, c.name AS club_name 
-                                 FROM events e JOIN clubs c ON c.club_id = e.club_id LEFT JOIN club_members m ON m.club_id = c.club.id
+                                 FROM events e JOIN clubs c ON c.club_id = e.club_id LEFT JOIN club_members m ON m.club_id = c.club_id
                                  WHERE c.owner_id = ? OR m.user_id = ? ORDER BY e.startTime ASC"); // this will probably need tweaking
   $stmt->bind_param("ii", $user_id, $user_id);
   $stmt->execute();
