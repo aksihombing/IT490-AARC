@@ -1,19 +1,15 @@
+
 <!doctype html>
 
 <html>
 <head>
   <meta charset="utf-8">
   <title>Book Clubs</title>
-  <!-- 
   <link rel="stylesheet" href="bootstrap-5.3.8/dist/css/bootstrap.css">
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
     integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-    crossorigin="anonymous"></script>
-  <script src="bootstrap-5.3.8/dist/js/bootstrap.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
--->
-
-
+    crossorigin="anonymous">
+  </script>
 </head>
 <body>
 
@@ -28,8 +24,7 @@
   <div class="card-body">
   <h3 class="card-title h5">My Clubs</h3> <!-- bootstrap card title -->
   <ul id="clubList" class="list-group list-group-flush mt-3">
- <!--list-group for list styling, flush to remove borders and added a margin-top for spacing-->
-    
+     <!--list-group for list styling, flush to remove borders and added a margin-top for spacing-->
   </ul>
   </div>
   </div>
@@ -85,6 +80,17 @@
   </form>
   </div>
   </div>
+
+  <h2>List View of Events Booked</h2>
+    <article>
+    <h2><?=$result["username"]?>'s profile:</h2>
+    <h2>Below is the user's information</h2>
+    <h3>The club ID is: <?=$result['club_id']?></h3>
+    <h3>The title: <?=$result['title']?></h3>
+    <h3>The event date is: <?=$result['event_date']?></h3>
+    <h3>The description of the event created is: <?=$result['description']?></h3>
+
+</article>
 </section>
 
 <div id="output" style="margin-top:1rem;color:#333;"></div>
@@ -92,94 +98,6 @@
 </div> <!-- end of container -->
 
 <!--bootstrap edits ended here, tbc-->
-
-<script>
-const USER_ID = <?= json_encode($_SESSION['user_id'] ?? 1) ?>;
-
-document.addEventListener("DOMContentLoaded", loadClubs); // should auto-load clubs list when page loads
-
-// invite generation function
-async function generateInvite(clubId) {
-  const res = await fetch('includes/clubs_functions.php', {
-    method: 'POST',
-    body: new URLSearchParams({ 
-      action: 'invite_link', 
-      club_id: clubId, 
-      user_id: USER_ID })
-  });
-  const json = await res.json();
-  if (json.status === 'success' && json.link) {
-    alert(`Invite link: ${json.link}`);
-  } else {
-    alert(`Failed to generate invite link: ${json.message || 'unknown error'}`);
-  }
-}
-
-// club list loading function
-async function loadClubs() {
-  const list = document.getElementById('clubList');
-
-  try {
-    const res = await fetch('includes/clubs_functions.php', {
-      method: 'POST',
-      body: new URLSearchParams({
-        action: 'list',
-        user_id: USER_ID
-      })
-    });
-
-    const json = await res.json();
-
-    if (!json.clubs || json.clubs.length === 0) {
-      list.innerHTML = '<li>no clubs found</li>';
-      return;
-    }
-
-    list.innerHTML = '';
-    json.clubs.forEach(c => {
-      const li = document.createElement('li');
-      let inviteLinkHTML = '';
-      //modified existing login here for club list to include the link I Hope
-      if (c.owner_id == USER_ID) {
-        inviteLinkHTML = `<button onclick="generateInvite(${c.club_id})">Generate Invite Link</button>`;
-      }
-
-      li.innerHTML = `<strong>${c.name}</strong> — ${c.description || 'No club description'} 
-        (<a href="calendar.php?club_id=${c.club_id}">View Calendar</a>) ${inviteLinkHTML}`;
-        
-      list.appendChild(li); 
-    });
-  } catch (err) {
-    list.innerHTML = `<li>error loading clubs: ${err.message}</li>`;
-  }
-}
-
-
-async function postForm(form){
-  const data = new FormData(form);
-    
-  if (!data.has('user_id')) data.append('user_id', USER_ID);
-
-  const res = await fetch('includes/clubs_functions.php', {method:'POST', body:data});
-  const out = document.getElementById('output');
-
-  if(!res.ok){ out.textContent = 'network error'; return; }
-  
-  const json = await res.json();
-  out.textContent = json.message || json.status;
-
-  // refresh clubs automatically after forms submitted
-  if (['create', 'invite'].includes(data.get('action'))) {
-    await loadClubs();
-  }
-
-  form.reset();
-}
-
-document.getElementById('formCreate').onsubmit = e => {e.preventDefault();postForm(e.target);}
-// document.getElementById('formInvite').onsubmit = e => {e.preventDefault();postForm(e.target);}
-document.getElementById('formEvent').onsubmit = e => {e.preventDefault();postForm(e.target);}
-</script>
 
 </body>
 </html>
