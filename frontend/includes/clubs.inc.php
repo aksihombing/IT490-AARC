@@ -34,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         if ($action === 'create_event'){
         $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
         $res = $client->send_request([
-            'type' => 'club.events.create',
+            'type' => 'club.create',
+            'action' => 'create.event',
             'user_id' => $userId,
             'club_id' => $_POST['club_id'],
             'title' => $_POST['title'],
@@ -49,7 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         if ($action === 'rsvp') {
         $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
         $res = $client->send_request([
-            'type' => 'club.events.rsvp',
+            'type' => 'club.create',
+            'action' => 'create.rsvp',
             'event_id' => $_POST['event_id'],
             'user_id' => $userId,
             'status' => $_POST['status']
@@ -69,7 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'){
 try{
     $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
     $res = $client->send_request([
-        'type' => 'club.list',
+        'type' => 'club.create',
+        'action' => 'create.list',
         'user_id' => $userId
     ]);
 
@@ -87,7 +90,8 @@ try{
 try{
     $client = new rabbitMQClient(__DIR__ . '/../../rabbitMQ/host.ini', 'ClubProcessor');
     $res = $client->send_request([
-        'type' => 'club.events.list',
+        'type' => 'club.create',
+        'action' => 'create.event.list',
         'user_id' => $userId
     ]);
 
