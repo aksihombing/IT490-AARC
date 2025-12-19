@@ -97,7 +97,7 @@
 
         <div class="col-md-6">
           <label class="form-label">End Time:</label>
-          <input type="text" name="start_time" class="form_control" placeholder="YYYY-MM-DD HH:MM:SS" required>
+          <input type="text" name="end_time" class="form_control" placeholder="YYYY-MM-DD HH:MM:SS" required>
         </div>
 
         <div class="col-12">
