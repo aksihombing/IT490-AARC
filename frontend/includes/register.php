@@ -32,6 +32,8 @@ if ($email === '' || $username === '' || $password === '') {
 // reworked above bcs variables were mismatched
 
 
+<<<<<<< HEAD
+=======
 // hash the password before sending through server and datbase
 
 // below the line of code will need to be changed and add it to
@@ -40,6 +42,7 @@ if ($email === '' || $username === '' || $password === '') {
 
 
 
+>>>>>>> 70198d636dde90a2174845a71a3cf0babde41ad9
 $request = [
   'type' => 'register',
   'email' => $email,
