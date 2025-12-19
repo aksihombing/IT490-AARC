@@ -1,0 +1,15 @@
+[Unit]
+Description=Background process for processing deployment tasks
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /home/aarc-deploy/deployment/DepListener.php
+
+User=aarc-deploy
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
