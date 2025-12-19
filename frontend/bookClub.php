@@ -92,12 +92,12 @@
 
         <div class="col-md-6">
           <label class="form-label">Start Time:</label>
-          <input type="datetime-local" name="start_time" required>
+          <input type="text" name="start_time" class="form_control" placeholder="YYYY-MM-DD HH:MM:SS" required>
         </div>
 
         <div class="col-md-6">
           <label class="form-label">End Time:</label>
-          <input type="datetime-local" name="end_time" required>
+          <input type="text" name="start_time" class="form_control" placeholder="YYYY-MM-DD HH:MM:SS" required>
         </div>
 
         <div class="col-12">
