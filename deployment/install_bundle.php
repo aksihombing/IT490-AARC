@@ -113,7 +113,7 @@ function installBundle(array $req)
 
     if ($result !== 0) {
         echo "bundle extraction failed\n";
-        sendStatus($bundle_name, $version, "failed", $cluster);
+        //sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'tar extraction failed'];
     }
 
@@ -149,34 +149,57 @@ WantedBy=multi-user.target */
     switch ($bundle_name) {
         case "frontendProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/rabbitMQ/host.ini");
+
+            // loglistener.service
+            shell_exec("sed -i 's|/home/chizorom/IT490-AARC/|/var/www/|g' $tmp/rabbitMQ/daemon/loglistener.service");
+            shell_exec("sed -i 's|chizorom|$cluster_user|g' $tmp/rabbitMQ/daemon/loglistener.service");
+
             break;
         case "backendProcess":
             shell_exec("sed -i 's/\b172.28.219.213\b/$cluster_rmq/g' $tmp/backend/rabbitMQ/host.ini");
             // UPDATE DAEMON
-            shell_exec("sed -i 's/rea-sihombing/Project/IT490-AARC\b/$cluster_user/g' $tmp/api/daemon/rabbitMQ/host.ini");
-            // [WIP] UPDATE CRON FILEPATH TOO !!
+/* if [ $? -eq 0 ]; then echo 'Cron job updateRecentBooks.php already exists.';
+else
+    crontab -l 2>/dev/null; echo '0 10 * * * /usr/bin/php /home/aida/cron/updateRecentBooks.php >> /home/aida/cron/recentBooks.log.txt 2>&1' | crontab -
+    if [ $? -ne 0 ]; then echo 'Failed to install cronjob.'; exit 1; fi
+    echo 'Cron job updateRecenBooks.php added.'
+fi*/
+            // change filepath for cron within config script
+            shell_exec("sed -i 's|aida|backend/api_db|g' $tmp/config.sh");
+
+            // update rabbitmqserver.service
+            shell_exec("sed -i 's|aida/git/IT490-AARC/||g' $tmp/rabbitMQ/daemon/rabbitmqserver.service");
+            shell_exec("sed -i 's|aida|$cluster_user|g' $tmp/rabbitMQ/daemon/rabbitmqserver.service");
+            // loglistener.service
+            shell_exec("sed -i 's|aida/git/IT490-AARC/||g' $tmp/rabbitMQ/daemon/loglistener.service");
+            shell_exec("sed -i 's|aida|$cluster_user|g' $tmp/rabbitMQ/daemon/loglistener.service");
+
             break;
         case "apiProcess":
             shell_exec("sed -i 's/172.28.219.213/$cluster_rmq/g' $tmp/api/rmqAccess.ini");
-
             // UPDATE DAEMON
             shell_exec("sed -i 's|rea-sihombing/Project/IT490-AARC/||g' $tmp/api/daemon/libraryapi.service");// --> changes ExecStart filepath
             shell_exec("sed -i 's|rea-sihombing|$cluster_user|g' $tmp/api/daemon/libraryapi.service"); // --> changes User name
+            // for loglistener
+            shell_exec("sed -i 's|rea-sihombing/Project/IT490-AARC/||g' $tmp/api/daemon/loglistener.service");
+            shell_exec("sed -i 's|rea-sihombing|$cluster_user|g' $tmp/api/daemon/loglistener.service");
             break;
     }
+    // sed delimiters : https://stackoverflow.com/questions/5864146/using-different-delimiters-in-sed-commands-and-range-addresses
 
     // NOTE: var/www/bundles NEEDS TO BE OWNED BY ITS USER (aarc-qa or aarc-prod)
     echo "Running configure.sh script...\n";
     exec("cd $tmp ; ./configure.sh", $configOutput, $configResultCode);
     if ($configResultCode !== 0) {
         echo "bundle configure installation failed\n";
-        sendStatus($bundle_name, $version, "failed", $cluster);
+        //sendStatus($bundle_name, $version, "failed", $cluster);
         return ['status' => 'fail', 'message' => 'configure script failed'];
     }
     echo "Successful configure.sh install\n";
-    sendStatus($bundle_name, $version, "passed", $cluster);
+    // BUG : sendStatus not being run, so the DEV bundler remains open since it was not able to receive the return message.
+    //sendStatus($bundle_name, $version, "passed", $cluster);
     return ['status' => 'success', 'message' => 'Bundle installed'];
-    
+
 
     // end of Rea's Draft
 
@@ -255,7 +278,8 @@ flush();
 
 // uses pcntl_fork -->  https://www.php.net/manual/en/function.pcntl-fork.php
 
-// BUILD QUEUE NAME TO LISTEN ON -----------------
+// BUILD QUEUE NAME TO LISTEN ON
+
 // WHICH CLUSTER ?
 $clustername = null;
 $whichCluster = [
@@ -295,7 +319,14 @@ $iniPath = __DIR__ . "/host.ini";
 
 if ($which === 'all') { // to run all queues when scripts are together later
     echo "Bundler server starting for ALL deployment queues...\n";
-    $sections = ['deployQA', 'deployProd', 'deployVersion', 'deployStatus']; // may need to add / change..? unsure
+    $sections = [
+        'deployQAfrontend',
+        'deployQAbackend',
+        'deployQAdmz',
+        'deployProdfrontend',
+        'deployProdbackend',
+        'deployProddmz',
+    ]; // may need to add / change..? unsure
 
     foreach ($sections as $section) {
         $pid = pcntl_fork(); // process control fork; creats child process 

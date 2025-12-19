@@ -20,7 +20,7 @@
         },
         "clubFeatures": {
             "paths": [
-                "frontend/includes/club_functions.php",
+                "frontend/includes/clubs_functions.php",
                 "frontend/includes/events_api.php",
                 "frontend/includes/events_functions.php",
                 "frontend/bookClub.php",
@@ -74,16 +74,32 @@
                 "exit 0"
             ]
         },
-        "frontendProcess" : {
+        "frontendProcess": {
             "paths": [
                 "rabbitMQ/"
             ],
             "commands": [
                 "echo 'Installing frontendProcess'",
-                "sudo cp -r rabbitMQ/ /var/www/aarc/",
+                "sudo cp -r rabbitMQ/* /var/www/rabbitMQ/",
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo service apache2 restart",
                 "if [ $? -ne 0 ]; then echo 'Failed restart apache2.'; exit 1; fi",
+                "sudo systemctl restart loglistener.service",
+                "if [ $? -ne 0 ]; then echo 'Failed to restart loglistener.service.'; exit 1; fi",
+                "echo '-----Installation complete-----'",
+                "exit 0"
+            ]
+        },
+        "frontendLib": {
+            "paths": [
+                "frontend/bootstrap-5.3.8/",
+                "frontend/images/"
+            ],
+            "commands": [
+                "echo 'Installing frontendLib'",
+                "sudo cp -r frontend/* /var/www/aarc/",
+                "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
+                "sudo service apache2 restart",
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]
@@ -115,11 +131,13 @@
                 "if [ $? -ne 0 ]; then echo 'Failed to updated library_cache table.'; exit 1; fi",
                 "sudo mysql -u 'apiAdmin' -paarc490 'apidb' < '/home/backend/api_db/cron/recentBooks.sql'",
                 "if [ $? -ne 0 ]; then echo 'Failed to update cron table for recentBooks'; exit 1; fi",
-                "chmod +rx cron/updateRecentBooks.php",
-                "{ crontab -l; echo '0 10 * * * /usr/bin/php /home/backend/cron/updateRecentBooks.php >> /home/backend/cron/recentBooks.log.txt 2>&1'; } | crontab -",
-                "if [ $? -ne 0 ]; then echo 'Failed to update crontab job for recentBooks'; exit 1; fi",
-                "/usr/bin/php /home/backend/cron/updateRecentBooks.php >> /home/backend/cron/recentBooks.log.txt 2>&1",
-                "if [ $? -ne 0 ]; then echo 'Failed to force-run updateRecentBooks.php'; exit 1; fi",
+                "crontab -l | grep 'updateRecentBooks.php'",
+                "if [ $? -eq 0 ]; then echo 'Cron job updateRecentBooks.php already exists.';",
+                "else",
+                "crontab -l 2>/dev/null; echo '0 10 * * * /usr/bin/php /home/aida/cron/,updateRecentBooks.php >> /home/aida/cron/recentBooks.log.txt 2>&1' | crontab -",
+                "if [ $? -ne 0 ]; then echo 'Failed to install cronjob.'; exit 1; fi",
+                "echo 'Cron job updateRecenBooks.php added.'",
+                "fi",
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]
@@ -134,6 +152,8 @@
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo systemctl restart rabbitmqserver.service",
                 "if [ $? -ne 0 ]; then echo 'Failed to restart rabbitmqserver.service.'; exit 1; fi",
+                "sudo systemctl restart loglistener.service",
+                "if [ $? -ne 0 ]; then echo 'Failed to restart loglistener.service.'; exit 1; fi",
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]
@@ -142,13 +162,7 @@
     "DMZ": {
         "apiProcess": {
             "paths": [
-                "api/api_endpoints.php",
-                "api/api_process.php",
-                "api/get_host_info.inc",
-                "api/Library_API.php",
-                "api/rabbitMQLib.inc",
-                "api/rmqAccess.ini",
-                "api/daemon"
+                "api/"
             ],
             "commands": [
                 "echo 'Installing apiProcess (DMZ RabbitMQ Processor)'",
@@ -156,6 +170,8 @@
                 "if [ $? -ne 0 ]; then echo 'Failed to move files.'; exit 1; fi",
                 "sudo systemctl restart libraryapi.service",
                 "if [ $? -ne 0 ]; then echo 'Failed to restart libraryapi.service.'; exit 1; fi",
+                "sudo systemctl restart loglistener.service",
+                "if [ $? -ne 0 ]; then echo 'Failed to restart loglistener.service.'; exit 1; fi",
                 "echo '-----Installation complete-----'",
                 "exit 0"
             ]

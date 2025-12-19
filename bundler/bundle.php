@@ -7,8 +7,8 @@ require_once __DIR__ . '/get_host_info.inc';
 // https://www.php.net/manual/en/function.exec.php
 
 //https://www.geeksforgeeks.org/linux-unix/sed-command-in-linux-unix-with-examples/
- // --> we used sed to update the ip addresses of api/rmqAccess.ini , backend/rabbitMQ/host.ini , rabbitMQ/host.ini (for the frontend, since var/www/rabbitMQ is ran adjacent to the var/www/aarc) 
- // might need to use sed for the daemon files as well ??
+// --> we used sed to update the ip addresses of api/rmqAccess.ini , backend/rabbitMQ/host.ini , rabbitMQ/host.ini (for the frontend, since var/www/rabbitMQ is ran adjacent to the var/www/aarc) 
+// might need to use sed for the daemon files as well ??
 
 // HELPER FUNCTIONS -------------------------
 function getBundleInfo(string $section, string $bundle_name, string $bundle_attribute)
@@ -97,24 +97,29 @@ $projectRootPath = realpath(__DIR__ . "/..");
 // CHECK WHICH VM THIS BUNDLE SCRIPT IS ON 
 // this could definitely be done if we set etc/hosts with the correct ip addresses
 // example : 172.28.109.126 dev-dmz
-$checkIP = trim(shell_exec("hostname -I | awk '{print $1}'"));
-$whichVM = [
-    '172.28.108.126' => 'Frontend',
-    '172.28.219.213' => 'Backend',
-    '172.28.109.126' => 'DMZ'
-];
 
-// find which vm the bundlr script is being run on
-foreach ($whichVM as $ip => $vmName) {
-    $shellcmd = "hostname -I | grep $ip";
-    // note to self: we could use hostname more effectively if we assigned each ip in /etc/hosts
-    exec($shellcmd, $output, $returnCode);
-    // similar to shell_exec() but saves output and returncode
+// updated: SECOND ARG WILL BE THE SECTION NAME AND OPTIONAL !!!! so these bundles can be updated from ANY machine if specified. realized that it will default to the currently-used section which makes it hard for me to update qa-frontend and qa-backend if im on dev-dmz.
+$section = $argv[2];
+if (!isset($section)) {
+    $checkIP = trim(shell_exec("hostname -I | awk '{print $1}'"));
+    $whichVM = [
+        '172.28.108.126' => 'Frontend',
+        '172.28.219.213' => 'Backend',
+        '172.28.109.126' => 'DMZ'
+    ];
 
-    // iterate thru each possible ip for the dev layer
-    if ($returnCode === 0) {
-        $section = $vmName;
-        break;
+    // find which vm the bundlr script is being run on
+    foreach ($whichVM as $ip => $vmName) {
+        $shellcmd = "hostname -I | grep $ip";
+        // note to self: we could use hostname more effectively if we assigned each ip in /etc/hosts
+        exec($shellcmd, $output, $returnCode);
+        // similar to shell_exec() but saves output and returncode
+
+        // iterate thru each possible ip for the dev layer
+        if ($returnCode === 0) {
+            $section = $vmName;
+            break;
+        }
     }
 }
 
