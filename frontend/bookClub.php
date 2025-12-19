@@ -113,23 +113,26 @@
     </div>
   </div>
 
-  
-  <h2>Upcoming Club Events</h2>
-    <?php if (empty($events)): ?>
-      <p class="text-muted">No upcoming club events</p>
-    <?php else: ?>
-      <?php foreach ($events as $e): ?>
-        <div class="border rounded p-2 mb-2">
-          <strong><?= htmlspecialchars($e['title']) ?></strong><br>
-          <em><?= htmlspecialchars($e['club_name']) ?></em><br>
-          <?= htmlspecialchars(date('Y-m-d H:i', strtotime($e['startTime']))) ?>
-          <?php if (!empty($e['endTime'])): ?>
-            <?= htmlspecialchars(date('H:i', strtotime($e['endTime']))) ?>
-          <?php endif; ?><br>
-          <?= htmlspecialchars($e['description'] ?? '') ?>
-        </div>
-      <?php endforeach; ?>
-    <?php endif; ?>
+  <div class="card"><!-- Bootstrap card -->
+    <div class="card-body"></div>
+      <h3 class="card-title h5 mb-3">Upcoming Club Events</h3>
+        <?php if (empty($events)): ?>
+          <p class="text-muted">No upcoming club events</p>
+        <?php else: ?>
+          <?php foreach ($events as $e): ?>
+            <div class="border rounded p-2 mb-2">
+              <strong><?= htmlspecialchars($e['title']) ?></strong><br>
+              <em><?= htmlspecialchars($e['club_name']) ?></em><br>
+              <?= htmlspecialchars(date('Y-m-d H:i', strtotime($e['startTime']))) ?>
+              <?php if (!empty($e['endTime'])): ?>
+                <?= htmlspecialchars(date('H:i', strtotime($e['endTime']))) ?>
+              <?php endif; ?><br>
+              <?= htmlspecialchars($e['description'] ?? '') ?>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+  </div>
+        
 </section>
       
 
